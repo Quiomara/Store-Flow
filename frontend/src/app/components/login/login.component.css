@@ -1,0 +1,115 @@
+/* Contenedor principal del login */
+.login-container {
+  display: flex;
+  flex-direction: column; /* Disposición en columna */
+  align-items: center; /* Centrar elementos horizontalmente */
+  justify-content: center; /* Centrar elementos verticalmente */
+  height: 100vh; /* Altura completa de la pantalla */
+  background-color: #ffffff; /* Color de fondo blanco */
+  padding: 40px; /* Aumentar el padding */
+  font-family: 'Inria Serif', serif; /* Fuente Inria Serif */
+  padding-top: 20px; /* Añadir padding superior */
+}
+
+/* Título del formulario */
+.login-title {
+  text-align: center; /* Centrar el título */
+  font-size: 40px; /* Aumentar tamaño de fuente */
+  margin-bottom: 60px; /* Aumentar espacio inferior */
+  margin-top: 0; /* Reducir margen superior */
+  font-weight: bold; /* Texto en negrilla */
+  color: #333333; /* Color del texto */
+}
+
+/* Contenedor del contenido del login */
+.login-content {
+  display: flex;
+  justify-content: center; /* Centrar contenido horizontalmente */
+  align-items: center; /* Centrar contenido verticalmente */
+  gap: 50px; /* Aumentar espacio entre el formulario y el logo */
+  width: 100%; /* Ajustar el ancho para el contenido */
+}
+
+/* Estilo del formulario de login */
+.login-form {
+  width: 350px; /* Aumentar ancho del formulario */
+  padding: 30px; /* Aumentar espaciado interno */
+  background-color: #f8f9fa; /* Fondo claro para el formulario */
+  border-radius: 10px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+}
+
+/* Grupo de formularios para cada campo */
+.form-group {
+  margin-bottom: 20px; /* Aumentar espacio inferior de cada grupo */
+}
+
+/* Etiqueta de cada campo del formulario */
+.form-group label {
+  display: block; /* Mostrar como bloque */
+  margin-bottom: 10px; /* Aumentar espacio inferior de la etiqueta */
+  font-weight: bold; /* Texto en negrita */
+  color: #333333; /* Color del texto */
+}
+
+/* Campo de entrada del formulario */
+.form-control {
+  width: 100%; /* Ancho completo del campo */
+  border: 1px solid #ced4da; /* Borde gris claro */
+  border-radius: 5px; /* Bordes redondeados */
+  box-sizing: border-box; /* Incluir el borde y el padding en el tamaño */
+  font-size: 18px; /* Aumentar tamaño de fuente */
+  padding: 10px; /* Añadir padding interno */
+}
+
+/* Botón de enviar del formulario */
+.btn-primary {
+  width: 100%; /* Ancho completo del botón */
+  border: none; /* Sin borde */
+  border-radius: 5px; /* Bordes redondeados */
+  background-color: #000000; /* Color de fondo negro */
+  color: white; /* Texto blanco */
+  font-size: 18px; /* Aumentar tamaño de fuente */
+  cursor: pointer; /* Cursor de mano */
+  padding: 10px; /* Añadir padding interno */
+}
+
+/* Hover del botón de enviar */
+.btn-primary:hover {
+  background-color: #333333; /* Fondo gris oscuro en hover */
+}
+
+/* Enlace de recuperar contraseña */
+.forgot-password {
+  display: block; /* Mostrar como bloque */
+  margin-top: 20px; /* Aumentar espacio superior */
+  text-align: center; /* Centrar el texto */
+  color: #000000; /* Color negro para el enlace */
+  text-decoration: none; /* Sin subrayado */
+  font-size: 16px; /* Aumentar tamaño de fuente */
+}
+
+/* Hover del enlace de recuperar contraseña */
+.forgot-password:hover {
+  text-decoration: underline; /* Subrayado en hover */
+}
+
+/* Contenedor del logo */
+.login-logo {
+  text-align: center; /* Centrar el contenido */
+}
+
+/* Estilo de la imagen del logo */
+.login-logo img {
+  max-width: 250px; /* Aumentar ancho máximo de la imagen */
+  height: auto; /* Altura automática */
+}
+
+.error-message {
+  color: #d9534f;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  text-align: center;
+  font-family: 'Inria Serif', serif; /* Fuente Inria Serif */
+  font-weight: bold;
+}

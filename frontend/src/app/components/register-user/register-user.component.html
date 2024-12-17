@@ -1,0 +1,44 @@
+<div class="register-user-container">
+    <h2>Registro de Usuario</h2>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" [(ngModel)]="user.nombre" name="nombre" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="apellidos">Apellidos</label>
+        <input type="text" id="apellidos" [(ngModel)]="user.apellidos" name="apellidos" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" [(ngModel)]="user.email" name="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="confirmarEmail">Confirmar E-mail</label>
+        <input type="email" id="confirmarEmail" [(ngModel)]="user.confirmarEmail" name="confirmarEmail" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="centroFormacion">Centro de Formación</label>
+        <select id="centroFormacion" [(ngModel)]="user.centroFormacion" name="centroFormacion" class="form-control" required>
+          <option value="">Selecciona un centro</option>
+          <!-- Agrega aquí las opciones de centros de formación -->
+          <option value="Centro 1">Centro 1</option>
+          <option value="Centro 2">Centro 2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" [(ngModel)]="user.telefono" name="telefono" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" [(ngModel)]="user.contrasena" name="contrasena" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="confirmarContrasena">Confirmar Contraseña</label>
+        <input type="password" id="confirmarContrasena" [(ngModel)]="user.confirmarContrasena" name="confirmarContrasena" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+  </div>
+  
