@@ -8,6 +8,10 @@ const elementoRoutes = require('./routes/elementoRoutes');
 const prestamoRoutes = require('./routes/prestamoRoutes');
 const authRoutes = require('./routes/authRoutes');
 
+// Importar nuevas rutas
+const centroDeFormacionRoutes = require('./routes/centroDeFormacionRoutes');
+const tipoDeUsuarioRoutes = require('./routes/tipoDeUsuarioRoutes');
+
 const app = express();
 
 console.log('Configurando middlewares...');
@@ -23,6 +27,10 @@ app.use('/usuarios', usuarioRoutes);
 app.use('/ubicacion-elementos', ubicacionElementoRoutes);
 app.use('/elementos', elementoRoutes);
 app.use('/prestamos', prestamoRoutes);
+
+// Nuevas rutas para centros de formación y tipos de usuario
+app.use('/api', centroDeFormacionRoutes);
+app.use('/api', tipoDeUsuarioRoutes);
 
 app.get('/', (req, res) => {
   res.send('¡El servidor está funcionando!');
