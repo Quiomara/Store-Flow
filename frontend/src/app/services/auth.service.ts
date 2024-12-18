@@ -16,7 +16,7 @@ export class AuthService {
       .pipe(
         map(response => {
           if (response && response.token) {
-            localStorage.setItem('token', response.token);
+            this.setToken(response.token);
             return response;
           }
           throw new Error('Inicio de sesión fallido');
@@ -34,27 +34,27 @@ export class AuthService {
         })
       );
   }
-  
-    forgotPassword(email: string): Observable<any> {
-      return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email })
-        .pipe(
-          map(response => {
-            return response;
-          }),
-          catchError(error => {
-            let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
-            if (error.status === 400) {
-              errorMessage = error.error.error || 'Correo y contraseña son necesarios.';
-            } else if (error.status === 404) {
-              errorMessage = error.error.error || 'Usuario no registrado. Por favor contacta con un administrador.';
-            } else if (error.status === 500) {
-              errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
-            }
-            return throwError({ message: errorMessage });
-          })
-        );
-    }
-  
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(error => {
+          let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
+          if (error.status === 400) {
+            errorMessage = error.error.error || 'Correo y contraseña son necesarios.';
+          } else if (error.status === 404) {
+            errorMessage = error.error.error || 'Usuario no registrado. Por favor contacta con un administrador.';
+          } else if (error.status === 500) {
+            errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
+          }
+          return throwError({ message: errorMessage });
+        })
+      );
+  }
+
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword })
       .pipe(
@@ -66,7 +66,29 @@ export class AuthService {
     console.error('Ocurrió un error:', error);
     return throwError(error);
   }
+
+  setToken(token: string): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
+  }
+
+  getToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  }
+
+  clearToken(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('token');
+    }
+  }
 }
+
+
+
 
 
 

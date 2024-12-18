@@ -13,3 +13,4 @@ const getCentros = (req, res) => {
 module.exports = {
   getCentros,
 };
+

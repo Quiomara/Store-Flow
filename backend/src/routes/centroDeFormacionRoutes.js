@@ -4,6 +4,6 @@ const centroDeFormacionController = require('../controllers/centroDeFormacionCon
 const auth = require('../middleware/auth');
 
 // Rutas para centros de formación
-router.get('/centros', auth(['Administrador', 'Instructor', 'Usuario']), centroDeFormacionController.getCentros);
+router.get('/centros', auth(['Administrador']), centroDeFormacionController.getCentros);
 
 module.exports = router;

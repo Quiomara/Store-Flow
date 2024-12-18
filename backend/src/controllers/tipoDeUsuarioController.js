@@ -13,4 +13,3 @@ const getTiposUsuario = (req, res) => {
 module.exports = {
   getTiposUsuario,
 };
-

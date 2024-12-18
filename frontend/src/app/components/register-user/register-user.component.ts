@@ -28,15 +28,21 @@ export class RegisterUserComponent implements OnInit {
     confirmarContrasena: ''
   };
 
-  centros: any[] = [];
-  tiposUsuario: any[] = [];
+  centros: any[] = []; // Inicializado como un array vacío
+  tiposUsuario: any[] = []; // Inicializado como un array vacío
 
   constructor(private userService: UserService) {}
 
   ngOnInit() {
     this.userService.getCentros().subscribe(
       response => {
-        this.centros = response;
+        if (Array.isArray(response)) {
+          this.centros = response;
+        } else if (response && response.data && Array.isArray(response.data)) {
+          this.centros = response.data;
+        } else {
+          console.error('Formato de respuesta inesperado para centros de formación:', response);
+        }
       },
       error => {
         console.error('Error al obtener centros de formación', error);
@@ -45,7 +51,13 @@ export class RegisterUserComponent implements OnInit {
 
     this.userService.getTiposUsuario().subscribe(
       response => {
-        this.tiposUsuario = response;
+        if (Array.isArray(response)) {
+          this.tiposUsuario = response;
+        } else if (response && response.data && Array.isArray(response.data)) {
+          this.tiposUsuario = response.data;
+        } else {
+          console.error('Formato de respuesta inesperado para tipos de usuario:', response);
+        }
       },
       error => {
         console.error('Error al obtener tipos de usuario', error);
@@ -77,6 +89,17 @@ export class RegisterUserComponent implements OnInit {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

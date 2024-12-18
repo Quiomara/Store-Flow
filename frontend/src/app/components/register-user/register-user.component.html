@@ -45,7 +45,7 @@
         <label for="centroFormacion">Centro de Formación</label>
         <select id="centroFormacion" [(ngModel)]="user.centroFormacion" name="centroFormacion" class="form-control" required>
           <option value="">Selecciona un centro</option>
-          <option *ngFor="let centro of centros" [value]="centro.id">{{ centro.nombre }}</option>
+          <option *ngFor="let centro of centros" [value]="centro.cen_id">{{ centro.cen_nombre }}</option>
         </select>
       </div>
       <div class="form-group col-md-6">
@@ -70,7 +70,7 @@
         <label for="tipoUsuario">Tipo de Usuario</label>
         <select id="tipoUsuario" [(ngModel)]="user.tipoUsuario" name="tipoUsuario" class="form-control" required>
           <option value="">Selecciona un tipo de usuario</option>
-          <option *ngFor="let tipo of tiposUsuario" [value]="tipo.id">{{ tipo.nombre }}</option>
+          <option *ngFor="let tipo of tiposUsuario" [value]="tipo.tip_usr_id">{{ tipo.tip_usr_nombre }}</option>
         </select>
       </div>
     </div>
@@ -80,6 +80,10 @@
     </div>
   </form>
 </div>
+
+
+
+
 
 
 
