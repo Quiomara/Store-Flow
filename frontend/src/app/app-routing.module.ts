@@ -5,13 +5,15 @@ import { ForgotPasswordPopupComponent } from './components/forgot-password-popup
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { RegisterUserComponent } from './components/register-user/register-user.component';
+import { SearchUserComponent } from './search-user/search-user.component';
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent }, // Inicio de Sesión
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'admin-dashboard', component: AdminDashboardComponent },
   { path: 'register-user', component: RegisterUserComponent },
+  { path: 'search-user', component: SearchUserComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' } // Única ruta predeterminada
 ];
 
