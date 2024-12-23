@@ -4,14 +4,69 @@ const Usuario = require('../models/usuarioModel');
 
 const registrarUsuario = (req, res) => {
   const data = req.body;
-  data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
 
-  Usuario.crear(data, (err, results) => {
+  console.log('Datos recibidos para el registro:', data);
+
+  // Verificar que todos los datos requeridos estén presentes
+  if (!data.usr_cedula || !data.usr_primer_nombre || !data.usr_primer_apellido || !data.usr_correo || !data.usr_contrasena || !data.tip_usr_id || !data.cen_id) {
+    console.log('Datos faltantes:', {
+      usr_cedula: data.usr_cedula,
+      usr_primer_nombre: data.usr_primer_nombre,
+      usr_primer_apellido: data.usr_primer_apellido,
+      usr_correo: data.usr_correo,
+      usr_contrasena: data.usr_contrasena,
+      tip_usr_id: data.tip_usr_id,
+      cen_id: data.cen_id,
+    });
+    return res.status(400).json({ respuesta: false, mensaje: 'Faltan datos requeridos.' });
+  }
+
+  // Verificar si el usuario ya existe por cédula
+  Usuario.buscarPorId(data.usr_cedula, (err, results) => {
     if (err) {
-      console.error('Error al registrar el usuario:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al registrar el usuario.' });
+      console.error('Error al verificar la cédula del usuario:', err.stack);
+      return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
     }
-    res.json({ respuesta: true, mensaje: '¡Usuario registrado con éxito!' });
+
+    if (results.length > 0) {
+      return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con la cédula proporcionada.' });
+    }
+
+    // Verificar si el usuario ya existe por correo electrónico
+    Usuario.buscarPorCorreo(data.usr_correo, (err, results) => {
+      if (err) {
+        console.error('Error al verificar el correo del usuario:', err.stack);
+        return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
+      }
+
+      if (results.length > 0) {
+        return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el correo proporcionado.' });
+      }
+
+      // Verificar si el usuario ya existe por teléfono
+      Usuario.buscarPorTelefono(data.usr_telefono, (err, results) => {
+        if (err) {
+          console.error('Error al verificar el teléfono del usuario:', err.stack);
+          return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
+        }
+
+        if (results.length > 0) {
+          return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el teléfono proporcionado.' });
+        }
+
+        // Encriptar la contraseña
+        data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
+
+        // Crear usuario
+        Usuario.crear(data, (err, results) => {
+          if (err) {
+            console.error('Error al registrar el usuario:', err.stack);
+            return res.status(500).json({ respuesta: false, mensaje: `Error al registrar el usuario: ${err.message}` });
+          }
+          res.json({ respuesta: true, mensaje: '¡Usuario registrado con éxito!' });
+        });
+      });
+    });
   });
 };
 
@@ -57,7 +112,7 @@ const eliminarUsuario = (req, res) => {
 const obtenerUsuario = (req, res) => {
   const usr_cedula = req.params.usr_cedula;
 
-  Usuario.obtenerPorCedula(usr_cedula, (err, results) => {
+  Usuario.buscarPorId(usr_cedula, (err, results) => {
     if (err) {
       console.error('Error al obtener el usuario:', err.stack);
       return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el usuario.' });
@@ -72,7 +127,7 @@ const obtenerUsuario = (req, res) => {
 };
 
 const obtenerTodosUsuarios = (req, res) => {
-  Usuario.obtenerTodos((err, results) => {
+  Usuario.buscarTodos((err, results) => {
     if (err) {
       console.error('Error al obtener los usuarios:', err.stack);
       return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios.' });
@@ -84,7 +139,7 @@ const obtenerTodosUsuarios = (req, res) => {
 const obtenerUsuariosPorTipo = (req, res) => {
   const tip_usr_id = req.params.tip_usr_id;
 
-  Usuario.obtenerPorTipo(tip_usr_id, (err, results) => {
+  Usuario.buscarPorTipo(tip_usr_id, (err, results) => {
     if (err) {
       console.error('Error al obtener los usuarios por tipo:', err.stack);
       return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios por tipo.' });
@@ -101,3 +156,5 @@ module.exports = {
   obtenerTodosUsuarios,
   obtenerUsuariosPorTipo
 };
+
+

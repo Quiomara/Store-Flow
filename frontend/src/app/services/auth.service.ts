@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -7,7 +7,7 @@ import { catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth'; // Base URL del endpoint de autenticación
+  private apiUrl = 'http://localhost:3000/api/auth'; // Base URL del endpoint de autenticación
 
   constructor(private http: HttpClient) {}
 
@@ -38,9 +38,7 @@ export class AuthService {
   forgotPassword(email: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email })
       .pipe(
-        map(response => {
-          return response;
-        }),
+        map(response => response),
         catchError(error => {
           let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
           if (error.status === 400) {
@@ -86,6 +84,7 @@ export class AuthService {
     }
   }
 }
+
 
 
 

@@ -7,36 +7,29 @@ const ubicacionElementoRoutes = require('./routes/ubicacionElementoRoutes');
 const elementoRoutes = require('./routes/elementoRoutes');
 const prestamoRoutes = require('./routes/prestamoRoutes');
 const authRoutes = require('./routes/authRoutes');
-
-// Importar nuevas rutas
 const centroDeFormacionRoutes = require('./routes/centroDeFormacionRoutes');
 const tipoDeUsuarioRoutes = require('./routes/tipoDeUsuarioRoutes');
+const authenticateToken = require('./middleware/authenticateToken');
 
 const app = express();
 
 console.log('Configurando middlewares...');
-
 app.use(cors());
 app.use(bodyParser.json());
 
 console.log('Definiendo rutas...');
+app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', usuarioRoutes); 
+app.use('/api/ubicacion-elementos', ubicacionElementoRoutes); 
+app.use('/api/elementos', elementoRoutes); 
+app.use('/api/prestamos', prestamoRoutes); 
 
-// Rutas de autenticación
-app.use('/auth', authRoutes);
-app.use('/usuarios', usuarioRoutes);
-app.use('/ubicacion-elementos', ubicacionElementoRoutes);
-app.use('/elementos', elementoRoutes);
-app.use('/prestamos', prestamoRoutes);
-
-// Nuevas rutas para centros de formación y tipos de usuario
-app.use('/api', centroDeFormacionRoutes);
-app.use('/api', tipoDeUsuarioRoutes);
+app.use('/api/centros', authenticateToken, centroDeFormacionRoutes);
+app.use('/api/tipos-usuario', authenticateToken, tipoDeUsuarioRoutes);
 
 app.get('/', (req, res) => {
   res.send('¡El servidor está funcionando!');
 });
 
 console.log('Exportando la aplicación...');
-
 module.exports = app;
-

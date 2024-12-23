@@ -29,6 +29,28 @@
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+  color: #000; /* Color del texto en el input */
+}
+
+/* Estilo para el select */
+select {
+  background-color: white; /* Fondo del select */
+  color: black; /* Color del texto del select */
+  border: 1px solid #ccc; /* Borde del select */
+  padding: 0.5rem; /* Espaciado interior del select */
+  font-size: 16px; /* Tamaño de la fuente del select */
+}
+
+/* Estilo para las opciones del select */
+select option {
+  background-color: white; /* Fondo de las opciones */
+  color: black; /* Color del texto de las opciones */
+}
+
+/* Estilo para la opción seleccionada */
+select option:checked {
+  background-color: white; /* Fondo de la opción seleccionada */
+  color: black; /* Color del texto de la opción seleccionada */
 }
 
 .btn {
@@ -48,5 +70,7 @@
 .text-right {
   text-align: right;
 }
+
+
 
   

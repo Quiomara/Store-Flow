@@ -31,7 +31,6 @@ export class LoginComponent {
       response => {
         if (response && response.token) {
           this.errorMessage = '';  // Limpiar el mensaje de error
-          alert('Inicio de sesión exitoso');
           this.redirectUser(response.userType);
         }
       },

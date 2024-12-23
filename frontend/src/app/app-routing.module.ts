@@ -14,7 +14,7 @@ const routes: Routes = [
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'admin-dashboard', component: AdminDashboardComponent },
-  { path: 'register-user', component: RegisterUserComponent },
+  { path: 'admin-dashboard', component: RegisterUserComponent },
   { path: 'search-user', component: SearchUserComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];

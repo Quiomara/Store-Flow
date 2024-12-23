@@ -4,6 +4,6 @@ const tipoDeUsuarioController = require('../controllers/tipoDeUsuarioController'
 const auth = require('../middleware/auth');
 
 // Rutas para tipos de usuario
-router.get('/tipos-usuario', auth(['Administrador']), tipoDeUsuarioController.getTiposUsuario);
+router.get('/', auth(['Administrador']), tipoDeUsuarioController.getTiposUsuario); // Ajusta aquí si es necesario
 
 module.exports = router;
