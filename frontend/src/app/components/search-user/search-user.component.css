@@ -27,12 +27,16 @@
 .table {
   width: 100%;
   margin-top: 20px;
+  border-collapse: collapse;
+  table-layout: fixed; /* Asegura que la tabla no se sobresalga */
 }
 
 .table th,
 .table td {
   text-align: center;
   vertical-align: middle;
+  word-wrap: break-word; /* Para evitar que el contenido se sobresalga */
+  padding: 8px; /* Asegura que el contenido tenga espacio suficiente */
 }
 
 .no-results {
@@ -40,14 +44,38 @@
   text-align: center;
   color: #888888;
 }
+
 .user-table-container {
-  max-height: 400px;
-  overflow-y: auto;
+  max-height: 650px; /* Define una altura máxima para la tabla */
+  overflow-y: auto; /* Habilita el scroll vertical */
+  position: relative;
 }
 
-.form-inline .form-control {
-  margin-right: 10px;
-  margin-bottom: 10px;
+/* Estilos personalizados para la cabecera de la tabla */
+.table thead {
+  background-color: #000000; /* Fondo negro */
+  color: #ffffff; /* Texto blanco */
+  position: sticky; /* Fija la cabecera */
+  top: 0; /* Asegura que la cabecera se mantenga en la parte superior */
+  z-index: 2; /* Asegura que la cabecera esté por encima del contenido */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra para una mejor separación */
 }
 
-  
+.table thead th {
+  color: #ffffff !important; /* Asegura que el texto sea blanco */
+  border: 1px solid #ffffff;
+  background-color: #000000; /* Asegura que el fondo de las celdas sea negro */
+  height: 50px; /* Ajusta la altura de la cabecera si es necesario */
+}
+
+.table th,
+.table td {
+  background-color: transparent;
+  color: inherit;
+}
+
+/* Añade padding superior para evitar la superposición */
+.table tbody {
+  padding-top: 50px; /* Ajusta este valor según la altura de la cabecera */
+}
+

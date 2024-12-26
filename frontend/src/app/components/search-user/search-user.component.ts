@@ -33,7 +33,9 @@ export class SearchUserComponent implements OnInit {
     this.loadUsers();
     this.userService.getCentros().subscribe(
       (response: any) => {
-        if (response && Array.isArray(response.data)) {
+        if (Array.isArray(response)) {
+          this.centros = response;
+        } else if (response && Array.isArray(response.data)) {
           this.centros = response.data;
         } else {
           console.error('Formato de respuesta inesperado para centros de formación:', response);
@@ -43,7 +45,7 @@ export class SearchUserComponent implements OnInit {
         console.error('Error al obtener centros de formación', error);
       }
     );
-
+  
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -51,13 +53,14 @@ export class SearchUserComponent implements OnInit {
       this.filterUsers(values);
     });
   }
+  
 
   loadUsers(): void {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
         console.log('Usuarios en loadUsers:', response);
         this.searchResults = response;
-        this.filteredResults = response;
+        this.filteredResults = response.slice(0, 12);
         this.sortUsersAlphabetically(); // Ordenar inicialmente
         console.log('Resultados filtrados:', this.filteredResults);
         this.filteredResults.forEach(user => console.log('Usuario:', user)); // Verificar cada usuario

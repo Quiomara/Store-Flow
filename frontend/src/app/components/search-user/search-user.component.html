@@ -9,7 +9,6 @@
     </select>
     <input type="email" formControlName="email" placeholder="Correo Electrónico" class="form-control mr-2" />
     <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />
-    <button type="button" class="btn btn-dark" (click)="filterUsers(searchForm.value)">Buscar</button>
   </form>
 
   <div class="user-table-container">
@@ -32,8 +31,8 @@
           <td>{{ user.email || 'N/A' }}</td>
           <td>{{ user.telefono || 'N/A' }}</td>
           <td>
-            <button class="btn btn-warning btn-sm mr-2" (click)="onEdit(user)">Editar</button>
-            <button class="btn btn-danger btn-sm" (click)="onDelete(user)">Eliminar</button>
+            <button class="btn btn-warning btn-sm mr-2" (click)="onEdit(user)"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-danger btn-sm" (click)="onDelete(user)"><i class="fas fa-trash"></i></button>            
           </td>
         </tr>
         <tr *ngIf="filteredResults.length === 0">
