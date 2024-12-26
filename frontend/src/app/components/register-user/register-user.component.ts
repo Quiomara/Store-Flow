@@ -34,18 +34,14 @@ export class RegisterUserComponent implements OnInit {
   centros: any[] = [];
   tiposUsuario: any[] = [];
   errores: any = {};
-  registroExitoso: boolean = false; // Variable para el estado del registro exitoso
+  registroExitoso: boolean = false;
 
   constructor(private userService: UserService) {}
 
   ngOnInit() {
     this.userService.getCentros().subscribe(
       response => {
-        if (response && Array.isArray(response.data)) {
-          this.centros = response.data;
-        } else {
-          console.error('Formato de respuesta inesperado para centros de formación:', response);
-        }
+        this.centros = response;
       },
       error => {
         console.error('Error al obtener centros de formación', error);
@@ -67,8 +63,8 @@ export class RegisterUserComponent implements OnInit {
   }
 
   onSubmit() {
-    this.errores = {}; // Limpiar errores previos
-    this.registroExitoso = false; // Resetear el indicador de registro exitoso
+    this.errores = {};
+    this.registroExitoso = false;
 
     if (this.user.email !== this.user.confirmarEmail) {
       this.errores.confirmarEmail = 'Los correos electrónicos no coinciden.';
@@ -103,7 +99,7 @@ export class RegisterUserComponent implements OnInit {
     }
 
     if (Object.keys(this.errores).length > 0) {
-      return; // No continuar si hay errores de validación
+      return;
     }
 
     const usuario: UserBackend = {
@@ -122,16 +118,14 @@ export class RegisterUserComponent implements OnInit {
     this.userService.registerUser(usuario).subscribe(
       response => {
         console.log('Usuario registrado exitosamente', response);
-        this.registroExitoso = true; // Indicar éxito en el registro
-        this.notificationToast.message = 'Usuario Registrado'; // Establecer mensaje de notificación
-        this.notificationToast.isVisible = true; // Mostrar notificación
+        this.registroExitoso = true;
+        this.notificationToast.message = 'Usuario Registrado';
+        this.notificationToast.isVisible = true;
 
-        // Ocultar la notificación después de 3 segundos
         setTimeout(() => {
           this.notificationToast.isVisible = false;
         }, 3000);
 
-        // Restablecer el formulario
         this.user = {
           cedula: 0,
           primerNombre: '',
@@ -146,7 +140,7 @@ export class RegisterUserComponent implements OnInit {
           contrasena: '',
           confirmarContrasena: ''
         };
-        this.errores = {}; // Limpiar errores después de un registro exitoso
+        this.errores = {};
       },
       error => {
         console.error('Error al registrar usuario', error);
@@ -164,6 +158,7 @@ export class RegisterUserComponent implements OnInit {
     );
   }
 }
+
 
 
 

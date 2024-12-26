@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'quiomaraos@gmail.com', // Reemplaza con tu correo electrónico de Gmail
-    pass: 'jlbp qvvk ldbd ioje' // Reemplaza con tu contraseña de Gmail
+    user: 'servicereplymailer@gmail.com', // Reemplaza con tu correo electrónico de Gmail
+    pass: 'xsax ejjc ufrs uoog' // Reemplaza con tu contraseña de Gmail
   }
 });
 
@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
  */
 const sendResetEmail = (to, resetToken) => {
   const mailOptions = {
-    from: 'quiomaraos@gmail.com', // Remitente
+    from: 'servicereplymailer@gmail.com', // Remitente
     to: to, // Destinatario
     subject: 'Restablecimiento de Contraseña',
     text: `Haga clic en el siguiente enlace para restablecer su contraseña: http://localhost:4200/reset-password?token=${resetToken}`

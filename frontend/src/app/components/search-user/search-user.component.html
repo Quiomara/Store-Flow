@@ -1,38 +1,45 @@
-<div class="search-user-container">
-  <h2 class="text-center font-weight-bold mb-4">Búsqueda de Usuarios</h2>
-  <div class="form-row">
-    <!-- Campos de búsqueda -->
-  </div>
-  <div *ngIf="searchResults.length > 0" class="search-results mt-4">
-    <table class="table table-bordered">
+<div>
+  <h2 class="text-center font-weight-bold mb-4">Buscar Usuarios</h2>
+  
+  <form [formGroup]="searchForm" class="form-inline mb-4">
+    <input type="text" formControlName="nombre" placeholder="Nombre Completo" class="form-control mr-2" />
+    <select formControlName="centroFormacion" class="form-control mr-2">
+      <option value="">Centro de Formación</option>
+      <option *ngFor="let centro of centros" [value]="centro.id">{{ centro.nombre }}</option>
+    </select>
+    <input type="email" formControlName="email" placeholder="Correo Electrónico" class="form-control mr-2" />
+    <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />
+    <button type="button" class="btn btn-dark" (click)="filterUsers(searchForm.value)">Buscar</button>
+  </form>
+
+  <div class="user-table-container">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>Cédula</th>
           <th>Nombre</th>
           <th>Centro de Formación</th>
           <th>Correo Electrónico</th>
-          <th>Teléfono</th>
+          <th>Celular</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of searchResults">
-          <td>{{ user.cedula }}</td>
+        <tr *ngFor="let user of filteredResults">
+          <td>{{ user.cedula || 'N/A' }}</td>
           <td>{{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }}</td>
-          <td>{{ user.centroFormacion }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.telefono }}</td>
+          <td>{{ user.centroFormacion || 'N/A' }}</td>
+          <td>{{ user.email || 'N/A' }}</td>
+          <td>{{ user.telefono || 'N/A' }}</td>
           <td>
-            <button class="btn btn-warning btn-sm" (click)="onEdit(user)">Editar</button>
+            <button class="btn btn-warning btn-sm mr-2" (click)="onEdit(user)">Editar</button>
             <button class="btn btn-danger btn-sm" (click)="onDelete(user)">Eliminar</button>
           </td>
+        </tr>
+        <tr *ngIf="filteredResults.length === 0">
+          <td colspan="6" class="text-center">No se encontraron usuarios.</td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div *ngIf="searchResults.length === 0 && !errores.searchQuery" class="no-results mt-4">
-    <p>No se encontraron resultados.</p>
-  </div>
 </div>
-
-  

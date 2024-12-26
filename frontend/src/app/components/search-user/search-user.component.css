@@ -40,5 +40,14 @@
   text-align: center;
   color: #888888;
 }
+.user-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.form-inline .form-control {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
 
   

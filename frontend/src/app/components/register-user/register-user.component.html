@@ -51,7 +51,8 @@
           <option value="">Selecciona un centro</option>
           <option *ngFor="let centro of centros" [value]="centro.id">{{ centro.nombre }}</option>
         </select>
-      </div>
+        <div *ngIf="errores.centroFormacion" class="text-danger">{{ errores.centroFormacion }}</div> <!-- Mensaje de error -->
+      </div>   
       <div class="form-group col-md-6">
         <label for="telefono">Teléfono</label>
         <input type="tel" id="telefono" [(ngModel)]="user.telefono" name="telefono" class="form-control">
