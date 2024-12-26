@@ -13,9 +13,15 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'admin-dashboard', component: AdminDashboardComponent },
-  { path: 'admin-dashboard', component: RegisterUserComponent },
-  { path: 'search-user', component: SearchUserComponent },
+  {
+    path: 'admin-dashboard',
+    component: AdminDashboardComponent,
+    children: [
+      { path: 'register-user', component: RegisterUserComponent },
+      { path: 'search-user', component: SearchUserComponent },
+      { path: '', redirectTo: 'register-user', pathMatch: 'full' }
+    ]
+  },
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 
@@ -23,8 +29,10 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes), HttpClientModule], // Agregar HttpClientModule aquí
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
 
+// Exportar rutas para uso en otros archivos
+export { routes };
 
 
 

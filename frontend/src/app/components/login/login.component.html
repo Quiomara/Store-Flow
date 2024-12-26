@@ -14,7 +14,7 @@
         <div *ngIf="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
-        <button type="submit" class="btn btn-primary">Ingresar</button>
+        <button type="submit" class="btn btn-dark">Ingresar</button>
         <div *ngIf="showForgotPasswordPopup">
           <app-forgot-password-popup (closePopup)="closeForgotPasswordPopup()"></app-forgot-password-popup>
         </div>
@@ -22,10 +22,13 @@
       </form>
     </div>
     <div class="login-logo">
-      <img src="/img/logoSena.png" alt="Sena Logo">
+      <img src="/img/logoSena.png" alt="Sena Logo"> <!-- Ajuste de ruta -->
     </div>
   </div>
 </div>
+
+
+
 
 
 

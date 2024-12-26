@@ -1,18 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { User, UserBackend } from '../../models/user.model';
+import { NotificationToastComponent } from '../../notification-toast/notification-toast.component';
 
 @Component({
   selector: 'app-register-user',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NotificationToastComponent],
   templateUrl: './register-user.component.html',
   styleUrls: ['./register-user.component.css'],
   providers: [UserService]
 })
 export class RegisterUserComponent implements OnInit {
+  @ViewChild(NotificationToastComponent) notificationToast!: NotificationToastComponent;
+
   user: User = {
     cedula: 0,
     primerNombre: '',
@@ -31,6 +34,7 @@ export class RegisterUserComponent implements OnInit {
   centros: any[] = [];
   tiposUsuario: any[] = [];
   errores: any = {};
+  registroExitoso: boolean = false; // Variable para el estado del registro exitoso
 
   constructor(private userService: UserService) {}
 
@@ -39,7 +43,6 @@ export class RegisterUserComponent implements OnInit {
       response => {
         if (response && Array.isArray(response.data)) {
           this.centros = response.data;
-          console.log('Centros de formación:', this.centros);
         } else {
           console.error('Formato de respuesta inesperado para centros de formación:', response);
         }
@@ -53,7 +56,6 @@ export class RegisterUserComponent implements OnInit {
       response => {
         if (response && Array.isArray(response.data)) {
           this.tiposUsuario = response.data;
-          console.log('Tipos de usuario:', this.tiposUsuario);
         } else {
           console.error('Formato de respuesta inesperado para tipos de usuario:', response);
         }
@@ -66,6 +68,7 @@ export class RegisterUserComponent implements OnInit {
 
   onSubmit() {
     this.errores = {}; // Limpiar errores previos
+    this.registroExitoso = false; // Resetear el indicador de registro exitoso
 
     if (this.user.email !== this.user.confirmarEmail) {
       this.errores.confirmarEmail = 'Los correos electrónicos no coinciden.';
@@ -116,12 +119,18 @@ export class RegisterUserComponent implements OnInit {
       cen_id: this.user.centroFormacion
     };
 
-    console.log('Datos enviados para registro:', usuario);
-
     this.userService.registerUser(usuario).subscribe(
       response => {
         console.log('Usuario registrado exitosamente', response);
-        alert('Usuario registrado exitosamente');
+        this.registroExitoso = true; // Indicar éxito en el registro
+        this.notificationToast.message = 'Usuario Registrado'; // Establecer mensaje de notificación
+        this.notificationToast.isVisible = true; // Mostrar notificación
+
+        // Ocultar la notificación después de 3 segundos
+        setTimeout(() => {
+          this.notificationToast.isVisible = false;
+        }, 3000);
+
         // Restablecer el formulario
         this.user = {
           cedula: 0,
@@ -155,6 +164,8 @@ export class RegisterUserComponent implements OnInit {
     );
   }
 }
+
+
 
 
 

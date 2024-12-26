@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserBackend } from '../models/user.model';
+import { User, UserBackend } from '../models/user.model';
 import { AuthService } from './auth.service';
 
 interface ApiResponse {
@@ -36,6 +36,21 @@ export class UserService {
 
   registerUser(user: UserBackend): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/registrar`, user, { headers: this.getHeaders() });
+  }
+
+  searchUsers(query: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users?search=${query}`, { headers: this.getHeaders() }); 
+  }
+
+  deleteUser(userCedula: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/usuarios/${userCedula}`, { headers: this.getHeaders() });
+  }
+
+  updateUser(userCedula: string, userData: Partial<UserBackend>): Observable<any> {
+    return this.http.put(`${this.apiUrl}/usuarios/actualizar`, userData, {
+      headers: this.getHeaders(),
+      params: { usr_cedula: userCedula }
+    });
   }
 }
 

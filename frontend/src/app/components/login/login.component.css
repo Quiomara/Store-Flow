@@ -63,7 +63,7 @@
 }
 
 /* Botón de enviar del formulario */
-.btn-primary {
+.btn-dark {
   width: 100%; /* Ancho completo del botón */
   border: none; /* Sin borde */
   border-radius: 5px; /* Bordes redondeados */
@@ -75,8 +75,15 @@
 }
 
 /* Hover del botón de enviar */
-.btn-primary:hover {
+.btn-dark:hover {
   background-color: #333333; /* Fondo gris oscuro en hover */
+}
+
+/* Foco del botón de enviar */
+.btn-primary:focus {
+  outline: none;
+  border-color: #666; /* Mismo color del borde en foco */
+  box-shadow: 0 0 5px #666; /* Sombra del botón en foco */
 }
 
 /* Enlace de recuperar contraseña */
@@ -112,4 +119,11 @@
   text-align: center;
   font-family: 'Inria Serif', serif; /* Fuente Inria Serif */
   font-weight: bold;
+}
+
+/* Nuevo estilo para mantener la misma gama de colores */
+input:focus {
+  outline: none;
+  border-color: #666;
+  box-shadow: 0 0 5px #666;
 }

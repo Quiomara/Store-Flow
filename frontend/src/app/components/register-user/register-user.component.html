@@ -1,3 +1,4 @@
+<h2 class="text-center font-weight-bold mb-4">Registro</h2>
 <div class="register-user-container">
   <form (ngSubmit)="onSubmit()">
     <div class="form-row">
@@ -83,7 +84,8 @@
 
     <div class="form-group text-right">
       <button type="submit" class="btn btn-dark">Registrar</button>
-    </div>
+      <app-notification-toast></app-notification-toast>
+    </div>   
   </form>
 </div>
 

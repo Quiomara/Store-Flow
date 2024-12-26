@@ -13,16 +13,16 @@
   <div class="content-container bg-white p-4 rounded" style="width: 90%; max-width: 1200px;">
     <div class="row no-gutters">
       <aside class="sidebar col-12 col-md-3 p-3 rounded d-flex flex-column align-items-center">
-        <img src="img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
+        <img src="/img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
         <ul class="nav flex-column mt-auto mb-auto">
           <li class="nav-item mb-2 text-center">
-            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['/admin-dashboard']">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['register-user']">
               <i class="fas fa-user-plus"></i>
               <span>Registrar Usuarios</span>
             </a>
           </li>
           <li class="nav-item mb-2 text-center">
-            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['/search-user']">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['search-user']">
               <i class="fas fa-search"></i>
               <span>Buscar Usuarios</span>
             </a>
@@ -31,15 +31,12 @@
       </aside>
       <main class="content col-12 col-md-9">
         <router-outlet></router-outlet>
-        <h2 class="text-center font-weight-bold mb-4">Registrar Usuarios</h2>
-
-        <!-- Incluir el componente register-user aquí -->
-        <app-register-user></app-register-user>
-
       </main>
     </div>
   </div>
 </div>
+
+
 
 
 
