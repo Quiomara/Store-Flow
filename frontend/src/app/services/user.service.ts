@@ -39,6 +39,10 @@ export class UserService {
       );
   }
 
+  getCentroDeFormacionPorID(id: string): Observable<Centro>{
+    return this.http.get<Centro>(`${this.apiUrl}/centros/${id}`);
+  }
+
   getUsers(): Observable<User[]> {
     return forkJoin([this.getCentros(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
       .pipe(
@@ -54,7 +58,7 @@ export class UserService {
 
   private mapUser(user: UserBackend, centros: Centro[]): User {
     const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || 'Desconocido';
-
+  
     return {
       cedula: user.usr_cedula,
       primerNombre: user.usr_primer_nombre,
@@ -70,6 +74,7 @@ export class UserService {
       confirmarContrasena: user.usr_contrasena
     };
   }
+  
 
   searchUsers(query: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/usuarios?search=${query}`, { headers: this.getHeaders() });

@@ -40,21 +40,8 @@ export class SearchUserComponent implements OnInit {
 
   ngOnInit() {
     this.loadUsers();
-    this.userService.getCentros().subscribe(
-      (response: any) => {
-        if (Array.isArray(response)) {
-          this.centros = response;
-        } else if (response && Array.isArray(response.data)) {
-          this.centros = response.data;
-        } else {
-          console.error('Formato de respuesta inesperado para centros de formación:', response);
-        }
-      },
-      (error: any) => {
-        console.error('Error al obtener centros de formación', error);
-      }
-    );
-
+    this.loadCentros();
+    
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -67,11 +54,12 @@ export class SearchUserComponent implements OnInit {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
         console.log('Usuarios en loadUsers:', response);
+        response.forEach(user => console.log('Centro de formación del usuario:', user.centroFormacion));
+        
         this.searchResults = response;
         this.filteredResults = response.slice(0, 12);
         this.sortUsersAlphabetically(); // Ordenar inicialmente
         console.log('Resultados filtrados:', this.filteredResults);
-        this.filteredResults.forEach(user => console.log('Usuario:', user)); // Verificar cada usuario
       },
       (error: any) => {
         console.error('Error al obtener usuarios', error);
@@ -79,13 +67,40 @@ export class SearchUserComponent implements OnInit {
     );
   }
 
+  loadCentros(): void {
+    this.userService.getCentros().subscribe(
+      (response: any) => {
+        if (Array.isArray(response)) {
+          this.centros = response;
+        } else if (response && Array.isArray(response.data)) {
+          this.centros = response.data;
+        } else {
+          console.error('Formato de respuesta inesperado para centros de formación:', response);
+        }
+        console.log('Centros de formación:', this.centros);
+      },
+      (error: any) => {
+        console.error('Error al obtener centros de formación', error);
+      }
+    );
+  }
+
   filterUsers(values: any): void {
+    console.log('Valores del formulario:', values);
     if (Array.isArray(this.searchResults)) {
       this.filteredResults = this.searchResults.filter(user => {
-        return (values.nombre === '' || `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase().includes(values.nombre.toLowerCase())) &&
-               (values.centroFormacion === '' || user.centroFormacion === values.centroFormacion) &&
+        const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
+        const nombreFiltrado = values.nombre.toLowerCase();
+        const centroFiltrado = values.centroFormacion;
+
+        console.log('Nombre completo del usuario:', nombreCompleto);
+        console.log('Centro de formación del usuario:', user.centroFormacion);
+        console.log('Centro de formación filtrado:', centroFiltrado);
+
+        return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
+               (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
                (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
-               (values.cedula === '' || user.cedula.toString().includes(values.cedula)); // Convertir a string
+               (values.cedula === '' || user.cedula.toString().includes(values.cedula));
       });
 
       this.sortUsersAlphabetically(); // Ordenar después de filtrar
@@ -130,6 +145,10 @@ export class SearchUserComponent implements OnInit {
     });
   }
 }
+
+
+
+
 
 
 

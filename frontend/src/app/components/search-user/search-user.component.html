@@ -2,14 +2,16 @@
   <h2 class="text-center font-weight-bold mb-4">Buscar Usuarios</h2>
   
   <form [formGroup]="searchForm" class="form-inline mb-4">
+    <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />
     <input type="text" formControlName="nombre" placeholder="Nombre Completo" class="form-control mr-2" />
     <select formControlName="centroFormacion" class="form-control mr-2">
-      <option value="">Centro de Formación</option>
+      <option value="">Seleccione un Centro de Formación</option>
       <option *ngFor="let centro of centros" [value]="centro.id">{{ centro.nombre }}</option>
     </select>
     <input type="email" formControlName="email" placeholder="Correo Electrónico" class="form-control mr-2" />
-    <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />
+    
   </form>
+  
 
   <div class="user-table-container">
     <table class="table table-striped">
@@ -42,3 +44,4 @@
     </table>
   </div>
 </div>
+
