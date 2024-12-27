@@ -1,15 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { UserService } from '../../services/user.service';
-import { User } from '../../models/user.model';
+import { User, UserBackend } from '../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
-import { EditUserComponent } from '../edit-user/edit-user.component'; // Importa el componente de edición de usuario
+import { EditUserComponent } from '../edit-user/edit-user.component';
 
 @Component({
   selector: 'app-search-user',
@@ -21,18 +24,30 @@ import { EditUserComponent } from '../edit-user/edit-user.component'; // Importa
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule,
+    MatPaginatorModule,
+    MatTableModule
   ],
   templateUrl: './search-user.component.html',
   styleUrls: ['./search-user.component.css'],
   providers: [UserService]
 })
-export class SearchUserComponent implements OnInit {
+export class SearchUserComponent implements OnInit, AfterViewInit {
   searchForm: FormGroup;
   centros: any[] = [];
+  tiposUsuario: any[] = [
+    { id: 1, nombre: 'Administrador' },
+    { id: 2, nombre: 'Instructor' },
+    { id: 3, nombre: 'Almacen' }
+  ];
   searchResults: User[] = [];
   filteredResults: User[] = [];
+  dataSource = new MatTableDataSource<User>(this.filteredResults);
+  displayedColumns: string[] = ['cedula', 'nombre', 'centroFormacion', 'email', 'telefono', 'acciones'];
   errores: any = {};
+
+  @ViewChild(MatPaginator, { static: true }) paginator!: MatPaginator;
 
   constructor(private userService: UserService, private fb: FormBuilder, public dialog: MatDialog) {
     this.searchForm = this.fb.group({
@@ -46,7 +61,7 @@ export class SearchUserComponent implements OnInit {
   ngOnInit() {
     this.loadUsers();
     this.loadCentros();
-    
+
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -55,16 +70,18 @@ export class SearchUserComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadUsers(): void {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
-        console.log('Usuarios en loadUsers:', response);
-        response.forEach(user => console.log('Centro de formación del usuario:', user.centroFormacion));
-        
         this.searchResults = response;
-        this.filteredResults = response.slice(0, 12);
-        this.sortUsersAlphabetically(); // Ordenar inicialmente
-        console.log('Resultados filtrados:', this.filteredResults);
+        this.filteredResults = response;
+        this.dataSource.data = this.filteredResults;
+        this.sortUsersAlphabetically();
+        this.updatePaginator();
       },
       (error: any) => {
         console.error('Error al obtener usuarios', error);
@@ -75,14 +92,7 @@ export class SearchUserComponent implements OnInit {
   loadCentros(): void {
     this.userService.getCentros().subscribe(
       (response: any) => {
-        if (Array.isArray(response)) {
-          this.centros = response;
-        } else if (response && Array.isArray(response.data)) {
-          this.centros = response.data;
-        } else {
-          console.error('Formato de respuesta inesperado para centros de formación:', response);
-        }
-        console.log('Centros de formación:', this.centros);
+        this.centros = response;
       },
       (error: any) => {
         console.error('Error al obtener centros de formación', error);
@@ -91,54 +101,53 @@ export class SearchUserComponent implements OnInit {
   }
 
   filterUsers(values: any): void {
-    console.log('Valores del formulario:', values);
-    
-    if (Array.isArray(this.searchResults)) {
-      this.filteredResults = this.searchResults.filter(user => {
-        const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
-        const nombreFiltrado = values.nombre.toLowerCase();
-        const centroFiltrado = this.centros.find(centro => centro.id.toString() === values.centroFormacion)?.nombre || '';
+    this.filteredResults = this.searchResults.filter(user => {
+      const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
+      const nombreFiltrado = values.nombre.toLowerCase();
+      const centroFiltrado = this.centros.find(centro => centro.id.toString() === values.centroFormacion)?.nombre || '';
 
-        console.log('Nombre completo del usuario:', nombreCompleto);
-        console.log('Centro de formación del usuario:', user.centroFormacion);
-        console.log('Centro de formación filtrado:', centroFiltrado);
+      return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
+             (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
+             (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
+             (values.cedula === '' || user.cedula.toString().includes(values.cedula));
+    });
 
-        // Asegúrate de que estamos comparando correctamente los nombres de los centros de formación
-        return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
-               (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
-               (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
-               (values.cedula === '' || user.cedula.toString().includes(values.cedula));
-      });
+    this.dataSource.data = this.filteredResults;
+    this.sortUsersAlphabetically();
+    this.updatePaginator();
+  }
 
-      this.sortUsersAlphabetically(); // Ordenar después de filtrar
-      console.log('Resultados filtrados:', this.filteredResults);
-    } else {
-      console.error('Error: searchResults no es un arreglo');
-    }
+  updatePaginator(): void {
+    this.dataSource.paginator = this.paginator;
+    this.paginator.length = this.filteredResults.length;
   }
 
   sortUsersAlphabetically(): void {
-    if (Array.isArray(this.filteredResults)) {
-      this.filteredResults.sort((a, b) => `${a.primerNombre} ${a.primerApellido}`.localeCompare(`${b.primerNombre} ${b.primerApellido}`));
-    } else {
-      console.error('Error: filteredResults no es un arreglo');
-    }
+    this.filteredResults.sort((a, b) => `${a.primerNombre} ${a.primerApellido}`.localeCompare(`${b.primerNombre} ${b.primerApellido}`));
   }
 
   onEdit(user: User): void {
     const dialogRef = this.dialog.open(EditUserComponent, {
-      width: '600px', // Incrementa el tamaño del modal
+      width: '600px',
       data: user
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Aquí manejamos la actualización del usuario
-        console.log('Datos del usuario editados:', result);
-        this.userService.updateUser(result.cedula.toString(), result).subscribe(
+        const userBackend: Partial<UserBackend> = {
+          usr_cedula: result.cedula,
+          usr_primer_nombre: result.primerNombre,
+          usr_segundo_nombre: result.segundoNombre,
+          usr_primer_apellido: result.primerApellido,
+          usr_segundo_apellido: result.segundoApellido,
+          usr_correo: result.email,
+          usr_telefono: result.telefono,
+          cen_id: this.centros.find(centro => centro.nombre === result.centroFormacion)?.id,
+          tip_usr_id: this.tiposUsuario.find(tipo => tipo.nombre === result.tipoUsuario)?.id
+        };
+
+        this.userService.updateUser(result.cedula.toString(), userBackend).subscribe(
           (response: any) => {
-            console.log('Usuario actualizado', response);
-            // Volvemos a cargar los usuarios para reflejar los cambios
             this.loadUsers();
           },
           (error: any) => {
@@ -159,18 +168,21 @@ export class SearchUserComponent implements OnInit {
       if (result) {
         this.userService.deleteUser(user.cedula.toString()).subscribe(
           (response: any) => {
-            console.log('Usuario eliminado', response);
             this.filteredResults = this.filteredResults.filter(u => u.cedula !== user.cedula);
+            this.dataSource.data = this.filteredResults;
+            this.updatePaginator();
           },
           (error: any) => {
             console.error('Error al eliminar usuario', error);
-            this.errores.delete = 'No se pudo eliminar el usuario. Inténtelo de nuevo más tarde.';
           }
         );
       }
     });
   }
 }
+
+
+
 
 
 

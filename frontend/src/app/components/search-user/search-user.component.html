@@ -12,34 +12,52 @@
   </form>
   
   <div class="user-table-container">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Cédula</th>
-          <th>Nombre</th>
-          <th>Centro de Formación</th>
-          <th>Correo Electrónico</th>
-          <th>Teléfono</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of filteredResults">
-          <td>{{ user.cedula || 'N/A' }}</td>
-          <td>{{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }}</td>
-          <td>{{ user.centroFormacion || 'N/A' }}</td>
-          <td>{{ user.email || 'N/A' }}</td>
-          <td>{{ user.telefono || 'N/A' }}</td>
-          <td>
-            <button class="btn btn-warning btn-sm mr-2" (click)="onEdit(user)"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-danger btn-sm" (click)="onDelete(user)"><i class="fas fa-trash"></i></button>            
-          </td>
-        </tr>
-        <tr *ngIf="filteredResults.length === 0">
-          <td colspan="6" class="text-center">No se encontraron usuarios.</td>
-        </tr>
-      </tbody>
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      <ng-container matColumnDef="cedula">
+        <th mat-header-cell *matHeaderCellDef class="header-cell"> CÉDULA </th>
+        <td mat-cell *matCellDef="let user"> {{ user.cedula || 'N/A' }} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef class="header-cell"> NOMBRE </th>
+        <td mat-cell *matCellDef="let user"> {{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="centroFormacion">
+        <th mat-header-cell *matHeaderCellDef class="header-cell"> CENTRO DE FORMACIÓN </th>
+        <td mat-cell *matCellDef="let user"> {{ user.centroFormacion || 'N/A' }} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef class="header-cell"> CORREO ELECTRÓNICO </th>
+        <td mat-cell *matCellDef="let user"> {{ user.email || 'N/A' }} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="telefono">
+        <th mat-header-cell *matHeaderCellDef class="header-cell"> TELÉFONO </th>
+        <td mat-cell *matCellDef="let user"> {{ user.telefono || 'N/A' }} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header"> ACCIONES </th>
+        <td mat-cell *matCellDef="let user">
+          <button mat-button color="primary" (click)="onEdit(user)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button mat-button color="warn" class="delete-button" (click)="onDelete(user)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
   </div>
-</div>
 
+  <mat-paginator [length]="dataSource.data.length"
+                 [pageSize]="10"
+                 [pageSizeOptions]="[5, 10, 25, 100]"
+                 aria-label="Select page">
+  </mat-paginator>
+</div>

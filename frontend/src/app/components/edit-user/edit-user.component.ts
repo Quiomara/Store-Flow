@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -37,10 +37,8 @@ export class EditUserComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<EditUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: User,
-    private fb: FormBuilder,
     private userService: UserService // Inyecta el servicio de usuario si es necesario
   ) {
-    // Configurar el formulario utilizando FormControl
     this.editForm = new FormGroup({
       cedula: new FormControl({ value: data.cedula, disabled: true }, Validators.required),
       primerNombre: new FormControl(data.primerNombre, Validators.required),
@@ -78,6 +76,7 @@ export class EditUserComponent implements OnInit {
   onSave(): void {
     if (this.editForm.valid) {
       const updatedUser = { ...this.data, ...this.editForm.getRawValue() };
+      console.log('Datos actualizados que se enviarán:', updatedUser); // Debugging
       this.dialogRef.close(updatedUser);
     }
   }
@@ -86,5 +85,6 @@ export class EditUserComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+
 
 
