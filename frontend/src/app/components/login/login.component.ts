@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ForgotPasswordPopupComponent } from '../forgot-password-popup/forgot-password-popup.component';
 
 @Component({
@@ -11,15 +12,14 @@ import { ForgotPasswordPopupComponent } from '../forgot-password-popup/forgot-pa
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ForgotPasswordPopupComponent]
+  imports: [CommonModule, FormsModule, RouterModule, MatDialogModule]
 })
 export class LoginComponent {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
-  showForgotPasswordPopup: boolean = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, public dialog: MatDialog) {}
 
   login() {
     if (!this.email || !this.password) {
@@ -59,13 +59,13 @@ export class LoginComponent {
   }
 
   forgotPassword() {
-    this.showForgotPasswordPopup = true;
-  }
-
-  closeForgotPasswordPopup() {
-    this.showForgotPasswordPopup = false; // Cerrar el popup
+    this.dialog.open(ForgotPasswordPopupComponent, {
+      width: '400px'
+    });
   }
 }
+
+
 
 
 

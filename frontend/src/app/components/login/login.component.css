@@ -92,14 +92,15 @@
   margin-top: 20px; /* Aumentar espacio superior */
   text-align: center; /* Centrar el texto */
   color: #000000; /* Color negro para el enlace */
-  text-decoration: none; /* Sin subrayado */
+  text-decoration: none; /* Sin subrayado por defecto */
   font-size: 16px; /* Aumentar tamaño de fuente */
 }
 
 /* Hover del enlace de recuperar contraseña */
 .forgot-password:hover {
-  text-decoration: underline; /* Subrayado en hover */
+  text-decoration: underline !important;
 }
+
 
 /* Contenedor del logo */
 .login-logo {

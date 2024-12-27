@@ -15,17 +15,15 @@
           {{ errorMessage }}
         </div>
         <button type="submit" class="btn btn-dark">Ingresar</button>
-        <div *ngIf="showForgotPasswordPopup">
-          <app-forgot-password-popup (closePopup)="closeForgotPasswordPopup()"></app-forgot-password-popup>
-        </div>
         <a (click)="forgotPassword()" class="forgot-password">¿Olvidaste tu contraseña?</a>
       </form>
     </div>
     <div class="login-logo">
-      <img src="/img/logoSena.png" alt="Sena Logo"> <!-- Ajuste de ruta -->
+      <img src="/img/logoSena.png" alt="Sena Logo"> 
     </div>
   </div>
 </div>
+
 
 
 
