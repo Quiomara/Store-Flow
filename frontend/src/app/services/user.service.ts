@@ -57,7 +57,8 @@ export class UserService {
   }
 
   private mapUser(user: UserBackend, centros: Centro[]): User {
-    const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || 'Desconocido';
+    // Utilizamos el ID del centro de formación para obtener el nombre del centro correspondiente
+    const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || 'N/A';
   
     return {
       cedula: user.usr_cedula,
@@ -67,13 +68,14 @@ export class UserService {
       segundoApellido: user.usr_segundo_apellido,
       email: user.usr_correo,
       confirmarEmail: user.usr_correo,
-      centroFormacion: centroFormacion,
+      centroFormacion: centroFormacion, // Asignación del nombre del centro de formación basado en el ID
       tipoUsuario: '',
       telefono: user.usr_telefono,
       contrasena: user.usr_contrasena,
       confirmarContrasena: user.usr_contrasena
     };
   }
+  
   
 
   searchUsers(query: string): Observable<User[]> {

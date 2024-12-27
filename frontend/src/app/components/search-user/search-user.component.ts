@@ -87,16 +87,18 @@ export class SearchUserComponent implements OnInit {
 
   filterUsers(values: any): void {
     console.log('Valores del formulario:', values);
+    
     if (Array.isArray(this.searchResults)) {
       this.filteredResults = this.searchResults.filter(user => {
         const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
         const nombreFiltrado = values.nombre.toLowerCase();
-        const centroFiltrado = values.centroFormacion;
+        const centroFiltrado = this.centros.find(centro => centro.id.toString() === values.centroFormacion)?.nombre || '';
 
         console.log('Nombre completo del usuario:', nombreCompleto);
         console.log('Centro de formación del usuario:', user.centroFormacion);
         console.log('Centro de formación filtrado:', centroFiltrado);
 
+        // Asegúrate de que estamos comparando correctamente los nombres de los centros de formación
         return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
                (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
                (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
@@ -145,6 +147,7 @@ export class SearchUserComponent implements OnInit {
     });
   }
 }
+
 
 
 
