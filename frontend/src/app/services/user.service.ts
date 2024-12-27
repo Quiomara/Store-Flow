@@ -32,6 +32,7 @@ export class UserService {
     return new HttpHeaders();
   }
 
+  // Método para obtener todos los centros
   getCentros(): Observable<Centro[]> {
     return this.http.get<ApiResponse<Centro>>(`${this.apiUrl}/centros`, { headers: this.getHeaders() })
       .pipe(
@@ -39,10 +40,12 @@ export class UserService {
       );
   }
 
+  // Método para obtener centro por ID
   getCentroDeFormacionPorID(id: string): Observable<Centro>{
     return this.http.get<Centro>(`${this.apiUrl}/centros/${id}`);
   }
 
+  // Método para obtener todos los usuarios
   getUsers(): Observable<User[]> {
     return forkJoin([this.getCentros(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
       .pipe(
@@ -77,15 +80,17 @@ export class UserService {
   }
   
   
-
+  // Método para buscar usuarios
   searchUsers(query: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/usuarios?search=${query}`, { headers: this.getHeaders() });
   }
 
+  // Método para eliminar usuarios
   deleteUser(userCedula: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/usuarios/${userCedula}`, { headers: this.getHeaders() });
   }
 
+  // Método para actualizar usuarios
   updateUser(userCedula: string, userData: Partial<UserBackend>): Observable<any> {
     return this.http.put(`${this.apiUrl}/usuarios/actualizar`, userData, {
       headers: this.getHeaders(),
@@ -93,10 +98,12 @@ export class UserService {
     });
   }
 
+  // Método para obtener tipo de usuario
   getTiposUsuario(): Observable<ApiResponse<UserBackend>> {
     return this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/tipos-usuario`, { headers: this.getHeaders() });
   }
 
+  // Método para registrar usuarios
   registerUser(user: UserBackend): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/registrar`, user, { headers: this.getHeaders() });
   }

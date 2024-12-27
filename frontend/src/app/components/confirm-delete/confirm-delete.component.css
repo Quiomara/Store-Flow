@@ -1,7 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inria+Serif:wght@400;700&display=swap');
   
-  .dialog-title {
-    text-align: center; /* Centrar el texto */
-    width: 100%;        /* Asegurarse de que tome todo el ancho disponible */
-    margin: 0;          /* Eliminar márgenes adicionales */
-  }
+.dialog-title {
+  text-align: center; /* Centrar el texto */
+  width: 100%;        /* Asegurarse de que tome todo el ancho disponible */
+  margin: 0;          /* Eliminar márgenes adicionales */
+}
+.centered-title {
+  text-align: center;
+  font-weight: bold;
+}
+  

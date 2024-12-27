@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
+import { EditUserComponent } from '../edit-user/edit-user.component'; // Importa el componente de edición de usuario
 
 @Component({
   selector: 'app-search-user',
@@ -16,7 +19,9 @@ import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.compone
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
-    MatButtonModule
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './search-user.component.html',
   styleUrls: ['./search-user.component.css'],
@@ -120,12 +125,31 @@ export class SearchUserComponent implements OnInit {
     }
   }
 
-  onEdit(user: User) {
-    console.log(`Editar usuario: ${user.primerNombre} ${user.primerApellido}`);
-    // Aquí puedes añadir la lógica para navegar a la página de edición o abrir un formulario de edición.
+  onEdit(user: User): void {
+    const dialogRef = this.dialog.open(EditUserComponent, {
+      width: '600px', // Incrementa el tamaño del modal
+      data: user
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Aquí manejamos la actualización del usuario
+        console.log('Datos del usuario editados:', result);
+        this.userService.updateUser(result.cedula.toString(), result).subscribe(
+          (response: any) => {
+            console.log('Usuario actualizado', response);
+            // Volvemos a cargar los usuarios para reflejar los cambios
+            this.loadUsers();
+          },
+          (error: any) => {
+            console.error('Error al actualizar usuario', error);
+          }
+        );
+      }
+    });
   }
 
-  onDelete(user: User) {
+  onDelete(user: User): void {
     const dialogRef = this.dialog.open(ConfirmDeleteComponent, {
       width: '400px',
       data: { user: user }
@@ -147,6 +171,8 @@ export class SearchUserComponent implements OnInit {
     });
   }
 }
+
+
 
 
 

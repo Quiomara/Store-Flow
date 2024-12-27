@@ -1,0 +1,14 @@
+.centered-title {
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .half-width {
+    width: 48%;
+  }
+  

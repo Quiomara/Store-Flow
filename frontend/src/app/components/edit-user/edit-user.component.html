@@ -1,0 +1,73 @@
+<h2 mat-dialog-title class="centered-title">Editar Usuario</h2>
+<form [formGroup]="editForm" (ngSubmit)="onSave()">
+  <mat-dialog-content>
+
+    <!-- Cédula arriba -->
+    <mat-form-field class="full-width">
+      <mat-label>Cédula</mat-label>
+      <input matInput formControlName="cedula" [attr.disabled]="true">
+    </mat-form-field>
+
+    <!-- Primer Nombre y Segundo Nombre en la misma fila -->
+    <div class="form-row">
+      <mat-form-field class="half-width">
+        <mat-label>Primer Nombre</mat-label>
+        <input matInput formControlName="primerNombre">
+      </mat-form-field>
+      <mat-form-field class="half-width">
+        <mat-label>Segundo Nombre</mat-label>
+        <input matInput formControlName="segundoNombre">
+      </mat-form-field>
+    </div>
+
+    <!-- Primer Apellido y Segundo Apellido en la misma fila -->
+    <div class="form-row">
+      <mat-form-field class="half-width">
+        <mat-label>Primer Apellido</mat-label>
+        <input matInput formControlName="primerApellido">
+      </mat-form-field>
+      <mat-form-field class="half-width">
+        <mat-label>Segundo Apellido</mat-label>
+        <input matInput formControlName="segundoApellido">
+      </mat-form-field>
+    </div>
+
+    <!-- Correo Electrónico y Teléfono en la misma fila -->
+    <div class="form-row">
+      <mat-form-field class="half-width">
+        <mat-label>Correo Electrónico</mat-label>
+        <input matInput formControlName="email">
+      </mat-form-field>
+      <mat-form-field class="half-width">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="telefono">
+      </mat-form-field>
+    </div>
+
+    <!-- Centro de Formación y Tipo de Usuario en la misma fila -->
+    <div class="form-row">
+      <mat-form-field class="half-width">
+        <mat-label>Centro de Formación</mat-label>
+        <mat-select formControlName="centroFormacion">
+          <mat-option *ngFor="let centro of centros" [value]="centro.nombre">
+            {{ centro.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="half-width">
+        <mat-label>Tipo de Usuario</mat-label>
+        <mat-select formControlName="tipoUsuario">
+          <mat-option *ngFor="let tipo of tiposUsuario" [value]="tipo.nombre">
+            {{ tipo.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-button color="primary" type="submit">Guardar</button>
+  </mat-dialog-actions>
+</form>
+
