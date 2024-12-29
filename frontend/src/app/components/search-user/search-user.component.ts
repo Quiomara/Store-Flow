@@ -44,7 +44,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   searchResults: User[] = [];
   filteredResults: User[] = [];
   dataSource = new MatTableDataSource<User>(this.filteredResults);
-  displayedColumns: string[] = ['cedula', 'nombre', 'centroFormacion', 'email', 'telefono', 'acciones'];
+  displayedColumns: string[] = ['cedula', 'nombre', 'centroFormacion', 'email', 'telefono', 'tipoUsuario', 'acciones'];
   errores: any = {};
 
   @ViewChild(MatPaginator, { static: true }) paginator!: MatPaginator;

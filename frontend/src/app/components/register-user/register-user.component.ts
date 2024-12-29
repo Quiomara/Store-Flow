@@ -50,8 +50,8 @@ export class RegisterUserComponent implements OnInit {
 
     this.userService.getTiposUsuario().subscribe(
       response => {
-        if (response && Array.isArray(response.data)) {
-          this.tiposUsuario = response.data;
+        if (Array.isArray(response)) {
+          this.tiposUsuario = response;
         } else {
           console.error('Formato de respuesta inesperado para tipos de usuario:', response);
         }
@@ -158,6 +158,8 @@ export class RegisterUserComponent implements OnInit {
     );
   }
 }
+
+
 
 
 

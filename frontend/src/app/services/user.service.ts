@@ -16,6 +16,11 @@ interface Centro {
   nombre: string;
 }
 
+interface TipoUsuario {
+  id: number;
+  nombre: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -40,6 +45,14 @@ export class UserService {
       );
   }
 
+  // Método para obtener todos los tipos de usuario
+  getTiposUsuario(): Observable<TipoUsuario[]> {
+    return this.http.get<ApiResponse<TipoUsuario>>(`${this.apiUrl}/tipos-usuario`, { headers: this.getHeaders() })
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
   // Método para obtener centro por ID
   getCentroDeFormacionPorID(id: string): Observable<Centro>{
     return this.http.get<Centro>(`${this.apiUrl}/centros/${id}`);
@@ -47,11 +60,11 @@ export class UserService {
 
   // Método para obtener todos los usuarios
   getUsers(): Observable<User[]> {
-    return forkJoin([this.getCentros(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
+    return forkJoin([this.getCentros(), this.getTiposUsuario(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
       .pipe(
-        map(([centros, response]) => {
+        map(([centros, tiposUsuario, response]) => {
           if (response.respuesta) {
-            return response.data.map(user => this.mapUser(user, centros));
+            return response.data.map(user => this.mapUser(user, centros, tiposUsuario));
           } else {
             throw new Error(response.mensaje);
           }
@@ -59,10 +72,10 @@ export class UserService {
       );
   }
 
-  private mapUser(user: UserBackend, centros: Centro[]): User {
-    // Utilizamos el ID del centro de formación para obtener el nombre del centro correspondiente
+  private mapUser(user: UserBackend, centros: Centro[], tiposUsuario: TipoUsuario[]): User {
     const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || 'N/A';
-  
+    const tipoUsuario = tiposUsuario.find(tipo => tipo.id === Number(user.tip_usr_id))?.nombre || 'N/A';
+
     return {
       cedula: user.usr_cedula,
       primerNombre: user.usr_primer_nombre,
@@ -71,15 +84,14 @@ export class UserService {
       segundoApellido: user.usr_segundo_apellido,
       email: user.usr_correo,
       confirmarEmail: user.usr_correo,
-      centroFormacion: centroFormacion, // Asignación del nombre del centro de formación basado en el ID
-      tipoUsuario: '',
+      centroFormacion: centroFormacion,
+      tipoUsuario: tipoUsuario,
       telefono: user.usr_telefono,
       contrasena: user.usr_contrasena,
       confirmarContrasena: user.usr_contrasena
     };
   }
-  
-  
+
   // Método para buscar usuarios
   searchUsers(query: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/usuarios?search=${query}`, { headers: this.getHeaders() });
@@ -98,18 +110,11 @@ export class UserService {
     });
   }
 
-  // Método para obtener tipo de usuario
-  getTiposUsuario(): Observable<ApiResponse<UserBackend>> {
-    return this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/tipos-usuario`, { headers: this.getHeaders() });
-  }
-
   // Método para registrar usuarios
   registerUser(user: UserBackend): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/registrar`, user, { headers: this.getHeaders() });
   }
 }
-
-
 
 
 
