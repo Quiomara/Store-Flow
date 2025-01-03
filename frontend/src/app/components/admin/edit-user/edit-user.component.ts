@@ -6,8 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { User } from '../../models/user.model';
-import { UserService } from '../../services/user.service'; // Importa el servicio de usuario si es necesario para obtener datos
+import { User } from '../../../models/user.model';
+import { UserService } from '../../../services/user.service'; // Importa el servicio de usuario si es necesario para obtener datos
 
 @Component({
   selector: 'app-edit-user',

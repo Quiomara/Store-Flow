@@ -47,10 +47,10 @@ export class LoginComponent {
         this.router.navigate(['/admin-dashboard']);
         break;
       case 'Instructor':
-        this.router.navigate(['/instructor']);
+        this.router.navigate(['/instructor-dashboard']);
         break;
       case 'Almacén':
-        this.router.navigate(['/almacen']);
+        this.router.navigate(['/warehouse-dashboard']);
         break;
       default:
         this.router.navigate(['/login']);
@@ -64,6 +64,7 @@ export class LoginComponent {
     });
   }
 }
+
 
 
 

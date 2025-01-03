@@ -1,0 +1,65 @@
+<div class="instructor-request-container">
+    <h1 class="text-center">Sistema Integrado de Gestión</h1>
+    <h2 class="text-center">PRÉSTAMO DE HERRAMIENTAS</h2>
+    
+    <form (ngSubmit)="enviarSolicitud()">
+      <div class="form-row justify-content-center mt-5">
+        <div class="form-group col-md-3">
+          <label for="fecha" class="text-center d-block">Fecha</label>
+          <input type="text" id="fecha" [value]="fechaActual" disabled class="form-control">
+        </div>
+        
+        <div class="form-group col-md-3">
+          <label for="nombreCurso" class="text-center d-block">Nombre del Curso</label>
+          <input type="text" id="nombreCurso" [(ngModel)]="nombreCurso" class="form-control" (change)="convertToUppercase()">
+        </div>
+        
+        <div class="form-group col-md-3">
+          <label for="idSolicitud" class="text-center d-block">ID</label>
+          <input type="text" id="idSolicitud" [value]="idSolicitud" disabled class="form-control">
+        </div>
+      </div>
+      
+      <div class="form-row justify-content-center mt-5">
+        <div class="form-group col-md-6">
+          <label for="elemento" class="text-center d-block">Elemento</label>
+          <input type="text" id="elemento" [(ngModel)]="nuevoElemento.nombre" class="form-control" placeholder="Buscar elemento..." (input)="filtrarElementos()">
+          <ul *ngIf="elementosFiltrados.length > 0" class="list-group">
+            <li class="list-group-item" *ngFor="let elemento of elementosFiltrados" (click)="seleccionarElemento(elemento)">{{ elemento.nombre }}</li>
+          </ul>
+        </div>
+        
+        <div class="form-group col-md-6">
+          <label for="cantidad" class="text-center d-block">Cantidad</label>
+          <input type="number" id="cantidad" [(ngModel)]="nuevoElemento.cantidad" class="form-control" placeholder="Cantidad">
+          <small *ngIf="elementoSeleccionado" class="text-muted">Disponibles: {{ elementoSeleccionado.stock }}</small>
+        </div>
+      </div>
+  
+      <div class="form-row justify-content-center mt-3">
+        <button type="button" class="btn btn-dark" (click)="agregarElemento()">Agregar Elemento</button>
+      </div>
+  
+      <table class="table mt-5">
+        <thead>
+          <tr>
+            <th>Elemento</th>
+            <th>Cantidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let elemento of elementos">
+            <td>{{ elemento.nombre }}</td>
+            <td>{{ elemento.cantidad }}</td>
+            <td><button type="button" class="btn btn-danger" (click)="eliminarElemento(elemento)">Eliminar</button></td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="form-row justify-content-center mt-5">
+        <button type="submit" class="btn btn-dark">Enviar Solicitud</button>
+      </div>
+    </form>
+  </div>
+  

@@ -8,8 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { UserService } from '../../services/user.service';
-import { User, UserBackend } from '../../models/user.model';
+import { UserService } from '../../../services/user.service';
+import { User, UserBackend } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
 import { EditUserComponent } from '../edit-user/edit-user.component';
@@ -180,6 +180,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     });
   }
 }
+
 
 
 
