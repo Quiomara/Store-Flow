@@ -1,0 +1,55 @@
+:host ::ng-deep .mat-dialog-container {
+    width: 80%;  /* Ajusta el tamaño según sea necesario */
+    max-width: 800px;  /* Puedes ajustar este valor según prefieras */
+  }
+  
+  .centered-title {
+    text-align: center;
+  }
+  
+  .mat-dialog-title {
+    background-color: #2c2c2c !important;  /* Fondo gris más oscuro */
+    color: #cccccc !important;  /* Color del texto gris claro */
+    padding: 16px;
+    font-size: 1.2rem;
+  }
+  
+  .estado-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .estado-texto {
+    flex: 1;
+  }
+  
+  .filtro-estado {
+    text-align: right;
+    flex: 1;
+  }
+  
+  .mat-dialog-content {
+    padding: 16px;
+  }
+  
+  .mat-dialog-actions {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  th {
+    background-color: #2c2c2c !important;  /* Fondo gris más oscuro */
+    color: #cccccc !important;  /* Color del texto gris claro */
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;  /* Centrar el texto en la cabecera de la tabla */
+  }
+  
+  td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  

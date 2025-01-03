@@ -1,0 +1,40 @@
+<h2 mat-dialog-title class="centered-title">Detalles del Préstamo</h2>
+<mat-dialog-content>
+  <div>
+    <strong>ID del Préstamo:</strong> {{ data.solicitud.idPrestamo }}
+  </div>
+  <div class="estado-container">
+    <div class="estado-texto">
+      <strong>Estado:</strong> {{ data.solicitud.estado }}
+    </div>
+    <div class="filtro-estado">
+      <label for="estado-filter">Filtro de Estado:</label>
+      <select id="estado-filter" [(ngModel)]="data.solicitud.estado" (change)="actualizarEstado(data.solicitud.estado)">
+        <option value="Creado">Creado</option>
+        <option value="En proceso">En proceso</option>
+        <option value="En préstamo">En préstamo</option>
+        <option value="Entregado">Entregado</option>
+        <option value="Cancelado">Cancelado</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top: 1rem; max-height: 200px; overflow-y: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>ELEMENTO</th>
+          <th>CANTIDAD</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let detalle of data.solicitud.detallesPrestamo">
+          <td>{{ detalle.nombre }}</td>
+          <td>{{ detalle.cantidad }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

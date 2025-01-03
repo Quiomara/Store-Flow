@@ -1,0 +1,133 @@
+.warehouse-requests-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 1rem;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle; /* Centrar verticalmente el contenido */
+  word-wrap: break-word; /* Para manejar textos largos */
+}
+
+.table th.id, .table td.id {
+  width: 10%; /* Ancho más pequeño para la columna de ID */
+}
+
+.table th.fecha, .table th.acciones, .table td.fecha, .table td.acciones {
+  width: 122.55px; /* Ancho para las columnas de Fecha y Hora, y Acciones */
+  height: 65px; /* Altura de las columnas de Fecha y Hora, y Acciones */
+}
+
+.table th.solicitante, .table td.solicitante {
+  width: 25%; /* Ancho más grande para la columna de Solicitante */
+}
+
+.table th, .table td {
+  width: 15%; /* Ancho predeterminado para las demás columnas */
+}
+
+.table tr {
+  height: 70px; /* Altura mínima de las filas */
+}
+
+.table th {
+  background-color: #2c2c2c !important; /* Fondo gris más oscuro */
+  color: #cccccc !important; /* Color del texto gris claro */
+}
+
+.created {
+  background-color: #f0f0f0; /* Color gris para solicitudes creadas */
+}
+
+.in-process {
+  background-color: #ffa500; /* Color naranja para solicitudes en proceso */
+}
+
+.in-loan {
+  background-color: #add8e6; /* Color azul claro para solicitudes en préstamo */
+}
+
+.delivered {
+  background-color: #d4edda; /* Color verde claro para solicitudes entregadas */
+}
+
+.cancelled {
+  background-color: #f8d7da; /* Color rojo claro para solicitudes canceladas */
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #000;
+  color: white;
+  cursor: pointer;
+  width: 100px; /* Asegura que ambos botones tengan el mismo tamaño */
+  margin-bottom: 5px; /* Espacio entre los botones */
+  font-size: 0.75rem; /* Tamaño de fuente más pequeño */
+}
+
+.btn-success {
+  background-color: green;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: darkgreen;
+}
+
+.btn-danger {
+  background-color: red;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: darkred;
+}
+
+.btn-primary {
+  background-color: blue;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: darkblue;
+}
+
+/* Estilo para el enlace de Ver */
+.link-button {
+  background: none;
+  border: none;
+  color: blue;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+/* Estilo para el mensaje de no solicitudes */
+.no-requests-message {
+  font-size: 1.2rem;
+  color: #555;
+  margin-top: 2rem;
+}
+

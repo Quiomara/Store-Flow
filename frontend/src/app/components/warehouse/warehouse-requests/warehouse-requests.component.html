@@ -1,1 +1,47 @@
-<p>warehouse-requests works!</p>
+<div class="warehouse-requests-container">
+    <h1 class="text-center">Sistema Integrado de Gestión</h1>
+    <h2 class="text-center">PRÉSTAMO DE HERRAMIENTAS</h2>
+
+    <div *ngIf="solicitudesVisibles.length === 0" class="no-requests-message text-center">
+        No hay solicitudes de préstamos
+    </div>
+
+    <table class="table mt-5" *ngIf="solicitudesVisibles.length > 0">
+        <thead>
+            <tr>
+                <th class="id">ID PRÉSTAMO</th>
+                <th class="solicitante">SOLICITANTE</th>
+                <th class="fecha">FECHA Y HORA</th>
+                <th>DETALLES DEL PRÉSTAMO</th>
+                <th>ESTADO</th>
+                <th class="acciones">ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let solicitud of solicitudesVisibles" [ngClass]="{
+                'created': solicitud.estado === 'Creado',
+                'in-process': solicitud.estado === 'En proceso',
+                'in-loan': solicitud.estado === 'En préstamo'
+            }">
+                <td class="id">{{ solicitud.idPrestamo }}</td>
+                <td class="solicitante">{{ solicitud.solicitante }}</td>
+                <td class="fecha">{{ solicitud.fechaHora }}</td>
+                <td><button class="link-button" (click)="verDetalles(solicitud)">Ver</button></td>
+                <td>{{ solicitud.estado }}</td>
+                <td class="acciones">
+                    <ng-container *ngIf="solicitud.estado === 'Creado'">
+                        <button type="button" class="btn btn-success" (click)="aprobarSolicitud(solicitud)">Aceptar</button>
+                        <button type="button" class="btn btn-danger" (click)="rechazarSolicitud(solicitud)">Cancelar</button>
+                    </ng-container>
+                    <ng-container *ngIf="solicitud.estado === 'En proceso'">
+                        <button type="button" class="btn btn-primary" (click)="marcarComoEnPrestamo(solicitud)">En Préstamo</button>
+                    </ng-container>
+                    <ng-container *ngIf="solicitud.estado === 'En préstamo'">
+                        <button type="button" class="btn btn-success" (click)="marcarComoEntregado(solicitud)">Entregar</button>
+                    </ng-container>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
