@@ -1,89 +1,99 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-
-interface Elemento {
-  nombre: string;
-  cantidad: number;
-  stock: number;
-}
+import { ElementoService } from '../../../services/elemento.service';
+import { PrestamoService } from '../../../services/prestamo.service';
+import { Elemento, Prestamo } from '../../../models/prestamo.model';
 
 @Component({
   selector: 'app-instructor-request',
   templateUrl: './instructor-request.component.html',
   styleUrls: ['./instructor-request.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule]
 })
-export class InstructorRequestComponent {
+export class InstructorRequestComponent implements OnInit {
   fechaActual: string = new Date().toLocaleDateString();
   nombreCurso: string = '';
-  idSolicitud: string = this.generarIdSolicitud();
-  nuevoElemento: Partial<Elemento> = { nombre: '', cantidad: 0 };
+  cedulaSolicitante: number = 123456; // Asignar cédula del solicitante
+  idSolicitud: string = '';
+  nuevoElemento = { nombre: '', cantidad: 0 };
   elementos: Elemento[] = [];
   elementosFiltrados: Elemento[] = [];
   elementoSeleccionado: Elemento | null = null;
 
-  // Simulación de elementos en la base de datos
-  elementosDB: Elemento[] = [
-    { nombre: 'Martillo', cantidad: 0, stock: 10 },
-    { nombre: 'Destornillador', cantidad: 0, stock: 15 },
-    { nombre: 'Llave Inglesa', cantidad: 0, stock: 5 },
-    // Agrega más elementos según sea necesario
-  ];
+  constructor(private elementoService: ElementoService, private prestamoService: PrestamoService) {}
 
-  generarIdSolicitud(): string {
-    return Math.random().toString(36).substring(2, 9).toUpperCase();
+  ngOnInit(): void {
+    this.elementoService.getElementos().subscribe(
+      (data: Elemento[]) => {
+        this.elementos = data;
+        this.elementosFiltrados = data;
+        console.log('Elementos obtenidos:', this.elementos); // Debug: Verifica los elementos obtenidos
+      },
+      (error) => {
+        console.error('Error al obtener elementos', error);
+      }
+    );
   }
-
-  convertToUppercase() {
+  
+  convertToUppercase(): void {
     this.nombreCurso = this.nombreCurso.toUpperCase();
   }
 
-  filtrarElementos() {
-    if (this.nuevoElemento.nombre) {
-      this.elementosFiltrados = this.elementosDB.filter((elemento) =>
-        elemento.nombre
-          .toLowerCase()
-          .includes(this.nuevoElemento.nombre!.toLowerCase())
-      );
-    } else {
-      this.elementosFiltrados = [];
-    }
+  filtrarElementos(): void {
+    const query = this.nuevoElemento.nombre.toLowerCase();
+    this.elementosFiltrados = this.elementos.filter(elemento => elemento.ele_nombre.toLowerCase().includes(query));
   }
 
-  seleccionarElemento(elemento: Elemento) {
-    this.nuevoElemento.nombre = elemento.nombre;
+  seleccionarElemento(elemento: Elemento): void {
+    this.nuevoElemento.nombre = elemento.ele_nombre;
     this.elementoSeleccionado = elemento;
     this.elementosFiltrados = [];
+    console.log('Elemento seleccionado:', this.elementoSeleccionado); // Debug: Verifica el elemento seleccionado
   }
 
-  agregarElemento() {
-    if (
-      this.nuevoElemento.nombre &&
-      this.nuevoElemento.cantidad! > 0 &&
-      this.elementoSeleccionado
-    ) {
-      this.elementos.push({
-        nombre: this.nuevoElemento.nombre,
-        cantidad: this.nuevoElemento.cantidad!,
-        stock: this.elementoSeleccionado.stock,
-      });
+  agregarElemento(): void {
+    if (this.nuevoElemento.cantidad > 0 && this.elementoSeleccionado) {
+      this.elementos.push({ ...this.elementoSeleccionado, ele_cantidad: this.nuevoElemento.cantidad });
       this.nuevoElemento = { nombre: '', cantidad: 0 };
       this.elementoSeleccionado = null;
+    } else {
+      alert('Seleccione un elemento y cantidad válida.');
     }
   }
 
-  eliminarElemento(elemento: Elemento) {
-    this.elementos = this.elementos.filter((e) => e !== elemento);
+  eliminarElemento(elemento: Elemento): void {
+    this.elementos = this.elementos.filter(e => e !== elemento);
   }
 
-  enviarSolicitud() {
-    if (this.elementos.length > 0) {
-      // Implementa el envío de la solicitud con todos los elementos y cantidades
-      console.log('Solicitud enviada:', this.elementos);
-    }
+  enviarSolicitud(): void {
+    const prestamo: Prestamo = {
+      idPrestamo: Math.floor(Math.random() * 1000), // Generar ID aleatorio temporalmente
+      nombreCurso: this.nombreCurso,
+      cedulaSolicitante: this.cedulaSolicitante,
+      elementos: this.elementos,
+      fecha: this.fechaActual,
+    };
+
+    this.prestamoService.createPrestamo(prestamo).subscribe(
+      (response) => {
+        console.log('Solicitud enviada con éxito', response);
+      },
+      (error) => {
+        console.error('Error al enviar solicitud', error);
+      }
+    );
   }
 }
+
+
+
+
+
+
+
+
+
+
 

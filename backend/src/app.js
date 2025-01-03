@@ -1,4 +1,3 @@
-// Para la configuración de la aplicación Express y definición de rutas.
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -16,14 +15,14 @@ const app = express();
 console.log('Configurando middlewares...');
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 console.log('Definiendo rutas...');
 app.use('/api/auth', authRoutes);
-app.use('/api/usuarios', usuarioRoutes); 
-app.use('/api/ubicacion-elementos', ubicacionElementoRoutes); 
-app.use('/api/elementos', elementoRoutes); 
-app.use('/api/prestamos', prestamoRoutes); 
-
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/ubicacion-elementos', authenticateToken, ubicacionElementoRoutes); 
+app.use('/api/elementos', authenticateToken, elementoRoutes); 
+app.use('/api/prestamos', authenticateToken, prestamoRoutes);
 app.use('/api/centros', authenticateToken, centroDeFormacionRoutes);
 app.use('/api/tipos-usuario', authenticateToken, tipoDeUsuarioRoutes);
 

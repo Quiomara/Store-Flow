@@ -114,6 +114,35 @@ export class UserService {
   registerUser(user: UserBackend): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/registrar`, user, { headers: this.getHeaders() });
   }
+
+  // Método para obtener usuario por cédula
+  getUsuarioByCedula(cedula: number): Observable<User> {
+    return this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios/${cedula}`, { headers: this.getHeaders() })
+      .pipe(
+        map(response => {
+          if (response.respuesta) {
+            const user = response.data[0];
+            const mappedUser: User = {
+              cedula: user.usr_cedula,
+              primerNombre: user.usr_primer_nombre,
+              segundoNombre: user.usr_segundo_nombre,
+              primerApellido: user.usr_primer_apellido,
+              segundoApellido: user.usr_segundo_apellido,
+              email: user.usr_correo,
+              confirmarEmail: user.usr_correo,
+              centroFormacion: '', // Asignar centro de formación si es necesario
+              tipoUsuario: '', // Asignar tipo de usuario si es necesario
+              telefono: user.usr_telefono,
+              contrasena: user.usr_contrasena,
+              confirmarContrasena: user.usr_contrasena
+            };
+            return mappedUser;
+          } else {
+            throw new Error(response.mensaje);
+          }
+        })
+      );
+  }
 }
 
 

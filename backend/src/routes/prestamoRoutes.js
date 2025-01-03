@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const prestamoController = require('../controllers/prestamoController');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/authenticateToken');
 
-// Rutas para préstamos
-router.post('/crear', auth(['Administrador', 'Instructor']), prestamoController.crearPrestamo); // Permitir a Instructores crear préstamos
-router.put('/actualizar', auth(['Administrador', 'Instructor']), prestamoController.actualizarPrestamo);
-router.delete('/:pre_id', auth(['Administrador', 'Instructor']), prestamoController.eliminarPrestamo);
-router.get('/', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerTodosPrestamos);
-router.get('/:pre_id', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerPrestamoPorId);
+router.post('/crear', auth, prestamoController.crearPrestamo);
+router.put('/actualizar', auth, prestamoController.actualizarPrestamo);
+router.delete('/:pre_id', auth, prestamoController.eliminarPrestamo);
+router.get('/', auth, prestamoController.obtenerTodosPrestamos);
+router.get('/:pre_id', auth, prestamoController.obtenerPrestamoPorId);
 
 module.exports = router;
-
