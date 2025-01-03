@@ -37,6 +37,13 @@ export class LoginComponent {
       error => {
         this.errorMessage = error.message || 'Error desconocido.';
         console.error('Detalles del error:', error);
+        // Mostrar todos los detalles del error
+        if (error.error) {
+          this.errorMessage += ` Detalles del error: ${JSON.stringify(error.error)}`;
+        }
+        if (error.status) {
+          this.errorMessage += ` (Status: ${error.status})`;
+        }
       }
     );
   }
@@ -64,6 +71,7 @@ export class LoginComponent {
     });
   }
 }
+
 
 
 

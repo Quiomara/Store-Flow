@@ -1,5 +1,5 @@
 export interface Prestamo {
-  idPrestamo: number;
+  idPrestamo: number; 
   nombreCurso: string;
   cedulaSolicitante: number;
   solicitante?: string;
@@ -13,7 +13,8 @@ export interface Prestamo {
 export interface Elemento {
   ele_id: number;
   ele_nombre: string;
-  ele_cantidad: number; 
+  ele_cantidad: number;
 }
+
 
   

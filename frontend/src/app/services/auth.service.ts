@@ -17,6 +17,7 @@ export class AuthService {
         map(response => {
           if (response && response.token) {
             this.setToken(response.token);
+            // No necesitamos establecer la cédula aquí
             return response;
           }
           throw new Error('Inicio de sesión fallido');
@@ -30,7 +31,8 @@ export class AuthService {
           } else if (error.status === 500) {
             errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
           }
-          return throwError({ message: errorMessage });
+          console.error('Detalles del error:', error);
+          return throwError({ message: errorMessage, error: error.error, status: error.status });
         })
       );
   }
@@ -48,14 +50,16 @@ export class AuthService {
           } else if (error.status === 500) {
             errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
           }
-          return throwError({ message: errorMessage });
+          console.error('Detalles del error:', error);
+          return throwError({ message: errorMessage, error: error.error, status: error.status });
         })
       );
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword })
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, { token, newPassword })
       .pipe(
+        map(response => response),
         catchError(this.handleError)
       );
   }
@@ -83,7 +87,35 @@ export class AuthService {
       localStorage.removeItem('token');
     }
   }
+
+  // Métodos para manejar la cédula del usuario solo si es necesario
+  setCedula(cedula: number): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cedula', cedula.toString());
+    }
+  }
+
+  getCedula(): number | null {
+    if (typeof localStorage !== 'undefined') {
+      const cedula = localStorage.getItem('cedula');
+      return cedula ? Number(cedula) : null;
+    }
+    return null;
+  }
+
+  clearCedula(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('cedula');
+    }
+  }
 }
+
+
+
+
+
+
+
 
 
 
