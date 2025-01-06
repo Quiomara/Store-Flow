@@ -15,29 +15,19 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password })
       .pipe(
         map(response => {
+          console.log('Respuesta del servidor:', response); // Log para verificar la respuesta
           if (response && response.token) {
             this.setToken(response.token);
             console.log('Token almacenado:', response.token); // Log para verificar el token
             if (response.cedula) {
-              this.setCedula(response.cedula); // Almacenar la cédula del usuario
+              this.setCedula(response.cedula);
               console.log('Cédula almacenada:', response.cedula); // Log para verificar la cédula
             }
             return response;
           }
           throw new Error('Inicio de sesión fallido');
         }),
-        catchError(error => {
-          let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
-          if (error.status === 400) {
-            errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
-          } else if (error.status === 404) {
-            errorMessage = error.error.error || 'Correo no registrado. Por favor contacta con un administrador.';
-          } else if (error.status === 500) {
-            errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
-          }
-          console.error('Detalles del error:', error);
-          return throwError({ message: errorMessage, error: error.error, status: error.status });
-        })
+        catchError(error => this.handleLoginError(error))
       );
   }
 
@@ -57,6 +47,19 @@ export class AuthService {
       );
   }
 
+  private handleLoginError(error: any): Observable<never> {
+    let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
+    if (error.status === 400) {
+      errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
+    } else if (error.status === 404) {
+      errorMessage = error.error.error || 'Correo no registrado. Por favor contacta con un administrador.';
+    } else if (error.status === 500) {
+      errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
+    }
+    console.error('Detalles del error de inicio de sesión:', error);
+    return throwError({ message: errorMessage, error: error.error, status: error.status });
+  }
+
   private handleError(error: any): Observable<never> {
     console.error('Ocurrió un error:', error);
     return throwError(error);
@@ -70,7 +73,9 @@ export class AuthService {
 
   getToken(): string | null {
     if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('token');
+      const token = localStorage.getItem('token');
+      console.log('Recuperando token del localStorage:', token); // Log para verificar el token
+      return token;
     }
     return null;
   }
@@ -85,12 +90,14 @@ export class AuthService {
   setCedula(cedula: number): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('cedula', cedula.toString());
+      console.log('Cédula almacenada en localStorage:', cedula.toString()); // Log para verificar el almacenamiento
     }
   }
 
   getCedula(): number | null {
     if (typeof localStorage !== 'undefined') {
       const cedula = localStorage.getItem('cedula');
+      console.log('Recuperando cédula del localStorage:', cedula); // Log para verificar la cédula
       return cedula ? Number(cedula) : null;
     }
     return null;
@@ -102,6 +109,12 @@ export class AuthService {
     }
   }
 }
+
+
+
+
+
+
 
 
 

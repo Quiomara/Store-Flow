@@ -67,7 +67,7 @@ const login = (req, res) => {
 
       const userType = typeResults[0].tip_usr_nombre;
       console.log('Tipo de usuario:', userType);
-      res.send({ token, userType });
+      res.send({ token, userType, cedula: user.usr_cedula }); // Incluir la cédula en la respuesta
     });
   });
 };

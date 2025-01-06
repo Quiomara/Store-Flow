@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
@@ -12,7 +13,7 @@ import { NgIf, NgForOf } from '@angular/common';
   templateUrl: './instructor-request.component.html',
   styleUrls: ['./instructor-request.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIf, NgForOf]
+  imports: [CommonModule, FormsModule, NgIf, NgForOf, HttpClientModule]
 })
 export class InstructorRequestComponent implements OnInit {
   fechaActual: string = new Date().toLocaleDateString();
@@ -28,7 +29,8 @@ export class InstructorRequestComponent implements OnInit {
   constructor(
     private elementoService: ElementoService, 
     private prestamoService: PrestamoService,
-    private authService: AuthService 
+    private authService: AuthService,
+    private http: HttpClient // Inyecta HttpClient aquí
   ) {}
 
   ngOnInit(): void {
@@ -113,6 +115,7 @@ export class InstructorRequestComponent implements OnInit {
 
   enviarSolicitud(): void {
     const cedulaSolicitante = this.authService.getCedula();
+    console.log('Cédula del solicitante:', cedulaSolicitante);
     if (cedulaSolicitante === null) {
       alert('Error: No se pudo obtener la cédula del usuario logueado.');
       return;
@@ -126,17 +129,36 @@ export class InstructorRequestComponent implements OnInit {
       fecha: this.fechaActual,
     };
 
-    this.prestamoService.createPrestamo(prestamo).subscribe(
-      (response) => {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.authService.getToken()}` // Agrega el token de autorización
+    });
+
+    const apiUrl = this.prestamoService.apiUrl || 'http://localhost:3000/api/prestamos'; // O usa this.prestamoService.getApiUrl() si es necesario
+
+    this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
+      (response: any) => {
         console.log('Solicitud enviada con éxito', response);
         this.elementosAgregados = [];
       },
-      (error) => {
-        console.error('Error al enviar solicitud', error);
+      (error: any) => {
+        if (error.status === 401) {
+          console.error('No autorizado. Por favor, verifica tus credenciales.');
+        } else {
+          console.error('Error al enviar solicitud', error);
+        }
       }
     );
   }
 }
+
+
+
+
+
+
+
+
 
 
 

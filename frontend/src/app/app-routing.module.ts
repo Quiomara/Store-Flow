@@ -15,6 +15,7 @@ import { WarehouseRequestsComponent } from './components/warehouse/warehouse-req
 import { InstructorHistoryComponent } from './components/instructor/instructor-history/instructor-history.component';
 import { WarehouseHistoryComponent } from './components/warehouse/warehouse-history/warehouse-history.component';
 
+
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
