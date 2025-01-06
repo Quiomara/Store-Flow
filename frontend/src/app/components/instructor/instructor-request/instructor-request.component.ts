@@ -129,6 +129,8 @@ export class InstructorRequestComponent implements OnInit {
       fecha: this.fechaActual,
     };
 
+    console.log('Datos del préstamo antes de enviar:', prestamo); // Log adicional
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.authService.getToken()}` // Agrega el token de autorización
@@ -151,6 +153,8 @@ export class InstructorRequestComponent implements OnInit {
     );
   }
 }
+
+
 
 
 

@@ -4,6 +4,8 @@ const Prestamo = {
   crear: (data, callback) => {
     const query = `INSERT INTO Prestamos (pre_inicio, pre_fin, usr_cedula, est_id) VALUES (?, ?, ?, ?)`;
     const values = [data.pre_inicio, data.pre_fin, data.usr_cedula, data.est_id];
+    console.log('Query de inserción:', query); // Log adicional
+    console.log('Valores de inserción:', values); // Log adicional
     db.query(query, values, callback);
   },
 

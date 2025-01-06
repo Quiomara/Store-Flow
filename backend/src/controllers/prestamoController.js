@@ -9,13 +9,27 @@ const manejarError = (res, mensaje, err) => {
 
 // Crear Préstamo
 const crearPrestamo = (req, res) => {
-  const data = { ...req.body, pre_inicio: new Date() };
+  console.log('Datos recibidos en crearPrestamo:', req.body); // Log adicional
+
+  const data = { 
+    pre_inicio: new Date(),
+    pre_fin: null,
+    usr_cedula: req.body.cedulaSolicitante,
+    est_id: 1, // Asume que el estado inicial es 1 (puede variar según tu lógica)
+    elementos: req.body.elementos
+  };
+  console.log('Datos para crear el préstamo:', data); // Log adicional
+
+  if (!data.usr_cedula) {
+    return manejarError(res, 'Error: La cédula del solicitante es nula o no se proporcionó.', new Error('Cédula del solicitante nula'));
+  }
 
   Prestamo.crear(data, (err, results) => {
     if (err) return manejarError(res, 'Error al crear el préstamo.', err);
 
     const prestamoId = results.insertId;
     const elementos = data.elementos;
+    console.log('ID del préstamo creado:', prestamoId); // Log adicional
 
     // Crear Préstamos de Elementos asociados
     elementos.forEach(elemento => {
@@ -25,7 +39,7 @@ const crearPrestamo = (req, res) => {
         pre_ele_cantidad_prestado: elemento.ele_cantidad
       };
 
-      console.log('Intentando insertar en PrestamosElementos:', prestamoElementoData);
+      console.log('Intentando insertar en PrestamosElementos:', prestamoElementoData); // Log adicional
       PrestamoElemento.crear(prestamoElementoData, (err) => {
         if (err) {
           console.error('Error al crear el préstamo de elemento:', err.stack);
@@ -38,7 +52,6 @@ const crearPrestamo = (req, res) => {
     res.json({ respuesta: true, mensaje: '¡Préstamo creado con éxito!' });
   });
 };
-
 
 
 // Actualizar Préstamo
