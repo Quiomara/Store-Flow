@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
-import { Elemento, Prestamo } from '../../../models/prestamo.model';
+import { Prestamo, Elemento } from '../../../models/prestamo.model';
 import { NgIf, NgForOf } from '@angular/common';
 
 @Component({
@@ -17,26 +17,26 @@ import { NgIf, NgForOf } from '@angular/common';
 export class InstructorRequestComponent implements OnInit {
   fechaActual: string = new Date().toLocaleDateString();
   nombreCurso: string = '';
-  idSolicitud: number | null = null; // ID se genera al momento de enviar la solicitud
-  nuevoElemento = { nombre: '', cantidad: null as number | null }; // Inicializar cantidad en blanco
+  idSolicitud: number | null = null;
+  nuevoElemento = { nombre: '', cantidad: null as number | null };
   elementos: Elemento[] = [];
   elementosFiltrados: Elemento[] = [];
   elementoSeleccionado: Elemento | null = null;
-  mostrarElementos: boolean = false; // Controlar el despliegue de elementos
-  elementosAgregados: Elemento[] = []; // Elementos agregados por el usuario
+  mostrarElementos: boolean = false;
+  elementosAgregados: Elemento[] = [];
 
   constructor(
     private elementoService: ElementoService, 
     private prestamoService: PrestamoService,
-    private authService: AuthService // Inyectar AuthService
+    private authService: AuthService 
   ) {}
 
   ngOnInit(): void {
     this.elementoService.getElementos().subscribe(
       (data: Elemento[]) => {
-        this.elementos = data.sort((a, b) => a.ele_nombre.localeCompare(b.ele_nombre)); // Ordenar elementos A-Z
+        this.elementos = data.sort((a, b) => a.ele_nombre.localeCompare(b.ele_nombre));
         this.elementosFiltrados = this.elementos;
-        console.log('Elementos obtenidos:', this.elementos); // Debug: Verifica los elementos obtenidos
+        console.log('Elementos obtenidos:', this.elementos);
       },
       (error) => {
         console.error('Error al obtener elementos', error);
@@ -55,7 +55,7 @@ export class InstructorRequestComponent implements OnInit {
   ocultarListaElementos(): void {
     setTimeout(() => {
       this.mostrarElementos = false;
-    }, 200); // Agregar un pequeño retraso para permitir la selección
+    }, 200);
   }
 
   filtrarElementos(): void {
@@ -67,7 +67,7 @@ export class InstructorRequestComponent implements OnInit {
     this.nuevoElemento.nombre = elemento.ele_nombre;
     this.elementoSeleccionado = elemento;
     this.mostrarElementos = false;
-    console.log('Elemento seleccionado:', this.elementoSeleccionado); // Debug: Verifica el elemento seleccionado
+    console.log('Elemento seleccionado:', this.elementoSeleccionado);
   }
 
   agregarElemento(): void {
@@ -75,7 +75,6 @@ export class InstructorRequestComponent implements OnInit {
       const elementoAgregado = { ...this.elementoSeleccionado, ele_cantidad: this.nuevoElemento.cantidad };
       this.elementosAgregados.push(elementoAgregado);
 
-      // Actualizar la cantidad disponible del elemento seleccionado
       this.elementos = this.elementos.map(elemento => {
         if (elemento.ele_id === this.elementoSeleccionado!.ele_id) {
           return {
@@ -96,7 +95,6 @@ export class InstructorRequestComponent implements OnInit {
   eliminarElemento(elemento: Elemento): void {
     this.elementosAgregados = this.elementosAgregados.filter(e => e !== elemento);
 
-    // Restaurar la cantidad disponible del elemento eliminado
     this.elementos = this.elementos.map(e => {
       if (e.ele_id === elemento.ele_id) {
         return {
@@ -121,7 +119,7 @@ export class InstructorRequestComponent implements OnInit {
     }
 
     const prestamo: Prestamo = {
-      idPrestamo: Math.floor(Math.random() * 10000) + Date.now(), // Generar ID al momento de enviar la solicitud
+      idPrestamo: Math.floor(Math.random() * 10000) + Date.now(),
       nombreCurso: this.nombreCurso,
       cedulaSolicitante: cedulaSolicitante,
       elementos: this.elementosAgregados,
@@ -131,7 +129,7 @@ export class InstructorRequestComponent implements OnInit {
     this.prestamoService.createPrestamo(prestamo).subscribe(
       (response) => {
         console.log('Solicitud enviada con éxito', response);
-        this.elementosAgregados = []; // Limpiar elementos agregados después de enviar la solicitud
+        this.elementosAgregados = [];
       },
       (error) => {
         console.error('Error al enviar solicitud', error);
@@ -139,6 +137,8 @@ export class InstructorRequestComponent implements OnInit {
     );
   }
 }
+
+
 
 
 

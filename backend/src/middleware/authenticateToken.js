@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const authenticateToken = (req, res, next) => {
   try {
@@ -14,7 +15,7 @@ const authenticateToken = (req, res, next) => {
       return res.status(401).json({ message: 'Token missing' });
     }
 
-    jwt.verify(token, 'tu_clave_secreta', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
         console.error('Token verification failed', err);
         return res.status(403).json({ message: 'Token verification failed' });

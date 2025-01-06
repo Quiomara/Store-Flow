@@ -17,7 +17,11 @@ export class AuthService {
         map(response => {
           if (response && response.token) {
             this.setToken(response.token);
-            // No necesitamos establecer la cédula aquí
+            console.log('Token almacenado:', response.token); // Log para verificar el token
+            if (response.cedula) {
+              this.setCedula(response.cedula); // Almacenar la cédula del usuario
+              console.log('Cédula almacenada:', response.cedula); // Log para verificar la cédula
+            }
             return response;
           }
           throw new Error('Inicio de sesión fallido');
@@ -41,18 +45,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email })
       .pipe(
         map(response => response),
-        catchError(error => {
-          let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
-          if (error.status === 400) {
-            errorMessage = error.error.error || 'Correo y contraseña son necesarios.';
-          } else if (error.status === 404) {
-            errorMessage = error.error.error || 'Usuario no registrado. Por favor contacta con un administrador.';
-          } else if (error.status === 500) {
-            errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
-          }
-          console.error('Detalles del error:', error);
-          return throwError({ message: errorMessage, error: error.error, status: error.status });
-        })
+        catchError(this.handleError)
       );
   }
 
@@ -88,7 +81,7 @@ export class AuthService {
     }
   }
 
-  // Métodos para manejar la cédula del usuario solo si es necesario
+  // Métodos para manejar la cédula del usuario
   setCedula(cedula: number): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('cedula', cedula.toString());
@@ -109,6 +102,9 @@ export class AuthService {
     }
   }
 }
+
+
+
 
 
 

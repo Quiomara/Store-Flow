@@ -48,12 +48,12 @@ export class ForgotPasswordPopupComponent {
 
     const email = this.forgotPasswordForm.value.email;
     this.authService.forgotPassword(email).subscribe(
-      response => {
+      (response: any) => {
         this.successMessage = response.message; // Mostrar el mensaje de éxito
         this.errorMessage = '';  // Limpiar el mensaje de error
         this.showMessage = true;  // Actualizar la propiedad para ocultar otros elementos
       },
-      error => {
+      (error: any) => {
         this.errorMessage = error.message || 'Error desconocido.';
         this.successMessage = '';  // Limpiar el mensaje de éxito
       }

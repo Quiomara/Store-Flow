@@ -34,14 +34,14 @@ export class ResetPasswordComponent {
     }
 
     this.authService.resetPassword(this.token, this.newPassword).subscribe(
-      response => {
+      (response: any) => {
         this.message = response.message;
         this.errorMessage = ''; // Limpiar mensaje de error
         setTimeout(() => {
           this.router.navigate(['/login']); // Redirigir a la página de login después de 3 segundos
         }, 3000);
       },
-      error => {
+      (error: any) => {
         console.error('Error en resetPassword:', error);
         this.errorMessage = error.message || 'Error desconocido.';
         this.message = ''; // Limpiar mensaje de éxito
@@ -49,7 +49,6 @@ export class ResetPasswordComponent {
     );
   }
 }
-
 
 
 

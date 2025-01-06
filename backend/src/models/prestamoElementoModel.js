@@ -4,7 +4,15 @@ const PrestamoElemento = {
   crear: (data, callback) => {
     const query = `INSERT INTO PrestamosElementos (ele_id, pre_id, pre_ele_cantidad_prestado) VALUES (?, ?, ?)`;
     const values = [data.ele_id, data.pre_id, data.pre_ele_cantidad_prestado];
-    db.query(query, values, callback);
+    console.log('Intentando insertar en PrestamosElementos:', { query, values });
+    db.query(query, values, (err, results) => {
+      if (err) {
+        console.error('Error al insertar en PrestamosElementos:', err.stack);
+      } else {
+        console.log('Inserción exitosa en PrestamosElementos:', results);
+      }
+      callback(err, results);
+    });
   },
 
   actualizar: (data, callback) => {

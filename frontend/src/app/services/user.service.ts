@@ -54,7 +54,7 @@ export class UserService {
   }
 
   // Método para obtener centro por ID
-  getCentroDeFormacionPorID(id: string): Observable<Centro>{
+  getCentroDeFormacionPorID(id: string): Observable<Centro> {
     return this.http.get<Centro>(`${this.apiUrl}/centros/${id}`);
   }
 
