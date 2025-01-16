@@ -1,6 +1,5 @@
 export interface Prestamo {
   idPrestamo: number; 
-  nombreCurso: string;
   cedulaSolicitante: number;
   solicitante?: string;
   fechaHora?: string;

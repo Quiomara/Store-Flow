@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
+import { MatDialog } from '@angular/material/dialog'; // Importa MatDialog
+import { SuccessModalComponent } from '../success-modal/success-modal.component'; // Importa el componente del modal
 import { Prestamo, Elemento } from '../../../models/prestamo.model';
 import { NgIf, NgForOf } from '@angular/common';
 
@@ -30,6 +32,7 @@ export class InstructorRequestComponent implements OnInit {
     private elementoService: ElementoService, 
     private prestamoService: PrestamoService,
     private authService: AuthService,
+    private dialog: MatDialog, // Inyecta MatDialog
     private http: HttpClient // Inyecta HttpClient aquí
   ) {}
 
@@ -123,7 +126,6 @@ export class InstructorRequestComponent implements OnInit {
 
     const prestamo: Prestamo = {
       idPrestamo: Math.floor(Math.random() * 10000) + Date.now(),
-      nombreCurso: this.nombreCurso,
       cedulaSolicitante: cedulaSolicitante,
       elementos: this.elementosAgregados,
       fecha: this.fechaActual,
@@ -141,7 +143,8 @@ export class InstructorRequestComponent implements OnInit {
     this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
       (response: any) => {
         console.log('Solicitud enviada con éxito', response);
-        this.elementosAgregados = [];
+        this.mostrarModalExito(prestamo.idPrestamo); // Llama a la función para mostrar el modal de éxito
+        this.limpiarFormulario(); // Llama a la función para limpiar el formulario
       },
       (error: any) => {
         if (error.status === 401) {
@@ -152,7 +155,25 @@ export class InstructorRequestComponent implements OnInit {
       }
     );
   }
+
+  mostrarModalExito(idPrestamo: number): void {
+    this.dialog.open(SuccessModalComponent, {
+      data: {
+        mensaje: `Se ha creado la solicitud exitosamente con el siguiente ID: ${idPrestamo}`
+      }
+    });
+  }
+
+  limpiarFormulario(): void {
+    this.nombreCurso = ''; // Limpia el campo de nombre del curso
+    this.elementosAgregados = []; // Limpia los elementos agregados
+    this.nuevoElemento = { nombre: '', cantidad: null };
+    this.elementoSeleccionado = null;
+    console.log('Formulario limpiado');
+  }
 }
+
+
 
 
 
