@@ -6,6 +6,7 @@ const usuarioRoutes = require('./routes/usuarioRoutes');
 const ubicacionElementoRoutes = require('./routes/ubicacionElementoRoutes');
 const elementoRoutes = require('./routes/elementoRoutes');
 const prestamoRoutes = require('./routes/prestamoRoutes');
+const estadoRoutes = require('./routes/estadoRoutes'); // Importar las rutas de estado
 const authRoutes = require('./routes/authRoutes');
 const centroDeFormacionRoutes = require('./routes/centroDeFormacionRoutes');
 const tipoDeUsuarioRoutes = require('./routes/tipoDeUsuarioRoutes');
@@ -24,6 +25,7 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/ubicacion-elementos', authenticateToken, ubicacionElementoRoutes); 
 app.use('/api/elementos', authenticateToken, elementoRoutes); 
 app.use('/api/prestamos', authenticateToken, prestamoRoutes);
+app.use('/api/estados', authenticateToken, estadoRoutes); // Registrar las rutas de estado
 app.use('/api/centros', authenticateToken, centroDeFormacionRoutes);
 app.use('/api/tipos-usuario', authenticateToken, tipoDeUsuarioRoutes);
 

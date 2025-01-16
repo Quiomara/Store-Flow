@@ -1,0 +1,45 @@
+.instructor-history-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 1rem;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin: 0 10px;
+}
+
+.form-group.col-md-3 {
+  flex: 0 0 22%;
+  max-width: 22%;
+}
+
+.table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.table th {
+  background-color: #f2f2f2;
+}

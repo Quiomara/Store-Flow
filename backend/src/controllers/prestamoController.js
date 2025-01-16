@@ -133,6 +133,14 @@ const obtenerPrestamoPorId = (req, res) => {
   });
 };
 
+// Obtener Estados
+const obtenerEstados = (req, res) => {
+  Prestamo.obtenerEstados((err, results) => {
+    if (err) return manejarError(res, 'Error al obtener los estados.', err);
+    res.json({ respuesta: true, mensaje: '¡Estados obtenidos con éxito!', data: results });
+  });
+};
+
 // Crear Préstamo de Elemento
 const crearPrestamoElemento = (req, res) => {
   const data = req.body;

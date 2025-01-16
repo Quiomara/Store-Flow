@@ -1,1 +1,41 @@
-<p>instructor-history works!</p>
+<div class="instructor-history-container">
+  <h1 class="text-center">Historial de Préstamos</h1>
+  <div class="form-row justify-content-center mt-5">
+    <div class="form-group col-md-3">
+      <label for="searchId">ID del Préstamo</label>
+      <input type="number" id="searchId" [(ngModel)]="searchId" class="form-control" (input)="buscar()" placeholder="Buscar por ID">
+    </div>
+    <div class="form-group col-md-3">
+      <label for="searchEstado">Estado</label>
+      <select id="searchEstado" [(ngModel)]="searchEstado" class="form-control" (change)="buscar()">
+        <option value="">Seleccione un estado</option>
+        <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+      </select>
+    </div>
+    <div class="form-group col-md-3">
+      <label for="searchFecha">Fecha</label>
+      <input type="date" id="searchFecha" [(ngModel)]="searchFecha" class="form-control" (input)="buscar()">
+    </div>
+    <div class="form-group col-md-3 align-self-end">
+      <button type="button" class="btn btn-secondary" (click)="getHistory()">Limpiar Filtros</button>
+    </div>
+  </div>
+  <table class="table mt-5">
+    <thead>
+      <tr>
+        <th>ID del Préstamo</th>
+        <th>Fecha Inicio</th>
+        <th>Fecha Fin</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let prestamo of filteredPrestamos">
+        <td>{{ prestamo.idPrestamo }}</td>
+        <td>{{ prestamo.fechaHora }}</td>
+        <td>{{ prestamo.fechaEntrega }}</td>
+        <td>{{ prestamo.estado }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
