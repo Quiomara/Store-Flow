@@ -8,7 +8,6 @@
         <label for="fecha" class="text-center d-block">Fecha</label>
         <input type="text" id="fecha" [value]="fechaActual" disabled class="form-control text-center">
       </div>
-      
     </div>
     
     <div class="form-row justify-content-center mt-5">
@@ -45,7 +44,7 @@
       <button type="button" class="btn btn-dark" (click)="agregarElemento()">Agregar Elemento</button>
     </div>
 
-    <table *ngIf="elementosAgregados.length > 0" class="table mt-5">
+    <table *ngIf="elementosAgregados.length > 0" class="table mt-5 text-center">
       <thead>
         <tr>
           <th>Elemento</th>
@@ -57,7 +56,11 @@
         <tr *ngFor="let elemento of elementosAgregados">
           <td>{{ elemento.ele_nombre }}</td>
           <td>{{ elemento.ele_cantidad }}</td>
-          <td><button type="button" class="btn btn-danger" (click)="eliminarElemento(elemento)">Eliminar</button></td>
+          <td>
+            <button mat-icon-button (click)="eliminarElemento(elemento)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>

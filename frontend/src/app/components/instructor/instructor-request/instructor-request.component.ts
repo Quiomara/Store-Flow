@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
-import { MatDialog } from '@angular/material/dialog'; // Importa MatDialog
+import { MatDialogModule, MatDialog } from '@angular/material/dialog'; // Importa MatDialogModule y MatDialog
+import { MatIconModule } from '@angular/material/icon'; // Importa MatIconModule
 import { SuccessModalComponent } from '../success-modal/success-modal.component'; // Importa el componente del modal
 import { Prestamo, Elemento } from '../../../models/prestamo.model';
 import { NgIf, NgForOf } from '@angular/common';
@@ -15,7 +16,15 @@ import { NgIf, NgForOf } from '@angular/common';
   templateUrl: './instructor-request.component.html',
   styleUrls: ['./instructor-request.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIf, NgForOf, HttpClientModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    NgIf,
+    NgForOf,
+    HttpClientModule,
+    MatDialogModule, // Asegúrate de importar MatDialogModule
+    MatIconModule // Asegúrate de importar MatIconModule
+  ]
 })
 export class InstructorRequestComponent implements OnInit {
   fechaActual: string = new Date().toLocaleDateString();
@@ -37,6 +46,10 @@ export class InstructorRequestComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.obtenerElementos();
+  }
+
+  obtenerElementos(): void {
     this.elementoService.getElementos().subscribe(
       (data: Elemento[]) => {
         this.elementos = data.sort((a, b) => a.ele_nombre.localeCompare(b.ele_nombre));
@@ -118,33 +131,29 @@ export class InstructorRequestComponent implements OnInit {
 
   enviarSolicitud(): void {
     const cedulaSolicitante = this.authService.getCedula();
-    console.log('Cédula del solicitante:', cedulaSolicitante);
     if (cedulaSolicitante === null) {
       alert('Error: No se pudo obtener la cédula del usuario logueado.');
       return;
     }
 
-    const prestamo: Prestamo = {
-      idPrestamo: Math.floor(Math.random() * 10000) + Date.now(),
+    const prestamo: Omit<Prestamo, 'idPrestamo'> = {
       cedulaSolicitante: cedulaSolicitante,
       elementos: this.elementosAgregados,
       fecha: this.fechaActual,
     };
 
-    console.log('Datos del préstamo antes de enviar:', prestamo); // Log adicional
-
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.authService.getToken()}` // Agrega el token de autorización
+      'Authorization': `Bearer ${this.authService.getToken()}`
     });
 
-    const apiUrl = this.prestamoService.apiUrl || 'http://localhost:3000/api/prestamos'; // O usa this.prestamoService.getApiUrl() si es necesario
+    const apiUrl = this.prestamoService.apiUrl || 'http://localhost:3000/api/prestamos';
 
     this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
       (response: any) => {
         console.log('Solicitud enviada con éxito', response);
-        this.mostrarModalExito(prestamo.idPrestamo); // Llama a la función para mostrar el modal de éxito
-        this.limpiarFormulario(); // Llama a la función para limpiar el formulario
+        this.mostrarModalExito(response.id); // Mostrar el modal con el ID del préstamo real
+        this.limpiarFormulario();
       },
       (error: any) => {
         if (error.status === 401) {
@@ -159,7 +168,7 @@ export class InstructorRequestComponent implements OnInit {
   mostrarModalExito(idPrestamo: number): void {
     this.dialog.open(SuccessModalComponent, {
       data: {
-        mensaje: `Se ha creado la solicitud exitosamente con el siguiente ID: ${idPrestamo}`
+        mensaje: `Solicitud Exitosa. Se ha creado la solicitud exitosamente con el siguiente ID: ${idPrestamo}`
       }
     });
   }
@@ -172,6 +181,7 @@ export class InstructorRequestComponent implements OnInit {
     console.log('Formulario limpiado');
   }
 }
+
 
 
 

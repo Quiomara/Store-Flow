@@ -1,5 +1,6 @@
 const Prestamo = require('../models/prestamoModel');
 const PrestamoElemento = require('../models/prestamoElementoModel');
+const Elemento = require('../models/elementoModel');
 
 // Función para manejar errores
 const manejarError = (res, mensaje, err) => {
@@ -9,7 +10,7 @@ const manejarError = (res, mensaje, err) => {
 
 // Crear Préstamo
 const crearPrestamo = (req, res) => {
-  console.log('Datos recibidos en crearPrestamo:', req.body); // Log adicional
+  console.log('Datos recibidos en crearPrestamo:', req.body);
 
   const data = { 
     pre_inicio: new Date(),
@@ -18,18 +19,18 @@ const crearPrestamo = (req, res) => {
     est_id: 1, // Asume que el estado inicial es 1 (puede variar según tu lógica)
     elementos: req.body.elementos
   };
-  console.log('Datos para crear el préstamo:', data); // Log adicional
+  console.log('Datos para crear el préstamo:', data);
 
   if (!data.usr_cedula) {
     return manejarError(res, 'Error: La cédula del solicitante es nula o no se proporcionó.', new Error('Cédula del solicitante nula'));
   }
 
-  Prestamo.crear(data, (err, results) => {
+  Prestamo.crear(data, (err, result) => {
     if (err) return manejarError(res, 'Error al crear el préstamo.', err);
 
-    const prestamoId = results.insertId;
+    const prestamoId = result.insertId;
     const elementos = data.elementos;
-    console.log('ID del préstamo creado:', prestamoId); // Log adicional
+    console.log('ID del préstamo creado:', prestamoId);
 
     // Crear Préstamos de Elementos asociados
     elementos.forEach(elemento => {
@@ -39,20 +40,28 @@ const crearPrestamo = (req, res) => {
         pre_ele_cantidad_prestado: elemento.ele_cantidad
       };
 
-      console.log('Intentando insertar en PrestamosElementos:', prestamoElementoData); // Log adicional
+      console.log('Intentando insertar en PrestamosElementos:', prestamoElementoData);
       PrestamoElemento.crear(prestamoElementoData, (err) => {
         if (err) {
           console.error('Error al crear el préstamo de elemento:', err.stack);
         } else {
           console.log('Préstamo de elemento creado con éxito:', prestamoElementoData);
+
+          // Actualizar la cantidad del elemento en el inventario
+          Elemento.actualizarCantidad(elemento.ele_id, -elemento.ele_cantidad, (err) => {
+            if (err) {
+              console.error('Error al actualizar la cantidad del elemento:', err.stack);
+            } else {
+              console.log('Cantidad del elemento actualizada con éxito.');
+            }
+          });
         }
       });
     });
 
-    res.json({ respuesta: true, mensaje: '¡Préstamo creado con éxito!' });
+    res.json({ respuesta: true, mensaje: '¡Préstamo creado con éxito!', id: prestamoId });
   });
 };
-
 
 // Actualizar Préstamo
 const actualizarPrestamo = (req, res) => {

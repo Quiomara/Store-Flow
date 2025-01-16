@@ -26,6 +26,11 @@ const Elemento = {
   obtenerPorId: (ele_id, callback) => {
     const query = `SELECT * FROM Elementos WHERE ele_id = ?`;
     db.query(query, [ele_id], callback);
+  },
+
+  actualizarCantidad: (ele_id, cantidad, callback) => {
+    const query = `UPDATE Elementos SET ele_cantidad = ele_cantidad + ? WHERE ele_id = ?`;
+    db.query(query, [cantidad, ele_id], callback);
   }
 };
 
