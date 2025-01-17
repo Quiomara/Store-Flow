@@ -10,7 +10,7 @@ const manejarError = (res, mensaje, err) => {
 const obtenerTodosEstados = (req, res) => {
   Estado.obtenerTodos((err, results) => {
     if (err) return manejarError(res, 'Error al obtener los estados.', err);
-    res.json({ respuesta: true, mensaje: '¡Estados obtenidos con éxito!', data: results });
+    res.json(results);  // Enviar results directamente sin envoltura
   });
 };
 

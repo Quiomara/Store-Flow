@@ -8,5 +8,10 @@ router.put('/actualizar', auth, prestamoController.actualizarPrestamo);
 router.delete('/:pre_id', auth, prestamoController.eliminarPrestamo);
 router.get('/', auth, prestamoController.obtenerTodosPrestamos);
 router.get('/:pre_id', auth, prestamoController.obtenerPrestamoPorId);
+router.get('/usuario/:usr_cedula', prestamoController.obtenerPrestamosPorCedula);
 
 module.exports = router;
+
+
+
+

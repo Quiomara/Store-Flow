@@ -26,11 +26,16 @@ export class LoginComponent {
       this.errorMessage = 'Correo y contraseña son necesarios.';
       return;
     }
-
+  
     this.authService.login(this.email, this.password).subscribe(
       response => {
         if (response && response.token) {
           this.errorMessage = '';  // Limpiar el mensaje de error
+          // Guardar el token y la cédula en localStorage
+          this.authService.setToken(response.token);
+          if (response.cedula) {
+            this.authService.setCedula(response.cedula);
+          }
           this.redirectUser(response.userType);
         }
       },
@@ -47,6 +52,7 @@ export class LoginComponent {
       }
     );
   }
+  
 
   redirectUser(userType: string) {
     switch(userType) {
