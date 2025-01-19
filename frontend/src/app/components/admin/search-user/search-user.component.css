@@ -4,7 +4,6 @@
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
@@ -45,7 +44,7 @@
 }
 
 .user-table-container {
-  max-height: 650px; /* Define una altura máxima para la tabla */
+  max-height: 570px; /* Define una altura máxima para la tabla */
   overflow-y: auto; /* Habilita el scroll vertical */
   position: relative;
 }

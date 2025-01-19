@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -11,14 +11,16 @@ import { AuthService } from './auth.service';
 export class ElementoService {
   private apiUrl = 'http://localhost:3000/api/elementos'; // Base URL del endpoint de elementos
 
-  constructor(private http: HttpClient, @Inject(AuthService) private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   private getHeaders(): HttpHeaders {
-    let headers = new HttpHeaders();
     const token = this.authService.getToken();
+    let headers = new HttpHeaders();
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
       console.log('Headers con token:', headers); // Log para verificar los headers
+    } else {
+      console.warn('Token no disponible. No se enviarán encabezados de autorización.');
     }
     return headers;
   }
@@ -26,7 +28,7 @@ export class ElementoService {
   getElementos(): Observable<Elemento[]> {
     return this.http.get<Elemento[]>(this.apiUrl, { headers: this.getHeaders() })
       .pipe(
-        catchError(this.handleError)
+        catchError(this.handleError.bind(this))
       );
   }
 

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const sendResetEmail = require('../config/mailer');
-require('dotenv').config(); // Asegurarse de cargar las variables de entorno
+require('dotenv').config(); // Asegúrate de cargar las variables de entorno
 
 /**
  * Controlador para manejar el inicio de sesión del usuario.
@@ -13,11 +13,8 @@ require('dotenv').config(); // Asegurarse de cargar las variables de entorno
 const login = (req, res) => {
   const { correo, contrasena } = req.body;
 
-  console.log('Cuerpo de la solicitud:', req.body);
-
   // Verificar que el correo y la contraseña se proporcionaron
   if (!correo || !contrasena) {
-    console.log('Correo y contraseña son necesarios');
     return res.status(400).send({ error: 'Correo y contraseña son necesarios.' });
   }
 
@@ -25,39 +22,30 @@ const login = (req, res) => {
   const query = `SELECT * FROM Usuarios WHERE usr_correo = ?`;
   db.query(query, [correo], (err, results) => {
     if (err) {
-      console.error('Error en la consulta:', err.stack);
       return res.status(500).send({ error: 'Error en el servidor.' });
     }
 
-    console.log('Resultados de la consulta:', results);
-
     // Verificar si el usuario no está registrado
     if (results.length === 0) {
-      console.log('Correo no registrado');
       return res.status(404).send({ error: 'Usuario no registrado. Por favor contacta con un administrador.' });
     }
 
     const user = results[0];
-    console.log('Usuario encontrado:', user);
 
     // Verificar la contraseña
     const validPassword = bcrypt.compareSync(contrasena, user.usr_contrasena);
-    console.log('Validación de la contraseña:', validPassword);
 
     if (!validPassword) {
-      console.log('Contraseña incorrecta');
       return res.status(400).send({ error: 'Usuario o contraseña incorrectos.' });
     }
 
     // Generar token JWT
     const token = jwt.sign({ usr_cedula: user.usr_cedula, tip_usr_id: user.tip_usr_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Token generado:', token);
 
     // Obtener el tipo de usuario
     const userTypeQuery = `SELECT tip_usr_nombre FROM TipoUsuarios WHERE tip_usr_id = ?`;
     db.query(userTypeQuery, [user.tip_usr_id], (err, typeResults) => {
       if (err) {
-        console.error('Error al obtener el tipo de usuario:', err.stack);
         return res.status(500).send({ error: 'Error en el servidor.' });
       }
 
@@ -66,7 +54,6 @@ const login = (req, res) => {
       }
 
       const userType = typeResults[0].tip_usr_nombre;
-      console.log('Tipo de usuario:', userType);
       res.send({ token, userType, cedula: user.usr_cedula }); // Incluir la cédula en la respuesta
     });
   });
@@ -83,7 +70,6 @@ const forgotPassword = (req, res) => {
   const query = `SELECT * FROM Usuarios WHERE usr_correo = ?`;
   db.query(query, [correo], (err, results) => {
     if (err) {
-      console.error('Error en la consulta:', err.stack);
       return res.status(500).send({ error: 'Error en el servidor.' });
     }
 
@@ -97,7 +83,6 @@ const forgotPassword = (req, res) => {
     const updateQuery = `UPDATE Usuarios SET reset_token = ?, reset_token_expiry = ? WHERE usr_correo = ?`;
     db.query(updateQuery, [resetToken, resetTokenExpiry, correo], (err, results) => {
       if (err) {
-        console.error('Error al actualizar el usuario:', err.stack);
         return res.status(500).send({ error: 'Error en el servidor.' });
       }
 
@@ -125,7 +110,6 @@ const resetPassword = (req, res) => {
   const query = `SELECT * FROM Usuarios WHERE reset_token = ? AND reset_token_expiry > ?`;
   db.query(query, [token, Date.now()], (err, results) => {
     if (err) {
-      console.error('Error en la consulta:', err.stack);
       return res.status(500).send({ error: 'Error en el servidor.' });
     }
 
@@ -140,7 +124,6 @@ const resetPassword = (req, res) => {
     const updateQuery = `UPDATE Usuarios SET usr_contrasena = ?, reset_token = NULL, reset_token_expiry = NULL WHERE usr_cedula = ?`;
     db.query(updateQuery, [hashedPassword, user.usr_cedula], (err, results) => {
       if (err) {
-        console.error('Error al actualizar la contraseña:', err.stack);
         return res.status(500).send({ error: 'Error en el servidor.' });
       }
 
@@ -150,8 +133,6 @@ const resetPassword = (req, res) => {
 };
 
 module.exports = { login, forgotPassword, resetPassword };
-
-
 
 
 

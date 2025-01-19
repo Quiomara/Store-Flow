@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog'; // Importa MatDialogModule y MatDialog
-import { MatIconModule } from '@angular/material/icon'; // Importa MatIconModule
-import { SuccessModalComponent } from '../success-modal/success-modal.component'; // Importa el componente del modal
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { SuccessModalComponent } from '../success-modal/success-modal.component';
 import { Prestamo, Elemento } from '../../../models/prestamo.model';
 import { NgIf, NgForOf } from '@angular/common';
 
@@ -22,8 +22,8 @@ import { NgIf, NgForOf } from '@angular/common';
     NgIf,
     NgForOf,
     HttpClientModule,
-    MatDialogModule, // Asegúrate de importar MatDialogModule
-    MatIconModule // Asegúrate de importar MatIconModule
+    MatDialogModule,
+    MatIconModule
   ]
 })
 export class InstructorRequestComponent implements OnInit {
@@ -41,8 +41,8 @@ export class InstructorRequestComponent implements OnInit {
     private elementoService: ElementoService, 
     private prestamoService: PrestamoService,
     private authService: AuthService,
-    private dialog: MatDialog, // Inyecta MatDialog
-    private http: HttpClient // Inyecta HttpClient aquí
+    private dialog: MatDialog,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -56,8 +56,8 @@ export class InstructorRequestComponent implements OnInit {
         this.elementosFiltrados = this.elementos;
         console.log('Elementos obtenidos:', this.elementos);
       },
-      (error) => {
-        console.error('Error al obtener elementos', error);
+      (error: any) => {
+        console.error('Error al obtener elementos:', error);
       }
     );
   }
@@ -137,9 +137,9 @@ export class InstructorRequestComponent implements OnInit {
     }
 
     const prestamo: Omit<Prestamo, 'idPrestamo'> = {
-      cedulaSolicitante: cedulaSolicitante,
+      cedulaSolicitante: Number(cedulaSolicitante),
       elementos: this.elementosAgregados,
-      fecha: this.fechaActual,
+      fecha: this.fechaActual
     };
 
     const headers = new HttpHeaders({
@@ -156,11 +156,7 @@ export class InstructorRequestComponent implements OnInit {
         this.limpiarFormulario();
       },
       (error: any) => {
-        if (error.status === 401) {
-          console.error('No autorizado. Por favor, verifica tus credenciales.');
-        } else {
-          console.error('Error al enviar solicitud', error);
-        }
+        console.error('Error al enviar solicitud:', error);
       }
     );
   }
@@ -174,14 +170,13 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   limpiarFormulario(): void {
-    this.nombreCurso = ''; // Limpia el campo de nombre del curso
-    this.elementosAgregados = []; // Limpia los elementos agregados
+    this.nombreCurso = '';
+    this.elementosAgregados = [];
     this.nuevoElemento = { nombre: '', cantidad: null };
     this.elementoSeleccionado = null;
     console.log('Formulario limpiado');
   }
 }
-
 
 
 
