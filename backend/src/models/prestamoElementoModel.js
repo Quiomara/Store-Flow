@@ -43,7 +43,19 @@ const PrestamoElemento = {
 
   obtenerPorPrestamoId: (pre_id) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT * FROM prestamoselementos WHERE pre_id = ?`;
+      const query = `
+        SELECT 
+          pe.pre_id, 
+          pe.ele_id, 
+          pe.pre_ele_cantidad_prestado, 
+          ele.ele_nombre AS nombre
+        FROM 
+          prestamoselementos pe
+        JOIN 
+          Elementos ele ON pe.ele_id = ele.ele_id
+        WHERE 
+          pe.pre_id = ?
+      `;
       db.query(query, [pre_id], (err, results) => {
         if (err) {
           reject(err);

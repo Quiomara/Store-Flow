@@ -38,23 +38,14 @@ const Prestamo = {
     db.query(query, callback);
   },
 
-  obtenerPorId : (pre_id, callback) => {
+  obtenerPorId: (pre_id, callback) => {
     const query = `SELECT p.pre_id, p.est_id, e.est_nombre 
                    FROM Prestamos p 
                    JOIN Estados e ON p.est_id = e.est_id 
                    WHERE pre_id = ?`;
-    console.log("Ejecutando consulta:", query, "con ID:", pre_id);
-    db.query(query, [pre_id], (err, results) => {
-      if (err) {
-        console.log("Error en obtenerPorId:", err);
-        return callback(err);
-      }
-      console.log("Resultados de obtenerPorId:", results);
-      callback(null, results);
-    });
+    db.query(query, [pre_id], callback);
   },
-  
-  
+
   obtenerPorCedula: (usr_cedula, callback) => {
     const query = `
       SELECT p.pre_id, p.pre_inicio, p.pre_fin, p.usr_cedula, e.est_nombre, p.pre_actualizacion

@@ -228,11 +228,12 @@ const obtenerPrestamosPorCedula = (req, res) => {
 };
 
 // Obtener Elemento de Préstamos por ID
+// Obtener Elemento de Préstamos por ID
 const obtenerElementoPrestamos = async (req, res) => {
   try {
     const prestamoId = req.params.pre_id;
     console.log("Buscando préstamo con ID:", prestamoId);
-    
+
     const prestamo = await new Promise((resolve, reject) => {
       Prestamo.obtenerPorId(prestamoId, (err, results) => {
         if (err) {
@@ -260,14 +261,9 @@ const obtenerElementoPrestamos = async (req, res) => {
       return res.status(404).json({ respuesta: false, mensaje: 'Elementos no encontrados para el préstamo' });
     }
 
-    const items = await Promise.all(elementos.map(async (elem) => {
-      const elemento = await Elemento.obtenerPorId(elem.ele_id);
-      console.log("Elemento encontrado:", elemento);
-
-      return {
-        nombreElemento: elemento.nombre,
-        cantidad: elem.pre_ele_cantidad_prestado
-      };
+    const items = elementos.map(elem => ({
+      nombre: elem.nombre,
+      cantidad: elem.pre_ele_cantidad_prestado
     }));
 
     res.status(200).json({
@@ -280,8 +276,6 @@ const obtenerElementoPrestamos = async (req, res) => {
     manejarError(res, 'Error al obtener los elementos del préstamo', error);
   }
 };
-
-
 
 module.exports = {
   crearPrestamo,
