@@ -14,7 +14,7 @@ import { InstructorRequestComponent } from './components/instructor/instructor-r
 import { WarehouseRequestsComponent } from './components/warehouse/warehouse-requests/warehouse-requests.component';
 import { InstructorHistoryComponent } from './components/instructor/instructor-history/instructor-history.component';
 import { WarehouseHistoryComponent } from './components/warehouse/warehouse-history/warehouse-history.component';
-
+import { PrestamoDetalleModalComponent } from './components/prestamo-detalle-modal/prestamo-detalle-modal.component'; // Importa el componente del modal
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -49,6 +49,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'loan-requests', pathMatch: 'full' }
     ]
   },
+  { path: 'prestamo-detalle-modal', component: PrestamoDetalleModalComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 
@@ -57,7 +58,6 @@ export const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
-
 
 
 

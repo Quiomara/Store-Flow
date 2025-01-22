@@ -1,0 +1,24 @@
+<h2 mat-dialog-title class="modal-title">Detalles del Préstamo</h2>
+<div mat-dialog-content>
+  <p><strong>ID del Préstamo:</strong> {{ prestamo.idPrestamo }}</p>
+  <p><strong>Estado:</strong> {{ prestamo.estado }}</p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Elemento</th>
+        <th>Cantidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of prestamo.items">
+        <td>{{ item.elemento }}</td>
+        <td>{{ item.cantidad }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="edit()">Editar</button>
+  <button mat-button (click)="close()">Cerrar</button>
+</div>

@@ -4,10 +4,12 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Importa MatDialogModule
 import { MatIconModule } from '@angular/material/icon'; // Importa MatIconModule
 import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
+import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; // Asegúrate de que la ruta sea correcta
 
 @Component({
   selector: 'app-instructor-history',
@@ -21,6 +23,7 @@ import { AuthService } from '../../../services/auth.service';
     ReactiveFormsModule,
     MatTableModule,
     MatSnackBarModule,
+    MatDialogModule, // Añade MatDialogModule aquí
     MatIconModule // Añade MatIconModule aquí
   ]
 })
@@ -36,7 +39,8 @@ export class InstructorHistoryComponent implements OnInit {
     private fb: FormBuilder,
     private prestamoService: PrestamoService,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public dialog: MatDialog // Añade MatDialog aquí
   ) {
     this.searchForm = this.fb.group({
       searchId: [''],
@@ -79,6 +83,7 @@ export class InstructorHistoryComponent implements OnInit {
             fechaHora: this.formatearFecha(item.pre_inicio),
             fechaEntrega: this.formatearFecha(item.pre_fin),
             estado: item.est_nombre,
+            items: item.items, // Asegúrate de que los ítems estén incluidos
             cedulaSolicitante: item.usr_cedula
           }));
           this.filteredPrestamos = this.prestamos;
@@ -168,8 +173,13 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   verDetalles(prestamo: Prestamo): void {
-    this.snackBar.open(`Detalles del préstamo:\nID: ${prestamo.idPrestamo}\nEstado: ${prestamo.estado}\nFecha Inicio: ${prestamo.fechaHora}\nFecha Fin: ${prestamo.fechaEntrega}`, 'Cerrar', {
-      duration: 5000
+    const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
+      width: '400px',
+      data: { prestamo }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('El modal se cerró');
     });
   }
 
@@ -177,6 +187,7 @@ export class InstructorHistoryComponent implements OnInit {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
 }
+
 
 
 
