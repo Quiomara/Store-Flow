@@ -174,14 +174,16 @@ export class InstructorHistoryComponent implements OnInit {
 
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
-      width: '400px',
+      width: '800px', // Ajusta el ancho del modal aquí
       data: { prestamo }
     });
-
+  
     dialogRef.afterClosed().subscribe(result => {
       console.log('El modal se cerró');
     });
   }
+  
+  
 
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';

@@ -63,10 +63,17 @@ export class PrestamoService {
     );
   }
 
-  getPrestamosPorCedula(usr_cedula: string): Observable<Prestamo[]> { // Asegúrate de que usr_cedula sea string
+  getPrestamosPorCedula(usr_cedula: string): Observable<Prestamo[]> {
     const headers = this.getAuthHeaders();
     return this.http.get<Prestamo[]>(`${this.apiUrl}/usuario/${usr_cedula}`, { headers }).pipe(
       map(response => Array.isArray(response) ? response : []),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  getPrestamoDetalles(prestamoId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/${prestamoId}/detalles`, { headers }).pipe(
       catchError(this.handleError.bind(this))
     );
   }
