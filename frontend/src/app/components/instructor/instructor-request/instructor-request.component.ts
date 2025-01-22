@@ -30,7 +30,7 @@ export class InstructorRequestComponent implements OnInit {
   fechaActual: string = new Date().toLocaleDateString();
   nombreCurso: string = '';
   idSolicitud: number | null = null;
-  nuevoElemento = { nombre: '', cantidad: null as number | null };
+  nuevoElemento: { nombre: string, cantidad: number | null } = { nombre: '', cantidad: null };
   elementos: Elemento[] = [];
   elementosFiltrados: Elemento[] = [];
   elementoSeleccionado: Elemento | null = null;
@@ -106,7 +106,7 @@ export class InstructorRequestComponent implements OnInit {
       this.nuevoElemento = { nombre: '', cantidad: null };
       this.elementoSeleccionado = null;
     } else {
-      alert('Seleccione un elemento y cantidad válida.');
+      alert('Seleccione un elemento y una cantidad válida.');
     }
   }
 

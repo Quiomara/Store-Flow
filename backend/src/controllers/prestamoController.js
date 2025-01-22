@@ -1,7 +1,7 @@
 const Prestamo = require("../models/prestamoModel");
 const PrestamoElemento = require("../models/prestamoElementoModel");
 const Elemento = require("../models/elementoModel");
-const Estado = require("../models/estadoModel");  // Asegúrate de importar el modelo Estado
+const Estado = require("../models/estadoModel");
 
 // Función para manejar errores
 const manejarError = (res, mensaje, err) => {
@@ -10,79 +10,69 @@ const manejarError = (res, mensaje, err) => {
 };
 
 // Crear Préstamo
-const crearPrestamo = (req, res) => {
-  console.log("Datos recibidos en crearPrestamo:", req.body);
+const crearPrestamo = async (req, res) => {
+  try {
+    console.log("Datos recibidos en crearPrestamo:", req.body);
 
-  const data = {
-    pre_inicio: new Date(),
-    pre_fin: null,
-    usr_cedula: req.body.cedulaSolicitante,
-    est_id: 1, // Asume que el estado inicial es 1 (puede variar según tu lógica)
-    elementos: req.body.elementos,
-  };
-  console.log("Datos para crear el préstamo:", data);
+    const data = {
+      pre_inicio: new Date(),
+      pre_fin: req.body.pre_fin,
+      usr_cedula: req.body.cedulaSolicitante,
+      est_id: 1, // Estado predeterminado "Creado"
+      elementos: req.body.elementos
+    };
 
-  if (!data.usr_cedula) {
-    return manejarError(
-      res,
-      "Error: La cédula del solicitante es nula o no se proporcionó.",
-      new Error("Cédula del solicitante nula")
-    );
-  }
+    if (!data.usr_cedula) {
+      throw new Error("La cédula del solicitante es nula o no se proporcionó.");
+    }
 
-  Prestamo.crear(data, (err, result) => {
-    if (err) return manejarError(res, "Error al crear el préstamo.", err);
+    // Crear el préstamo
+    const prestamoResult = await new Promise((resolve, reject) => {
+      Prestamo.crear(data, (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
 
-    const prestamoId = result.insertId;
-    const elementos = data.elementos;
+    const prestamoId = prestamoResult.insertId;
     console.log("ID del préstamo creado:", prestamoId);
 
-    // Crear Préstamos de Elementos asociados
-    elementos.forEach((elemento) => {
+    // Crear elementos del préstamo y actualizar cantidad del inventario
+    for (const elemento of data.elementos) {
       const prestamoElementoData = {
         pre_id: prestamoId,
         ele_id: elemento.ele_id,
         pre_ele_cantidad_prestado: elemento.ele_cantidad,
       };
 
-      console.log(
-        "Intentando insertar en PrestamosElementos:",
-        prestamoElementoData
-      );
-      PrestamoElemento.crear(prestamoElementoData, (err) => {
-        if (err) {
-          console.error("Error al crear el préstamo de elemento:", err.stack);
-        } else {
-          console.log(
-            "Préstamo de elemento creado con éxito:",
-            prestamoElementoData
-          );
-
-          // Actualizar la cantidad del elemento en el inventario
-          Elemento.actualizarCantidad(
-            elemento.ele_id,
-            -elemento.ele_cantidad,
-            (err) => {
-              if (err) {
-                console.error(
-                  "Error al actualizar la cantidad del elemento:",
-                  err.stack
-                );
-              } else {
-                console.log("Cantidad del elemento actualizada con éxito.");
-              }
-            }
-          );
-        }
+      await new Promise((resolve, reject) => {
+        PrestamoElemento.crear(prestamoElementoData, (err, results) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
       });
-    });
 
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo creado con éxito!",
-      id: prestamoId,
-    });
-  });
+      await new Promise((resolve, reject) => {
+        Elemento.actualizarCantidad(elemento.ele_id, -elemento.ele_cantidad, (err, results) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+    }
+
+    res.status(201).json({ respuesta: true, mensaje: "¡Préstamo creado con éxito!", id: prestamoId });
+  } catch (error) {
+    manejarError(res, `Error al crear el préstamo: ${error.message}`, error);
+  }
 };
 
 // Actualizar Préstamo
@@ -138,41 +128,63 @@ const eliminarPrestamo = (req, res) => {
   const { pre_id } = req.params;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
 
-  Prestamo.obtenerEstadoYUsuarioPorId(pre_id, (err, results) => {
+  Prestamo.obtenerEstadoYUsuarioPorId(pre_id, async (err, results) => {
     if (err) return manejarError(res, "Error al obtener el préstamo.", err);
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+    if (results.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+    }
 
     const { est_id, usr_cedula } = results[0];
     if (userRole === 2 && userCedula !== usr_cedula) {
-      return res
-        .status(403)
-        .json({
-          respuesta: false,
-          mensaje: "No tiene permiso para eliminar este préstamo.",
-        });
+      return res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para eliminar este préstamo." });
     }
 
     if (![1, 2].includes(est_id)) {
-      return res
-        .status(400)
-        .json({
-          respuesta: false,
-          mensaje:
-            'El préstamo no se puede eliminar, ya que no está en estado "Creado" o "En Proceso".',
-        });
+      return res.status(400).json({ respuesta: false, mensaje: 'El préstamo no se puede eliminar, ya que no está en estado "Creado" o "En Proceso".' });
     }
 
-    Prestamo.eliminar(pre_id, (err, results) => {
-      if (err) return manejarError(res, "Error al eliminar el préstamo.", err);
-      if (results.affectedRows === 0)
-        return res
-          .status(404)
-          .json({ respuesta: false, mensaje: "Préstamo no encontrado." });
-      res.json({ respuesta: true, mensaje: "¡Préstamo eliminado con éxito!" });
-    });
+    try {
+      const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
+
+      // Devolver las cantidades de los elementos al inventario
+      for (const elemento of elementos) {
+        await new Promise((resolve, reject) => {
+          Elemento.actualizarCantidad(elemento.ele_id, elemento.pre_ele_cantidad_prestado, (err) => {
+            if (err) {
+              console.error("Error al actualizar la cantidad del elemento:", err.stack);
+              reject(err);
+            } else {
+              console.log("Cantidad del elemento actualizada con éxito.");
+              resolve();
+            }
+          });
+        });
+      }
+
+      // Eliminar los elementos del préstamo
+      await new Promise((resolve, reject) => {
+        PrestamoElemento.eliminarPorPrestamoId(pre_id, (err, results) => {
+          if (err) {
+            console.error("Error al eliminar elementos del préstamo:", err.stack);
+            reject(err);
+          } else {
+            console.log("Elementos del préstamo eliminados con éxito.");
+            resolve();
+          }
+        });
+      });
+
+      // Eliminar el préstamo
+      Prestamo.eliminar(pre_id, (err, results) => {
+        if (err) return manejarError(res, "Error al eliminar el préstamo.", err);
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+        }
+        res.json({ respuesta: true, mensaje: "¡Préstamo eliminado con éxito!" });
+      });
+    } catch (error) {
+      manejarError(res, "Error al actualizar los elementos del préstamo.", error);
+    }
   });
 };
 
@@ -205,77 +217,6 @@ const obtenerPrestamoPorId = (req, res) => {
   });
 };
 
-// Crear Préstamo de Elemento
-const crearPrestamoElemento = (req, res) => {
-  const data = req.body;
-  PrestamoElemento.crear(data, (err) => {
-    if (err)
-      return manejarError(res, "Error al crear el préstamo de elemento.", err);
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo de elemento creado con éxito!",
-    });
-  });
-};
-
-// Actualizar Préstamo de Elemento
-const actualizarPrestamoElemento = (req, res) => {
-  const data = req.body;
-  PrestamoElemento.actualizar(data, (err) => {
-    if (err)
-      return manejarError(
-        res,
-        "Error al actualizar el préstamo de elemento.",
-        err
-      );
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo de elemento actualizado con éxito!",
-    });
-  });
-};
-
-// Eliminar Préstamo de Elemento
-const eliminarPrestamoElemento = (req, res) => {
-  const { pre_ele_id } = req.params;
-  PrestamoElemento.eliminar(pre_ele_id, (err, results) => {
-    if (err)
-      return manejarError(
-        res,
-        "Error al eliminar el préstamo de elemento.",
-        err
-      );
-    if (results.affectedRows === 0)
-      return res
-        .status(404)
-        .json({
-          respuesta: false,
-          mensaje: "Préstamo de elemento no encontrado.",
-        });
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo de elemento eliminado con éxito!",
-    });
-  });
-};
-
-// Obtener Todos los Préstamos de Elementos
-const obtenerTodosPrestamosElementos = (req, res) => {
-  PrestamoElemento.obtenerTodos((err, results) => {
-    if (err)
-      return manejarError(
-        res,
-        "Error al obtener los préstamos de elementos.",
-        err
-      );
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamos de elementos obtenidos con éxito!",
-      data: results,
-    });
-  });
-};
-
 // Obtener préstamos por cédula
 const obtenerPrestamosPorCedula = (req, res) => {
   const { usr_cedula } = req.params;
@@ -286,32 +227,61 @@ const obtenerPrestamosPorCedula = (req, res) => {
   });
 };
 
-
-
-// Obtener Préstamo de Elemento por ID
-const obtenerPrestamoElementoPorId = (req, res) => {
-  const { pre_ele_id } = req.params;
-  PrestamoElemento.obtenerPorId(pre_ele_id, (err, results) => {
-    if (err)
-      return manejarError(
-        res,
-        "Error al obtener el préstamo de elemento.",
-        err
-      );
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({
-          respuesta: false,
-          mensaje: "Préstamo de elemento no encontrado.",
-        });
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo de elemento obtenido con éxito!",
-      data: results[0],
+// Obtener Elemento de Préstamos por ID
+const obtenerElementoPrestamos = async (req, res) => {
+  try {
+    const prestamoId = req.params.pre_id;
+    console.log("Buscando préstamo con ID:", prestamoId);
+    
+    const prestamo = await new Promise((resolve, reject) => {
+      Prestamo.obtenerPorId(prestamoId, (err, results) => {
+        if (err) {
+          console.log("Error al obtener el préstamo:", err);
+          reject(err);
+        } else {
+          console.log("Resultados de obtenerPorId:", results);
+          resolve(results);
+        }
+      });
     });
-  });
+
+    if (!prestamo || prestamo.length === 0) {
+      console.log("Préstamo no encontrado.");
+      return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado' });
+    }
+
+    console.log("Préstamo encontrado:", prestamo);
+
+    const elementos = await PrestamoElemento.obtenerPorPrestamoId(prestamoId);
+    console.log("Elementos del préstamo:", elementos);
+
+    if (!elementos || elementos.length === 0) {
+      console.log("Elementos no encontrados para el préstamo.");
+      return res.status(404).json({ respuesta: false, mensaje: 'Elementos no encontrados para el préstamo' });
+    }
+
+    const items = await Promise.all(elementos.map(async (elem) => {
+      const elemento = await Elemento.obtenerPorId(elem.ele_id);
+      console.log("Elemento encontrado:", elemento);
+
+      return {
+        nombreElemento: elemento.nombre,
+        cantidad: elem.pre_ele_cantidad_prestado
+      };
+    }));
+
+    res.status(200).json({
+      idPrestamo: prestamo[0].pre_id,
+      estadoPrestamo: prestamo[0].est_nombre,
+      items
+    });
+  } catch (error) {
+    console.log("Error en obtenerElementoPrestamos:", error);
+    manejarError(res, 'Error al obtener los elementos del préstamo', error);
+  }
 };
+
+
 
 module.exports = {
   crearPrestamo,
@@ -319,10 +289,6 @@ module.exports = {
   eliminarPrestamo,
   obtenerTodosPrestamos,
   obtenerPrestamoPorId,
-  crearPrestamoElemento,
-  actualizarPrestamoElemento,
-  eliminarPrestamoElemento,
-  obtenerTodosPrestamosElementos,
   obtenerPrestamosPorCedula,
-  obtenerPrestamoElementoPorId,
+  obtenerElementoPrestamos
 };

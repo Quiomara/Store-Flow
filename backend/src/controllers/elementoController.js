@@ -37,7 +37,7 @@ const obtenerTodosElementos = (req, res) => {
   Elemento.obtenerTodos((err, results) => {
     if (err) {
       console.error('Error al obtener los elementos:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos.'});
+      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos.' });
     }
     res.send(results);
   });
@@ -45,12 +45,17 @@ const obtenerTodosElementos = (req, res) => {
 
 const obtenerElementoPorId = (req, res) => {
   const ele_id = req.params.ele_id;
-  Elemento.obtenerPorId(ele_id, (err, results) => {
-    if (err) {
-      console.error('Error al obtener el elemento:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el elemento.'});
+  Elemento.obtenerPorId(ele_id).then((elemento) => {
+    if (!elemento) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado' });
     }
-    res.send(results[0]);
+    res.send({
+      ele_nombre: elemento.ele_nombre,
+      ele_cantidad: elemento.ele_cantidad
+    });
+  }).catch((err) => {
+    console.error('Error al obtener el elemento:', err.stack);
+    return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el elemento.' });
   });
 };
 
@@ -59,5 +64,5 @@ module.exports = {
   actualizarElemento,
   eliminarElemento,
   obtenerTodosElementos,
-  obtenerElementoPorId
+  obtenerElementoPorId,
 };
