@@ -3,14 +3,18 @@
   margin: auto;
   padding: 20px;
   border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .search-form {
   margin-bottom: 20px;
+  text-align: center; /* Centramos el formulario */
 }
 
 .btn-primary {
   color: white;
+  background-color: #007bff;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -18,7 +22,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #666;
+  background-color: #0056b3;
 }
 
 .table {
@@ -30,10 +34,10 @@
 
 .table th,
 .table td {
-  text-align: center; /* Centramos el texto en las celdas */
-  vertical-align: middle;
-  word-wrap: break-word; /* Evita que el contenido se sobresalga */
-  padding: 8px; /* Asegura que el contenido tenga espacio suficiente */
+  text-align: center; /* Centra horizontalmente */
+  vertical-align: middle; /* Centra verticalmente */
+  word-wrap: break-word; /* Asegura que el texto se ajuste dentro de la celda */
+  padding: 8px;
 }
 
 .no-results {
@@ -43,29 +47,53 @@
 }
 
 .user-table-container {
-  max-height: 570px; /* Define una altura máxima para la tabla */
-  overflow-y: auto; /* Habilita el scroll vertical */
+  max-height: 570px;
+  overflow-y: auto;
   position: relative;
 }
 
-/* Estilos personalizados para la cabecera de la tabla */
 .mat-mdc-header-cell,
-.mat-cell { /* Centramos tanto la cabecera como las celdas */
-  background-color: #2c2c2c !important; /* Fondo gris más oscuro */
-  color: #cccccc !important; /* Texto gris claro */
+.mat-cell {
+  text-align: center; /* Centramos el texto */
+  background-color: #2c2c2c !important;
+  color: #cccccc !important;
   text-transform: uppercase;
   font-weight: bold;
   position: sticky;
   top: 0;
   z-index: 2;
-  text-align: center; /* Centramos el texto */
 }
 
-
-/* Ajuste para el contenido en el formulario */
 .form-inline .form-control {
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
+/* Estilos específicos para el botón que contiene el icono del ojito */
+.icon-btn {
+  background: none; /* Quita el fondo del botón */
+  border: none; /* Quita el borde del botón */
+  padding: 0; /* Sin padding */
+  cursor: pointer; /* Cambia el cursor al pasar sobre el icono */
+}
+
+.icon-btn:hover {
+  background: none; /* Quita el fondo del botón al hacer hover */
+}
+
+/* Estilos específicos para el icono del ojito */
+mat-icon {
+  color: #007bff; /* Color azul para el icono del ojito */
+  font-size: 20px; /* Ajusta el tamaño si es necesario */
+  line-height: 24px;
+}
+
+mat-icon:hover {
+  color: #0056b3; /* Color azul más oscuro al pasar el cursor */
+}
+
+
+
+
 
 

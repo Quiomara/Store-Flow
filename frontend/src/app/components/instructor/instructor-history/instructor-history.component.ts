@@ -4,6 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon'; // Importa MatIconModule
 import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
@@ -19,16 +20,17 @@ import { AuthService } from '../../../services/auth.service';
     FormsModule,
     ReactiveFormsModule,
     MatTableModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule // Añade MatIconModule aquí
   ]
 })
-
 export class InstructorHistoryComponent implements OnInit {
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
   filteredPrestamos: Prestamo[] = [];
   estados: { est_id: number, est_nombre: string }[] = [];
   displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
+  mensajeNoPrestamos: string = 'No se encontraron préstamos.';
 
   constructor(
     private fb: FormBuilder,
@@ -41,6 +43,9 @@ export class InstructorHistoryComponent implements OnInit {
       searchEstado: [''],
       searchFecha: ['']
     });
+
+    // Escuchar cambios en los controles del formulario para actualizar los filtros dinámicamente
+    this.searchForm.valueChanges.subscribe(() => this.buscar());
   }
 
   async ngOnInit(): Promise<void> {
@@ -77,6 +82,7 @@ export class InstructorHistoryComponent implements OnInit {
             cedulaSolicitante: item.usr_cedula
           }));
           this.filteredPrestamos = this.prestamos;
+          this.buscar(); // Aplicar filtros al cargar los datos iniciales
         },
         (error: any) => {
           console.error('Error al obtener el historial de préstamos', error);
@@ -108,7 +114,7 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   buscar(): void {
-    const { searchId, searchEstado, searchFecha } = this.searchForm?.value || {};
+    const { searchId, searchEstado, searchFecha } = this.searchForm.value;
     this.filteredPrestamos = this.prestamos;
 
     if (searchId) {
@@ -129,7 +135,36 @@ export class InstructorHistoryComponent implements OnInit {
       );
     }
 
+    // Mostrar mensajes personalizados si no hay resultados
+    this.actualizarMensajeNoPrestamos(searchEstado);
+
     console.log('Resultados filtrados:', this.filteredPrestamos);
+  }
+
+  actualizarMensajeNoPrestamos(searchEstado: string): void {
+    if (this.filteredPrestamos.length === 0) {
+      switch (searchEstado?.toLowerCase()) {
+        case 'creado':
+          this.mensajeNoPrestamos = 'No hay préstamos creados.';
+          break;
+        case 'en proceso':
+          this.mensajeNoPrestamos = 'No hay préstamos en proceso.';
+          break;
+        case 'préstamo':
+          this.mensajeNoPrestamos = 'No hay préstamos en curso.';
+          break;
+        case 'entregado':
+          this.mensajeNoPrestamos = 'No hay préstamos entregados.';
+          break;
+        case 'cancelado':
+          this.mensajeNoPrestamos = 'No hay préstamos cancelados.';
+          break;
+        default:
+          this.mensajeNoPrestamos = 'No se encontraron préstamos.';
+      }
+    } else {
+      this.mensajeNoPrestamos = '';
+    }
   }
 
   verDetalles(prestamo: Prestamo): void {
@@ -139,9 +174,13 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   formatearFecha(fecha: string): string {
-    return fecha && fecha.includes('T') ? fecha.split('T')[0] : 'Fecha no disponible';
+    return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
 }
+
+
+
+
 
 
 
