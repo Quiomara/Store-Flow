@@ -75,50 +75,60 @@ const crearPrestamo = async (req, res) => {
   }
 };
 
-// Actualizar Préstamo
+//Actualizar Prestamo
+
 const actualizarPrestamo = (req, res) => {
   const data = req.body;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
 
   Prestamo.obtenerEstadoYUsuarioPorId(data.pre_id, (err, results) => {
-    if (err) return manejarError(res, "Error al obtener el préstamo.", err);
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+    if (err) return res.status(500).json({ respuesta: false, mensaje: "Error al obtener el préstamo.", err });
+    if (results.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+    }
 
     const { est_id, usr_cedula } = results[0];
+
     if (userRole === 2 && userCedula !== usr_cedula) {
-      return res
-        .status(403)
-        .json({
-          respuesta: false,
-          mensaje: "No tiene permiso para actualizar este préstamo.",
-        });
+      return res.status(403).json({
+        respuesta: false,
+        mensaje: "No tiene permiso para actualizar este préstamo.",
+      });
     }
 
     if (![1, 2].includes(est_id)) {
-      return res
-        .status(400)
-        .json({
-          respuesta: false,
-          mensaje:
-            'El préstamo no se puede actualizar, ya que no está en estado "Creado" o "En Proceso".',
-        });
+      return res.status(400).json({
+        respuesta: false,
+        mensaje: 'El préstamo no se puede actualizar, ya que no está en estado "Creado" o "En Proceso".',
+      });
     }
 
     const updateData = {
-      ...data,
+      pre_id: data.pre_id,
+      pre_inicio: results[0].pre_inicio, // No se actualiza la fecha de inicio
+      pre_fin: userRole === 3 ? data.pre_fin : results[0].pre_fin, // Solo almacén puede actualizar la fecha fin
+      usr_cedula: data.usr_cedula,
+      est_id: userRole === 3 ? data.est_id : est_id, // Solo almacén puede actualizar el estado
       pre_actualizacion: new Date(),
-      pre_fin: data.est_id === 4 ? new Date() : null,
     };
+
+    // Actualizar el préstamo
     Prestamo.actualizar(updateData, (err) => {
-      if (err)
-        return manejarError(res, "Error al actualizar el préstamo.", err);
-      res.json({
-        respuesta: true,
-        mensaje: "¡Préstamo actualizado con éxito!",
-      });
+      if (err) {
+        return res.status(500).json({ respuesta: false, mensaje: "Error al actualizar el préstamo.", err });
+      }
+
+      // Actualizar la cantidad de elementos en la tabla Elementos
+      if (data.ele_id && data.ele_cantidad) {
+        Prestamo.actualizarCantidad(data.ele_id, data.ele_cantidad, (err) => {
+          if (err) {
+            return res.status(500).json({ respuesta: false, mensaje: "Error al actualizar la cantidad de elementos.", err });
+          }
+          res.json({ respuesta: true, mensaje: "¡Préstamo y cantidad de elementos actualizados con éxito!" });
+        });
+      } else {
+        res.json({ respuesta: true, mensaje: "¡Préstamo actualizado con éxito!" });
+      }
     });
   });
 };

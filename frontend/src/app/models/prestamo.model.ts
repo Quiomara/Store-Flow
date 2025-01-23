@@ -13,7 +13,9 @@ export interface Elemento {
   ele_id: number;
   ele_nombre: string;
   ele_cantidad: number;
+  editing?: boolean; // Añadir la propiedad editing
 }
+
 
 
 

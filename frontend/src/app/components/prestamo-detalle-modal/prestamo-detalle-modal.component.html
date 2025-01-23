@@ -1,15 +1,15 @@
 <h2 mat-dialog-title class="modal-title">Detalles del Préstamo</h2>
 <div mat-dialog-content class="scrollable-content">
   <p><strong>ID del Préstamo:</strong> {{ prestamo.idPrestamo }}</p>
-  <p><strong>Estado:</strong> {{ prestamo.estadoPrestamo }}</p>
+  <p><strong>Estado:</strong> {{ prestamo.estado }}</p>
 
   <div class="user-table-container">
-    <table mat-table [dataSource]="prestamo.items" class="mat-elevation-z8 table">
+    <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
       <!-- Elemento Column -->
       <ng-container matColumnDef="nombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Elemento</th>
         <td mat-cell *matCellDef="let item">
-          {{ item.nombre }}
+          {{ item.ele_nombre }}
         </td>
       </ng-container>
 
@@ -17,8 +17,8 @@
       <ng-container matColumnDef="cantidad">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad</th>
         <td mat-cell *matCellDef="let item" class="cantidad-cell">
-          <span *ngIf="!item.editing">{{ item.cantidad }}</span>
-          <input *ngIf="item.editing" type="number" [(ngModel)]="item.cantidad" class="cantidad-input" />
+          <span *ngIf="!item.editing">{{ item.ele_cantidad }}</span>
+          <input *ngIf="item.editing" type="number" [(ngModel)]="item.ele_cantidad" class="cantidad-input" />
         </td>
       </ng-container>
 
@@ -46,4 +46,10 @@
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cerrar</button>
 </div>
+
+
+
+
+
+
 

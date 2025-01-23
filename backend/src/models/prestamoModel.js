@@ -16,14 +16,22 @@ const Prestamo = {
   },
 
   actualizar: (data, callback) => {
-    const query = `UPDATE Prestamos SET pre_inicio = ?, pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;
+    const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;
     const values = [
-      data.pre_inicio,
-      data.pre_fin,
+      data.pre_fin, // Solo se actualiza pre_fin si es almacén
       data.usr_cedula,
       data.est_id,
       data.pre_actualizacion,
       data.pre_id,
+    ];
+    db.query(query, values, callback);
+  },
+
+  actualizarCantidad: (ele_id, ele_cantidad, callback) => {
+    const query = `UPDATE Elementos SET ele_cantidad = ? WHERE ele_id = ?`;
+    const values = [
+      ele_cantidad,
+      ele_id,
     ];
     db.query(query, values, callback);
   },
@@ -54,6 +62,11 @@ const Prestamo = {
       WHERE p.usr_cedula = ?
     `;
     db.query(query, [usr_cedula], callback);
+  },
+
+  obtenerEstadoYUsuarioPorId: (pre_id, callback) => {
+    const query = `SELECT pre_inicio, pre_fin, est_id, usr_cedula FROM Prestamos WHERE pre_id = ?`;
+    db.query(query, [pre_id], callback);
   },
 };
 
