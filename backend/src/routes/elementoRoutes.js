@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const elementoController = require('../controllers/elementoController');
+const elementoController = require('../controllers/elementoController'); // Importar el controlador correcto
 const auth = require('../middleware/auth');
 
 // Rutas para elementos
@@ -9,5 +9,6 @@ router.put('/actualizar', auth(['Administrador']), elementoController.actualizar
 router.delete('/:ele_id', auth(['Administrador']), elementoController.eliminarElemento);
 router.get('/', auth(['Administrador', 'Instructor', 'Almacen']), elementoController.obtenerTodosElementos);
 router.get('/:ele_id', auth(['Administrador', 'Instructor', 'Almacen']), elementoController.obtenerElementoPorId);
+router.put('/actualizarCantidadPrestado', elementoController.actualizarCantidadPrestado); // Usar el método correcto
 
 module.exports = router;

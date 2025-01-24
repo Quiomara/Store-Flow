@@ -3,10 +3,12 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { FormsModule } from '@angular/forms'; // Importar FormsModule
-import { MatIconModule } from '@angular/material/icon'; // Importar MatIconModule
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { PrestamoService } from '../../services/prestamo.service';
-import { Prestamo, Elemento } from '../../models/prestamo.model'; // Importar el modelo
+import { Prestamo, Elemento } from '../../models/prestamo.model';
+import { PrestamoUpdate } from '../../models/prestamo-update.model';
+import { ElementoService } from '../../services/elemento.service';
 
 interface EditableElemento extends Elemento {
   editing?: boolean;
@@ -22,8 +24,8 @@ interface EditableElemento extends Elemento {
     MatDialogModule,
     MatButtonModule,
     MatTableModule,
-    FormsModule, // Añadir FormsModule aquí
-    MatIconModule // Añadir MatIconModule aquí
+    FormsModule,
+    MatIconModule
   ]
 })
 export class PrestamoDetalleModalComponent implements OnInit {
@@ -31,19 +33,22 @@ export class PrestamoDetalleModalComponent implements OnInit {
     cedulaSolicitante: 0,
     elementos: [],
     fecha: ''
-  }; // Inicializar con valores por defecto
+  };
   displayedColumns: string[] = ['nombre', 'cantidad', 'acciones'];
-  originalItems: EditableElemento[] = []; // Para almacenar los valores originales
+  originalItems: EditableElemento[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<PrestamoDetalleModalComponent>,
-    private prestamoService: PrestamoService
+    private prestamoService: PrestamoService,
+    private elementoService: ElementoService
   ) {
-    this.prestamo = data.prestamo || this.prestamo; // Asegurarse de que prestamo tenga un valor por defecto si data.prestamo es undefined
+    this.prestamo = data.prestamo || this.prestamo;
+    console.log('Constructor - data recibida:', data); // Log para verificar los datos iniciales
   }
 
   ngOnInit(): void {
+    console.log('ngOnInit - prestamo:', this.prestamo);
     if (this.prestamo.idPrestamo !== undefined) {
       this.getPrestamoDetalles(this.prestamo.idPrestamo);
     } else {
@@ -52,21 +57,22 @@ export class PrestamoDetalleModalComponent implements OnInit {
   }
 
   getPrestamoDetalles(prestamoId: number): void {
+    if (prestamoId === undefined) {
+      console.error('ID del préstamo no definido.');
+      return;
+    }
+  
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe(
       (data: any) => {
-        console.log('Datos recibidos en el componente:', data); // Depuración
         if (data && Array.isArray(data.items) && data.items.length) {
-          this.prestamo.elementos = data.items.map((item: any) => ({
-            ele_id: item.ele_id,
-            ele_nombre: item.nombre,
-            ele_cantidad: item.cantidad
+          this.prestamo.elementos = data.items.map((item: any): Elemento => ({
+            ele_id: Number(item.ele_id),
+            ele_nombre: item.nombre || '',
+            ele_cantidad: Number(item.cantidad)
           }));
+          
+          this.originalItems = this.prestamo.elementos.map(item => ({ ...item }));
           this.prestamo.estado = data.estadoPrestamo || '';
-          // Asegurar que originalItems esté correctamente inicializado
-          this.originalItems = this.prestamo.elementos.map((item: EditableElemento) => ({ ...item }));
-          console.log('Detalles del préstamo obtenidos:', this.prestamo);
-        } else {
-          console.error('Datos de elementos no definidos o vacíos.');
         }
       },
       (error: any) => {
@@ -94,33 +100,41 @@ export class PrestamoDetalleModalComponent implements OnInit {
   saveChanges(item: EditableElemento): void {
     if (item.editing) {
       item.editing = false;
-      const updateData: Prestamo = {
-        idPrestamo: this.prestamo.idPrestamo,
-        cedulaSolicitante: this.prestamo.cedulaSolicitante,
-        solicitante: this.prestamo.solicitante,
-        fechaHora: this.prestamo.estado === 'entregado' ? new Date().toISOString() : undefined,
-        elementos: this.prestamo.elementos,
-        fecha: this.prestamo.fecha,
-        estado: this.prestamo.estado,
-        fechaEntrega: this.prestamo.fechaEntrega
+  
+      if (this.prestamo.idPrestamo === undefined) {
+        console.error('ID del préstamo no definido.');
+        return;
+      }
+  
+      const originalItem = this.originalItems.find(
+        (originalItem) => originalItem.ele_id === item.ele_id
+      );
+      const cantidadOriginal = originalItem ? Number(originalItem.ele_cantidad) : 0;
+      const cantidadActual = Number(item.ele_cantidad);
+      const cantidadActualizada = cantidadActual - cantidadOriginal;
+  
+      // Actualizar cantidad en PrestamosElementos
+      const updatePrestamoElemento = {
+        pre_id: this.prestamo.idPrestamo,
+        ele_id: item.ele_id,
+        pre_ele_cantidad_prestado: cantidadActual
       };
-      // Guardar cambios en el backend para actualizar el pedido...
-      this.prestamoService.updatePrestamo(updateData).subscribe(
-        (response: any) => {
-          console.log('Préstamo actualizado con éxito:', response);
-          // Actualizar el stock en el backend...
-          this.prestamoService.updateStock(item).subscribe(
-            (response: any) => {
-              console.log('Stock actualizado con éxito:', response);
-            },
-            (error: any) => {
-              console.error('Error al actualizar el stock', error);
-            }
-          );
-        },
-        (error: any) => {
-          console.error('Error al actualizar el préstamo', error);
-        }
+  
+      // Actualizar stock
+      const updateStock = {
+        ele_id: item.ele_id,
+        ele_cantidad: -cantidadActualizada // Negativo para reducir stock
+      };
+  
+      // Llamadas a servicios para actualizar
+      this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
+        () => console.log('Cantidad en PrestamosElementos actualizada'),
+        (error) => console.error('Error actualizando PrestamosElementos', error)
+      );
+  
+      this.elementoService.updateStock(updateStock).subscribe(
+        () => console.log('Stock actualizado'),
+        (error) => console.error('Error actualizando stock', error)
       );
     }
   }
@@ -129,6 +143,13 @@ export class PrestamoDetalleModalComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+
+
+
+
+
+
+
 
 
 

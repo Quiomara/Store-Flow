@@ -15,10 +15,21 @@ const PrestamoElemento = {
     });
   },
 
-  actualizar: (data, callback) => {
-    const query = `UPDATE prestamoselementos SET ele_id = ?, pre_id = ?, pre_ele_cantidad_prestado = ? WHERE pre_ele_id = ?`;
-    const values = [data.ele_id, data.pre_id, data.pre_ele_cantidad_prestado, data.pre_ele_id];
-    db.query(query, values, callback);
+  // Método para actualizar la cantidad prestada
+  actualizarCantidadPrestado: (pre_id, ele_id, cantidadPrestado, callback) => {
+    const query = `
+      UPDATE prestamoselementos 
+      SET pre_ele_cantidad_prestado = ? 
+      WHERE pre_id = ? AND ele_id = ?
+    `;
+    const values = [cantidadPrestado, pre_id, ele_id];
+    
+    db.query(query, values, (err, results) => {
+      if (err) {
+        console.error('Error al actualizar PrestamosElementos:', err);
+      }
+      callback(err, results);
+    });
   },
 
   eliminar: (pre_ele_id, callback) => {
@@ -68,3 +79,4 @@ const PrestamoElemento = {
 };
 
 module.exports = PrestamoElemento;
+

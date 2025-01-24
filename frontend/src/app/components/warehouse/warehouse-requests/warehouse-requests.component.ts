@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { PrestamoDetallesModalComponent } from '../prestamo-detalles-modal/prestamo-detalles-modal.component';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
+import { PrestamoUpdate } from '../../../models/prestamo-update.model'; // Importar desde el archivo correcto
 import { UserService } from '../../../services/user.service';
 
 @Component({
@@ -59,8 +60,16 @@ export class WarehouseRequestsComponent implements OnInit {
   }
 
   actualizarEstadoSolicitud(solicitud: Prestamo, nuevoEstado: string): void {
-    solicitud.estado = nuevoEstado;
-    this.prestamoService.updatePrestamo(solicitud).subscribe(
+    const updateData: PrestamoUpdate = {
+      pre_id: solicitud.idPrestamo!,
+      pre_fin: solicitud.fechaEntrega ? solicitud.fechaEntrega.toString() : undefined, // Usar toString
+      usr_cedula: solicitud.cedulaSolicitante!,
+      est_id: this.getEstadoId(nuevoEstado),
+      ele_id: solicitud.elementos[0].ele_id,  // Asegúrate de ajustar esto según tu lógica
+      ele_cantidad: solicitud.elementos[0].ele_cantidad  // Asegúrate de ajustar esto según tu lógica
+    };
+
+    this.prestamoService.updatePrestamo(updateData).subscribe(
       (data: Prestamo) => {
         this.actualizarSolicitudesVisibles();
         console.log(`Solicitud ${solicitud.idPrestamo} actualizada a: ${nuevoEstado}`);
@@ -98,7 +107,24 @@ export class WarehouseRequestsComponent implements OnInit {
       }
     });
   }
+
+  private getEstadoId(estado: string): number {
+    // Implementa tu lógica para convertir el estado en un ID numérico
+    switch (estado) {
+      case 'En proceso':
+        return 1; // Ejemplo, ajusta según tu lógica
+      case 'Cancelado':
+        return 2; // Ejemplo, ajusta según tu lógica
+      case 'En préstamo':
+        return 3; // Ejemplo, ajusta según tu lógica
+      case 'Entregado':
+        return 4; // Ejemplo, ajusta según tu lógica
+      default:
+        return 0; // Estado desconocido
+    }
+  }
 }
+
 
 
 

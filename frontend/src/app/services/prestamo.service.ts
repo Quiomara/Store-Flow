@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Prestamo } from '../models/prestamo.model';
+import { PrestamoUpdate } from '../models/prestamo-update.model';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -41,14 +42,14 @@ export class PrestamoService {
     );
   }
 
-  updatePrestamo(prestamo: Prestamo): Observable<Prestamo> {
+  updatePrestamo(prestamo: PrestamoUpdate): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.put<Prestamo>(`${this.apiUrl}/actualizar`, prestamo, { headers }).pipe(
+    return this.http.put(`${this.apiUrl}/actualizar`, prestamo, { headers }).pipe(
       catchError(this.handleError.bind(this))
     );
   }
 
-  updateStock(item: any): Observable<any> {
+  updateStock(item: { ele_id: number, ele_cantidad: number }): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.put(`${this.apiStockUrl}/actualizar`, item, { headers }).pipe(
       catchError(this.handleError.bind(this))
@@ -89,13 +90,27 @@ export class PrestamoService {
       catchError(this.handleError.bind(this))
     );
   }
-  
-  
+
+  updatePrestamoElemento(data: { 
+    pre_id: number, 
+    ele_id: number, 
+    pre_ele_cantidad_prestado: number 
+  }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.put(`${this.apiUrl}/updatePrestamoElemento`, data, { headers }).pipe(
+      catchError(this.handleError.bind(this))
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Ocurrió un error:', error.message);
     return throwError(error);
   }
 }
+
+
+
+
 
 
 

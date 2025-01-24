@@ -1,4 +1,5 @@
 const Elemento = require('../models/elementoModel');
+const PrestamoElemento = require('../models/prestamoElementoModel'); // Importar el modelo de prestamosElementos
 
 const crearElemento = (req, res) => {
   const data = req.body;
@@ -19,6 +20,39 @@ const actualizarElemento = (req, res) => {
       return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el elemento.' });
     }
     res.json({ respuesta: true, mensaje: '¡Elemento actualizado con éxito!' });
+  });
+};
+
+const actualizarCantidadPrestado = (req, res) => {
+  const { ele_id, ele_cantidad, pre_id } = req.body; // Asegurarse de recibir el pre_id
+
+  // Verificar los datos recibidos
+  console.log('Datos recibidos del frontend:', { ele_id, ele_cantidad, pre_id });
+
+  if (typeof ele_id !== 'number' || typeof ele_cantidad !== 'number' || typeof pre_id !== 'number') {
+    return res.status(400).json({ respuesta: false, mensaje: 'Datos inválidos.' });
+  }
+
+  // Actualizar la cantidad en la tabla Elementos
+  Elemento.actualizarCantidad(ele_id, ele_cantidad, (err, results) => {
+    if (err) {
+      console.error('Error al actualizar el stock en la tabla Elementos:', err.stack);
+      return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el stock.' });
+    }
+
+    // Actualizar la cantidad en la tabla prestamosElementos
+    PrestamoElemento.actualizarCantidadPrestado(pre_id, ele_id, ele_cantidad, (err, results) => {
+      if (err) {
+        console.error('Error al actualizar la cantidad en la tabla prestamosElementos:', err.stack);
+        return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad del préstamo.' });
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado en el préstamo.' });
+      }
+
+      res.json({ respuesta: true, mensaje: 'Stock y cantidad del préstamo actualizados con éxito.', results });
+    });
   });
 };
 
@@ -62,6 +96,7 @@ const obtenerElementoPorId = (req, res) => {
 module.exports = {
   crearElemento,
   actualizarElemento,
+  actualizarCantidadPrestado, // Añadir la nueva función
   eliminarElemento,
   obtenerTodosElementos,
   obtenerElementoPorId,

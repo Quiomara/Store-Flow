@@ -4,12 +4,12 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Importa MatDialogModule
-import { MatIconModule } from '@angular/material/icon'; // Importa MatIconModule
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; 
+import { MatIconModule } from '@angular/material/icon'; 
 import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
-import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; // Asegúrate de que la ruta sea correcta
+import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; 
 
 @Component({
   selector: 'app-instructor-history',
@@ -23,8 +23,8 @@ import { PrestamoDetalleModalComponent } from '../../../components/prestamo-deta
     ReactiveFormsModule,
     MatTableModule,
     MatSnackBarModule,
-    MatDialogModule, // Añade MatDialogModule aquí
-    MatIconModule // Añade MatIconModule aquí
+    MatDialogModule, 
+    MatIconModule 
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
@@ -40,7 +40,7 @@ export class InstructorHistoryComponent implements OnInit {
     private prestamoService: PrestamoService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    public dialog: MatDialog // Añade MatDialog aquí
+    public dialog: MatDialog 
   ) {
     this.searchForm = this.fb.group({
       searchId: [''],
@@ -88,6 +88,7 @@ export class InstructorHistoryComponent implements OnInit {
           }));
           this.filteredPrestamos = this.prestamos;
           this.buscar(); // Aplicar filtros al cargar los datos iniciales
+          console.log('Datos al abrir el modal:', this.filteredPrestamos); // Verificar datos
         },
         (error: any) => {
           console.error('Error al obtener el historial de préstamos', error);
@@ -180,15 +181,16 @@ export class InstructorHistoryComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe(result => {
       console.log('El modal se cerró');
+      this.getHistory(); // Recargar los datos después de cerrar el modal
     });
   }
-  
-  
 
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
 }
+
+
 
 
 

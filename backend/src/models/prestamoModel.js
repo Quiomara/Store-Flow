@@ -47,10 +47,24 @@ const Prestamo = {
   },
 
   obtenerPorId: (pre_id, callback) => {
-    const query = `SELECT p.pre_id, p.est_id, e.est_nombre 
-                   FROM Prestamos p 
-                   JOIN Estados e ON p.est_id = e.est_id 
-                   WHERE pre_id = ?`;
+    const query = `
+      SELECT 
+        p.pre_id, 
+        p.est_id, 
+        e.est_nombre,
+        pe.pre_ele_cantidad_prestado,
+        el.ele_nombre
+      FROM 
+        Prestamos p 
+      JOIN 
+        Estados e ON p.est_id = e.est_id
+      LEFT JOIN 
+        prestamoselementos pe ON p.pre_id = pe.pre_id
+      LEFT JOIN 
+        Elementos el ON pe.ele_id = el.ele_id
+      WHERE 
+        p.pre_id = ?
+    `;
     db.query(query, [pre_id], callback);
   },
 

@@ -13,6 +13,11 @@ const Elemento = {
     db.query(query, values, callback);
   },
 
+  actualizarCantidad: (ele_id, cantidad, callback) => {
+    const query = `UPDATE Elementos SET ele_cantidad = ele_cantidad + ? WHERE ele_id = ?`;
+    db.query(query, [cantidad, ele_id], callback);
+  },
+
   eliminar: (ele_id, callback) => {
     const query = `DELETE FROM Elementos WHERE ele_id = ?`;
     db.query(query, [ele_id], callback);
@@ -34,11 +39,6 @@ const Elemento = {
         }
       });
     });
-  },
-
-  actualizarCantidad: (ele_id, cantidad, callback) => {
-    const query = `UPDATE Elementos SET ele_cantidad = ele_cantidad + ? WHERE ele_id = ?`;
-    db.query(query, [cantidad, ele_id], callback);
   },
 };
 

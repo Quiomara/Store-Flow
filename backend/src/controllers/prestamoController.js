@@ -237,55 +237,22 @@ const obtenerPrestamosPorCedula = (req, res) => {
   });
 };
 
-// Obtener Elemento de Préstamos por ID
-// Obtener Elemento de Préstamos por ID
-const obtenerElementoPrestamos = async (req, res) => {
-  try {
-    const prestamoId = req.params.pre_id;
-    console.log("Buscando préstamo con ID:", prestamoId);
-
-    const prestamo = await new Promise((resolve, reject) => {
-      Prestamo.obtenerPorId(prestamoId, (err, results) => {
-        if (err) {
-          console.log("Error al obtener el préstamo:", err);
-          reject(err);
-        } else {
-          console.log("Resultados de obtenerPorId:", results);
-          resolve(results);
-        }
+// Método faltante: obtenerElementoPrestamos
+const obtenerElementoPrestamos = (req, res) => {
+  const { pre_id } = req.params;
+  PrestamoElemento.obtenerPorPrestamoId(pre_id)
+    .then((elementos) => {
+      res.json({
+        respuesta: true,
+        mensaje: "¡Elementos del préstamo obtenidos con éxito!",
+        data: elementos,
       });
+    })
+    .catch((err) => {
+      manejarError(res, "Error al obtener los elementos del préstamo.", err);
     });
-
-    if (!prestamo || prestamo.length === 0) {
-      console.log("Préstamo no encontrado.");
-      return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado' });
-    }
-
-    console.log("Préstamo encontrado:", prestamo);
-
-    const elementos = await PrestamoElemento.obtenerPorPrestamoId(prestamoId);
-    console.log("Elementos del préstamo:", elementos);
-
-    if (!elementos || elementos.length === 0) {
-      console.log("Elementos no encontrados para el préstamo.");
-      return res.status(404).json({ respuesta: false, mensaje: 'Elementos no encontrados para el préstamo' });
-    }
-
-    const items = elementos.map(elem => ({
-      nombre: elem.nombre,
-      cantidad: elem.pre_ele_cantidad_prestado
-    }));
-
-    res.status(200).json({
-      idPrestamo: prestamo[0].pre_id,
-      estadoPrestamo: prestamo[0].est_nombre,
-      items
-    });
-  } catch (error) {
-    console.log("Error en obtenerElementoPrestamos:", error);
-    manejarError(res, 'Error al obtener los elementos del préstamo', error);
-  }
 };
+
 
 module.exports = {
   crearPrestamo,
@@ -294,5 +261,5 @@ module.exports = {
   obtenerTodosPrestamos,
   obtenerPrestamoPorId,
   obtenerPrestamosPorCedula,
-  obtenerElementoPrestamos
+  obtenerElementoPrestamos, // Asegurarse de que esta función esté exportada
 };

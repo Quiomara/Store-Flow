@@ -25,11 +25,31 @@ export class ElementoService {
     return headers;
   }
 
+  // Método para obtener la lista de elementos
   getElementos(): Observable<Elemento[]> {
-    return this.http.get<Elemento[]>(this.apiUrl, { headers: this.getHeaders() })
+    const headers = this.getHeaders();
+    return this.http.get<Elemento[]>(`${this.apiUrl}`, { headers })
       .pipe(
         catchError(this.handleError.bind(this))
       );
+  }
+
+  actualizarCantidadPrestado(pre_id: number, ele_id: number, ele_cantidad: number): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/actualizarCantidadPrestado`, { pre_id, ele_id, ele_cantidad }, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  updateStock(data: { 
+    ele_id: number, 
+    ele_cantidad: number 
+  }): Observable<any> {
+    const headers = this.getHeaders();
+    return this.http.put(`${this.apiUrl}/updateStock`, data, { headers }).pipe(
+      catchError(this.handleError.bind(this))
+    );
   }
 
   private handleError(error: any): Observable<never> {
@@ -37,6 +57,9 @@ export class ElementoService {
     return throwError(error);
   }
 }
+
+
+
 
 
 
