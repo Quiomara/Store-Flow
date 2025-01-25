@@ -7,7 +7,7 @@ const UbicacionElemento = {
   },
 
   actualizar: (data, callback) => {
-    const query = `UPDATE UbicacionElementos SET ubi_nombre = ? WHERE ubi_ele_id = ?`;
+    const query = 'UPDATE UbicacionElementos SET ubi_nombre = ? WHERE ubi_ele_id = ?';
     db.query(query, [data.ubi_nombre, data.ubi_ele_id], callback);
   },
 

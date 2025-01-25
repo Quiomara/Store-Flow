@@ -50,29 +50,33 @@ export class PrestamoDetalleModalComponent implements OnInit {
   ngOnInit(): void {
     console.log('ngOnInit - prestamo:', this.prestamo);
     if (this.prestamo.idPrestamo !== undefined) {
-      this.getPrestamoDetalles(this.prestamo.idPrestamo);
+      this.obtenerPrestamoDetalles(this.prestamo.idPrestamo);
     } else {
       console.error('ID del préstamo no definido.');
     }
   }
 
-  getPrestamoDetalles(prestamoId: number): void {
+  obtenerPrestamoDetalles(prestamoId: number): void {
     if (prestamoId === undefined) {
       console.error('ID del préstamo no definido.');
       return;
     }
-  
+
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe(
-      (data: any) => {
-        if (data && Array.isArray(data.items) && data.items.length) {
-          this.prestamo.elementos = data.items.map((item: any): Elemento => ({
+      (response: any) => {
+        console.log('Datos recibidos en obtenerPrestamoDetalles:', response);
+
+        if (response && response.data) {
+          this.prestamo.elementos = response.data.map((item: any): Elemento => ({
             ele_id: Number(item.ele_id),
             ele_nombre: item.nombre || '',
-            ele_cantidad: Number(item.cantidad)
+            ele_cantidad: Number(item.pre_ele_cantidad_prestado)
           }));
-          
+
           this.originalItems = this.prestamo.elementos.map(item => ({ ...item }));
-          this.prestamo.estado = data.estadoPrestamo || '';
+          this.prestamo.estado = response.data.estadoPrestamo || '';
+        } else {
+          console.error('Datos de respuesta no válidos:', response);
         }
       },
       (error: any) => {
@@ -100,39 +104,39 @@ export class PrestamoDetalleModalComponent implements OnInit {
   saveChanges(item: EditableElemento): void {
     if (item.editing) {
       item.editing = false;
-  
+
       if (this.prestamo.idPrestamo === undefined) {
         console.error('ID del préstamo no definido.');
         return;
       }
-  
+
       const originalItem = this.originalItems.find(
         (originalItem) => originalItem.ele_id === item.ele_id
       );
       const cantidadOriginal = originalItem ? Number(originalItem.ele_cantidad) : 0;
       const cantidadActual = Number(item.ele_cantidad);
       const cantidadActualizada = cantidadActual - cantidadOriginal;
-  
+
       // Actualizar cantidad en PrestamosElementos
       const updatePrestamoElemento = {
         pre_id: this.prestamo.idPrestamo,
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
-  
+
       // Actualizar stock
       const updateStock = {
         ele_id: item.ele_id,
         ele_cantidad: -cantidadActualizada // Negativo para reducir stock
       };
-  
+
       // Llamadas a servicios para actualizar
       this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
         () => console.log('Cantidad en PrestamosElementos actualizada'),
         (error) => console.error('Error actualizando PrestamosElementos', error)
       );
-  
-      this.elementoService.updateStock(updateStock).subscribe(
+
+      this.elementoService.actualizarStock(updateStock).subscribe(
         () => console.log('Stock actualizado'),
         (error) => console.error('Error actualizando stock', error)
       );
@@ -143,6 +147,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+
 
 
 

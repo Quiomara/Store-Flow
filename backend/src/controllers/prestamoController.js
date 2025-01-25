@@ -1,3 +1,4 @@
+const db = require('../config/db');
 const Prestamo = require("../models/prestamoModel");
 const PrestamoElemento = require("../models/prestamoElementoModel");
 const Elemento = require("../models/elementoModel");
@@ -17,7 +18,7 @@ const crearPrestamo = async (req, res) => {
     const data = {
       pre_inicio: new Date(),
       pre_fin: req.body.pre_fin,
-      usr_cedula: req.body.cedulaSolicitante,
+      usr_cedula: req.body.usr_cedula,
       est_id: 1, // Estado predeterminado "Creado"
       elementos: req.body.elementos
     };
@@ -71,7 +72,8 @@ const crearPrestamo = async (req, res) => {
 
     res.status(201).json({ respuesta: true, mensaje: "¡Préstamo creado con éxito!", id: prestamoId });
   } catch (error) {
-    manejarError(res, `Error al crear el préstamo: ${error.message}`, error);
+    console.error(`Error al crear el préstamo: ${error.message}`);
+    res.status(500).json({ respuesta: false, mensaje: `Error al crear el préstamo: ${error.message}` });
   }
 };
 
@@ -200,40 +202,97 @@ const eliminarPrestamo = (req, res) => {
 
 // Obtener Todos los Préstamos
 const obtenerTodosPrestamos = (req, res) => {
-  Prestamo.obtenerTodos((err, results) => {
-    if (err) return manejarError(res, "Error al obtener los préstamos.", err);
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamos obtenidos con éxito!",
-      data: results,
+  const { tip_usr_id: userRole } = req.user;
+  console.log(`Obteniendo préstamos para el rol: ${userRole}`);
+
+  if (userRole === 3 || userRole === 1) { // Rol Almacén o Administrador
+    Prestamo.obtenerTodos((err, results) => {
+      if (err) return manejarError(res, "Error al obtener los préstamos.", err);
+
+      console.log('Préstamos obtenidos:', results);
+      res.json({
+        respuesta: true,
+        mensaje: "¡Préstamos obtenidos con éxito!",
+        data: results,
+      });
     });
-  });
+  } else {
+    res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
+  }
 };
+
 
 // Obtener Préstamo por ID
 const obtenerPrestamoPorId = (req, res) => {
   const { pre_id } = req.params;
+  console.log(`Obteniendo préstamo con ID: ${pre_id}`);
+
   Prestamo.obtenerPorId(pre_id, (err, results) => {
-    if (err) return manejarError(res, "Error al obtener el préstamo.", err);
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({ respuesta: false, mensaje: "Préstamo no encontrado." });
-    res.json({
-      respuesta: true,
-      mensaje: "¡Préstamo obtenido con éxito!",
-      data: results[0],
+    if (err) {
+      console.error("Error al obtener el préstamo:", err);
+      return res.status(500).json({ respuesta: false, mensaje: "Error al obtener el préstamo.", err });
+    }
+
+    if (results.length === 0) {
+      console.log("Préstamo no encontrado");
+      return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
+    }
+
+    const prestamo = results[0];
+    console.log("Préstamo obtenido:", prestamo);
+
+    // Obtener solo el primer elemento asociado al préstamo
+    const queryElementos = `
+      SELECT pe.ele_id, el.ele_nombre, pe.pre_ele_cantidad_prestado AS ele_cantidad
+      FROM PrestamosElementos pe
+      JOIN Elementos el ON pe.ele_id = el.ele_id
+      WHERE pe.pre_id = ? LIMIT 1;
+    `;
+
+    db.query(queryElementos, [pre_id], (err, elementos) => {
+      if (err) {
+        console.error('Error al obtener los elementos del préstamo:', err);
+        return res.status(500).json({ respuesta: false, mensaje: "Error al obtener los elementos del préstamo.", err });
+      }
+
+      console.log("Elemento del préstamo obtenido:", elementos);
+
+      prestamo.elementos = elementos;
+      res.json({
+        respuesta: true,
+        mensaje: "¡Préstamo obtenido con éxito!",
+        data: prestamo
+      });
     });
   });
 };
 
+
+
+
+
 // Obtener préstamos por cédula
 const obtenerPrestamosPorCedula = (req, res) => {
   const { usr_cedula } = req.params;
+  console.log(`Obteniendo préstamos para la cédula: ${usr_cedula}`); // Log de depuración
 
   Prestamo.obtenerPorCedula(usr_cedula, (err, results) => {
-    if (err) return manejarError(res, 'Error al obtener los préstamos.', err);
-    res.json(results);  // Simplemente retornar los resultados ya con est_nombre
+    if (err) {
+      console.error('Error al obtener los préstamos:', err);
+      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los préstamos.', err });
+    }
+
+    if (results.length === 0) {
+      console.log("No se encontraron préstamos para la cédula proporcionada.");
+      return res.status(404).json({ respuesta: false, mensaje: 'No se encontraron préstamos.' });
+    }
+
+    console.log("Préstamos obtenidos:", results);
+    res.json({
+      respuesta: true,
+      mensaje: "¡Préstamos obtenidos con éxito!",
+      data: results
+    });
   });
 };
 

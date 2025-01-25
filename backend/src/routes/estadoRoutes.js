@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const estadoController = require('../controllers/estadoController');
+const auth = require('../middleware/auth');
 
-router.get('/', estadoController.obtenerTodosEstados);
-router.get('/:est_id', estadoController.obtenerEstadoPorId);
-router.post('/crear', estadoController.crearEstado);
-router.put('/actualizar', estadoController.actualizarEstado);
-router.delete('/eliminar/:est_id', estadoController.eliminarEstado);
+// Rutas para estados
+router.get('/', auth(['Administrador', 'Instructor', 'Almacen']), estadoController.obtenerTodosEstados); // Comentamos el auth para probar
+router.get('/:est_id', auth(['Administrador', 'Instructor', 'Almacen']), estadoController.obtenerEstadoPorId);
+router.post('/crear', auth(['Administrador', 'Almacen']), estadoController.crearEstado);
+router.put('/actualizar', auth(['Administrador', 'Almacen']), estadoController.actualizarEstado);
+router.delete('/eliminar/:est_id', auth(['Administrador', 'Almacen']), estadoController.eliminarEstado);
 
 module.exports = router;

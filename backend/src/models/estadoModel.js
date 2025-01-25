@@ -2,10 +2,15 @@ const db = require('../config/db');
 
 const Estado = {
   obtenerTodos: (callback) => {
-    const query = 'SELECT * FROM Estados';
-    db.query(query, callback);
+    const query = 'SELECT * FROM Estados'; // Asegúrate de que el nombre de la tabla es correcto
+    db.query(query, (error, results) => {
+      if (error) {
+        console.error('Error al obtener los estados:', error);
+        return callback(error, null);
+      }
+      callback(null, results);
+    });
   },
-
   obtenerPorId: (est_id, callback) => {
     const query = 'SELECT * FROM Estados WHERE est_id = ?';
     db.query(query, [est_id], callback);

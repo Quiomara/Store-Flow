@@ -42,12 +42,9 @@ export class ElementoService {
       );
   }
 
-  updateStock(data: { 
-    ele_id: number, 
-    ele_cantidad: number 
-  }): Observable<any> {
+  actualizarStock(item: { ele_id: number, ele_cantidad: number }): Observable<any> {
     const headers = this.getHeaders();
-    return this.http.put(`${this.apiUrl}/updateStock`, data, { headers }).pipe(
+    return this.http.put(`${this.apiUrl}/actualizar-stock`, item, { headers }).pipe(
       catchError(this.handleError.bind(this))
     );
   }

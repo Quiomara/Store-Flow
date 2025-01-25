@@ -1,104 +1,72 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Prestamo } from '../models/prestamo.model';
-import { PrestamoUpdate } from '../models/prestamo-update.model';
-import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PrestamoService {
-  public apiUrl = 'http://localhost:3000/api/prestamos';
-  public apiEstadosUrl = 'http://localhost:3000/api/estados';
-  public apiStockUrl = 'http://localhost:3000/api/stock'; // Nueva URL para manejar el stock
+  public apiUrl = 'http://localhost:3000/api/prestamos';  // Cambiado de private a public
+  private apiEstadosUrl = 'http://localhost:3000/api/estados';
+  private apiStockUrl = 'http://localhost:3000/api/stock'; // Nueva URL para manejar el stock
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
-
-  getAuthHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    if (token) {
-      console.log('Enviando encabezados de autorización con el token:', token);
-      return new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    } else {
-      console.warn('Token no disponible. No se enviarán encabezados de autorización.');
-      return new HttpHeaders();
-    }
-  }
+  constructor(private http: HttpClient) {}
 
   createPrestamo(prestamo: Prestamo): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.post(`${this.apiUrl}/crear`, prestamo, { headers }).pipe(
-      catchError(this.handleError.bind(this))
+    return this.http.post(`${this.apiUrl}/crear`, prestamo).pipe(
+      catchError(this.handleError)
     );
   }
 
   getPrestamos(): Observable<Prestamo[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<Prestamo[]>(this.apiUrl, { headers }).pipe(
+    return this.http.get<Prestamo[]>(this.apiUrl).pipe(
       map(response => Array.isArray(response) ? response : []),
-      catchError(this.handleError.bind(this))
-    );
-  }
-
-  updatePrestamo(prestamo: PrestamoUpdate): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.put(`${this.apiUrl}/actualizar`, prestamo, { headers }).pipe(
-      catchError(this.handleError.bind(this))
+      catchError(this.handleError)
     );
   }
 
   updateStock(item: { ele_id: number, ele_cantidad: number }): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.put(`${this.apiStockUrl}/actualizar`, item, { headers }).pipe(
-      catchError(this.handleError.bind(this))
+    return this.http.put(`${this.apiStockUrl}/actualizar-stock`, item).pipe(
+      catchError(this.handleError)
     );
   }
 
   getHistory(): Observable<Prestamo[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<Prestamo[]>(this.apiUrl, { headers }).pipe(
+    return this.http.get<Prestamo[]>(this.apiUrl).pipe(
       map(response => Array.isArray(response) ? response : []),
-      catchError(this.handleError.bind(this))
+      catchError(this.handleError)
     );
   }
 
   getEstados(): Observable<{ est_id: number, est_nombre: string }[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<{ est_id: number, est_nombre: string }[]>(this.apiEstadosUrl, { headers }).pipe(
+    return this.http.get<{ est_id: number, est_nombre: string }[]>(this.apiEstadosUrl).pipe(
       map(response => Array.isArray(response) ? response : []),
-      catchError(this.handleError.bind(this))
+      catchError(this.handleError)
     );
   }
 
   getPrestamosPorCedula(usr_cedula: string): Observable<Prestamo[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<Prestamo[]>(`${this.apiUrl}/usuario/${usr_cedula}`, { headers }).pipe(
+    return this.http.get<Prestamo[]>(`${this.apiUrl}/usuario/${usr_cedula}`).pipe(
       map(response => Array.isArray(response) ? response : []),
-      catchError(this.handleError.bind(this))
+      catchError(this.handleError)
     );
   }
 
   getPrestamoDetalles(prestamoId: number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.get(`${this.apiUrl}/${prestamoId}/detalles`, { headers }).pipe(
+    return this.http.get(`${this.apiUrl}/${prestamoId}/detalles`).pipe(
       map((response: any) => {
         console.log('Respuesta del servicio:', response); // Depuración
         return response;
       }),
-      catchError(this.handleError.bind(this))
+      catchError(this.handleError)
     );
   }
 
-  updatePrestamoElemento(data: { 
-    pre_id: number, 
-    ele_id: number, 
-    pre_ele_cantidad_prestado: number 
-  }): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.put(`${this.apiUrl}/updatePrestamoElemento`, data, { headers }).pipe(
-      catchError(this.handleError.bind(this))
+  updatePrestamoElemento(data: { pre_id: number, ele_id: number, pre_ele_cantidad_prestado: number }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/actualizar`, data).pipe(
+      catchError(this.handleError)
     );
   }
 
@@ -107,6 +75,8 @@ export class PrestamoService {
     return throwError(error);
   }
 }
+
+
 
 
 

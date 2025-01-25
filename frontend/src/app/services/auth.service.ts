@@ -81,11 +81,12 @@ export class AuthService {
   getToken(): string | null {
     if (typeof localStorage !== 'undefined') {
       const token = localStorage.getItem('token');
-      console.log('Recuperando token del localStorage:', token);
+      console.log('Recuperando token del localStorage:', token);  // Verificación del token
       return token;
     }
     return null;
   }
+  
 
   // Borrar el token de localStorage
   clearToken(): void {

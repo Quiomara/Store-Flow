@@ -4,35 +4,27 @@
   <form [formGroup]="searchForm" class="search-form form-inline">
     <input type="text" formControlName="searchId" placeholder="ID del Préstamo" class="form-control mr-2" />
     <input type="date" formControlName="searchFecha" placeholder="Fecha" class="form-control mr-2" />
-    <select formControlName="searchEstado" class="form-control mr-2">
-      <option value="">Seleccione un estado</option>
-      <option *ngFor="let estado of estados" [value]="estado.est_nombre">
-        {{ estado.est_nombre }}
-      </option>
-    </select>
+    <input type="text" formControlName="searchEstado" placeholder="Estado" class="form-control mr-2" (input)="filtrarEstados($event)" />
+    <ul *ngIf="filteredEstados.length > 0" class="estado-list">
+      <li *ngFor="let estado of filteredEstados" (click)="seleccionarEstado(estado)">{{ estado.est_nombre }}</li>
+    </ul>
   </form>
 
   <div class="user-table-container">
     <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table">
       <ng-container matColumnDef="idPrestamo">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">
-          ID del Préstamo
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="header-cell">ID del Préstamo</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.idPrestamo }}</td>
       </ng-container>
 
       <ng-container matColumnDef="fechaHora">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">
-          Fecha Inicio
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Inicio</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.fechaHora }}</td>
       </ng-container>
 
       <ng-container matColumnDef="fechaEntrega">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Fin</th>
-        <td mat-cell *matCellDef="let prestamo">
-          {{ prestamo.fechaEntrega ? prestamo.fechaEntrega : "" }}
-        </td>
+        <td mat-cell *matCellDef="let prestamo">{{ prestamo.fechaEntrega ? prestamo.fechaEntrega : "" }}</td>
       </ng-container>
 
       <ng-container matColumnDef="estado">
@@ -41,9 +33,7 @@
       </ng-container>
 
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">
-          Detalles
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">Detalles</th>
         <td mat-cell *matCellDef="let prestamo">
           <button mat-icon-button (click)="verDetalles(prestamo)" class="icon-btn">
             <mat-icon>visibility</mat-icon>
@@ -59,3 +49,5 @@
     </div>
   </div>
 </div>
+
+

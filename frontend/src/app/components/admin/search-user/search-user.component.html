@@ -15,37 +15,37 @@
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
       <ng-container matColumnDef="cedula">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CÉDULA </th>
-        <td mat-cell *matCellDef="let user"> {{ user.cedula || 'N/A' }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.cedula || 'N/A' }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="nombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> NOMBRE </th>
-        <td mat-cell *matCellDef="let user"> {{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="centroFormacion">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CENTRO DE FORMACIÓN </th>
-        <td mat-cell *matCellDef="let user"> {{ user.centroFormacion || 'N/A' }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.centroFormacion || 'N/A' }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="email">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CORREO ELECTRÓNICO </th>
-        <td mat-cell *matCellDef="let user"> {{ user.email || 'N/A' }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.email || 'N/A' }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="telefono">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> TELÉFONO </th>
-        <td mat-cell *matCellDef="let user"> {{ user.telefono || 'N/A' }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.telefono || 'N/A' }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="tipoUsuario">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> TIPO DE USUARIO </th>
-        <td mat-cell *matCellDef="let user"> {{ user.tipoUsuario || 'N/A' }} </td>
+        <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.tipoUsuario || 'N/A' }} </td>
       </ng-container>
-
+  
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header"> ACCIONES </th>
-        <td mat-cell *matCellDef="let user">
+        <td mat-cell *matCellDef="let user" class="centered-cell">
           <button mat-button color="primary" (click)="onEdit(user)">
             <i class="fas fa-edit"></i>
           </button>

@@ -12,7 +12,7 @@ const crearUbicacionElemento = (req, res) => {
 };
 
 const actualizarUbicacionElemento = (req, res) => {
-  const data = req.body;
+  const data = req.body; // Asegúrate de que el cuerpo de la solicitud tiene 'ubi_nombre' y 'ubi_ele_id'
   UbicacionElemento.actualizar(data, (err, results) => {
     if (err) {
       console.error('Error al actualizar la ubicación del elemento:', err.stack);

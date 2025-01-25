@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -10,6 +10,7 @@ import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; 
+import { AuthInterceptor } from '../../../services/auth.interceptor.service';
 
 @Component({
   selector: 'app-instructor-history',
@@ -24,7 +25,10 @@ import { PrestamoDetalleModalComponent } from '../../../components/prestamo-deta
     MatTableModule,
     MatSnackBarModule,
     MatDialogModule, 
-    MatIconModule 
+    MatIconModule
+  ],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
@@ -32,6 +36,7 @@ export class InstructorHistoryComponent implements OnInit {
   prestamos: Prestamo[] = [];
   filteredPrestamos: Prestamo[] = [];
   estados: { est_id: number, est_nombre: string }[] = [];
+  filteredEstados: { est_id: number, est_nombre: string }[] = [];
   displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
   mensajeNoPrestamos: string = 'No se encontraron préstamos.';
 
@@ -48,7 +53,6 @@ export class InstructorHistoryComponent implements OnInit {
       searchFecha: ['']
     });
 
-    // Escuchar cambios en los controles del formulario para actualizar los filtros dinámicamente
     this.searchForm.valueChanges.subscribe(() => this.buscar());
   }
 
@@ -83,12 +87,11 @@ export class InstructorHistoryComponent implements OnInit {
             fechaHora: this.formatearFecha(item.pre_inicio),
             fechaEntrega: this.formatearFecha(item.pre_fin),
             estado: item.est_nombre,
-            items: item.items, // Asegúrate de que los ítems estén incluidos
+            items: item.items,
             cedulaSolicitante: item.usr_cedula
           }));
           this.filteredPrestamos = this.prestamos;
-          this.buscar(); // Aplicar filtros al cargar los datos iniciales
-          console.log('Datos al abrir el modal:', this.filteredPrestamos); // Verificar datos
+          this.buscar();
         },
         (error: any) => {
           console.error('Error al obtener el historial de préstamos', error);
@@ -109,6 +112,7 @@ export class InstructorHistoryComponent implements OnInit {
     this.prestamoService.getEstados().subscribe(
       (data: { est_id: number, est_nombre: string }[]) => {
         this.estados = data;
+        this.filteredEstados = data;
       },
       (error: any) => {
         console.error('Error al obtener los estados', error);
@@ -141,10 +145,7 @@ export class InstructorHistoryComponent implements OnInit {
       );
     }
 
-    // Mostrar mensajes personalizados si no hay resultados
     this.actualizarMensajeNoPrestamos(searchEstado);
-
-    console.log('Resultados filtrados:', this.filteredPrestamos);
   }
 
   actualizarMensajeNoPrestamos(searchEstado: string): void {
@@ -175,22 +176,31 @@ export class InstructorHistoryComponent implements OnInit {
 
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
-      width: '800px', // Ajusta el ancho del modal aquí
+      width: '800px',
       data: { prestamo }
     });
   
     dialogRef.afterClosed().subscribe(result => {
       console.log('El modal se cerró');
-      this.getHistory(); // Recargar los datos después de cerrar el modal
+      this.getHistory();
     });
   }
 
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
+
+  filtrarEstados(event: any): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filteredEstados = this.estados.filter(estado => estado.est_nombre.toLowerCase().includes(value));
+  }
+
+  seleccionarEstado(estado: { est_id: number, est_nombre: string }): void {
+    this.searchForm.get('searchEstado')?.setValue(estado.est_nombre);
+    this.filteredEstados = [];
+    this.buscar();
+  }
 }
-
-
 
 
 

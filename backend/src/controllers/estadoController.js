@@ -9,8 +9,11 @@ const manejarError = (res, mensaje, err) => {
 // Obtener todos los estados
 const obtenerTodosEstados = (req, res) => {
   Estado.obtenerTodos((err, results) => {
-    if (err) return manejarError(res, 'Error al obtener los estados.', err);
-    res.json(results);  // Enviar results directamente sin envoltura
+    if (err) {
+      console.error('Error al obtener los estados:', err);
+      return res.status(500).json({ message: 'Error al obtener los estados' });
+    }
+    res.json(results); // Enviar los resultados directamente
   });
 };
 

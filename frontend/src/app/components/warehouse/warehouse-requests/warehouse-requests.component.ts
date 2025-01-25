@@ -69,15 +69,6 @@ export class WarehouseRequestsComponent implements OnInit {
       ele_cantidad: solicitud.elementos[0].ele_cantidad  // Asegúrate de ajustar esto según tu lógica
     };
 
-    this.prestamoService.updatePrestamo(updateData).subscribe(
-      (data: Prestamo) => {
-        this.actualizarSolicitudesVisibles();
-        console.log(`Solicitud ${solicitud.idPrestamo} actualizada a: ${nuevoEstado}`);
-      },
-      (error) => {
-        console.error('Error al actualizar la solicitud', error);
-      }
-    );
   }
 
   aprobarSolicitud(solicitud: Prestamo): void {
