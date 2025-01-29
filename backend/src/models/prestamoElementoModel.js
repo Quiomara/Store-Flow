@@ -1,17 +1,21 @@
 const db = require('../config/db');
 
 const PrestamoElemento = {
-  crear: (data, callback) => {
-    const query = `INSERT INTO prestamoselementos (ele_id, pre_id, pre_ele_cantidad_prestado) VALUES (?, ?, ?)`;
-    const values = [data.ele_id, data.pre_id, data.pre_ele_cantidad_prestado];
-    console.log('Intentando insertar en prestamoselementos:', { query, values });
-    db.query(query, values, (err, results) => {
-      if (err) {
-        console.error('Error al insertar en prestamoselementos:', err.stack);
-      } else {
-        console.log('Inserción exitosa en prestamoselementos:', results);
-      }
-      callback(err, results);
+  crear: (data) => {
+    return new Promise((resolve, reject) => {
+      const query = `INSERT INTO prestamoselementos (ele_id, pre_id, pre_ele_cantidad_prestado) VALUES (?, ?, ?)`;
+      const values = [data.ele_id, data.pre_id, data.pre_ele_cantidad_prestado];
+
+      console.log("Intentando insertar en prestamoselementos:", { query, values });
+
+      db.query(query, values, (err, results) => {
+        if (err) {
+          console.error("Error en la inserción en prestamoselementos:", err);
+          return reject(err);
+        }
+        console.log("Inserción exitosa en prestamoselementos:", results);
+        resolve(results);
+      });
     });
   },
 

@@ -1,30 +1,31 @@
 const db = require("../config/db");
 
 const Prestamo = {
-  crear: (data, callback) => {
+
+// Refactorización de Prestamo.crear para usar promesas
+crear: (data) => {
+  return new Promise((resolve, reject) => {
     // Validar campos obligatorios
-    if (!data.pre_inicio || !data.pre_fin || !data.usr_cedula || !data.est_id) {
-      const error = new Error("Faltan campos obligatorios: pre_inicio, pre_fin, usr_cedula o est_id.");
-      return callback(error);
+    if (!data.pre_inicio || !data.usr_cedula || !data.est_id) {
+      return reject(new Error("Faltan campos obligatorios: pre_inicio, usr_cedula o est_id."));
     }
 
-    const query = `INSERT INTO Prestamos (pre_inicio, pre_fin, usr_cedula, est_id) VALUES (?, ?, ?, ?)`;
-    const values = [
-      data.pre_inicio,
-      data.pre_fin,
-      data.usr_cedula,
-      data.est_id,
-    ];
+    const query = `INSERT INTO Prestamos (pre_inicio, usr_cedula, est_id) VALUES (?, ?, ?)`;
+    const values = [data.pre_inicio, data.usr_cedula, data.est_id];
+
+    console.log("Ejecutando consulta SQL:", query, values);
 
     // Ejecutar la consulta
     db.query(query, values, (err, results) => {
       if (err) {
         console.error("Error en la consulta SQL:", err);
-        return callback(err);
+        return reject(err);
       }
-      callback(null, { insertId: results.insertId });
+      console.log("Resultado de la consulta SQL:", results);
+      resolve({ insertId: results.insertId });
     });
-  },
+  });
+},
 
   actualizar: (data, callback) => {
     const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;

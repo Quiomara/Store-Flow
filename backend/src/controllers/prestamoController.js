@@ -10,75 +10,67 @@ const manejarError = (res, mensaje, err) => {
   return res.status(500).json({ respuesta: false, mensaje });
 };
 
-// Crear Préstamo
 const crearPrestamo = async (req, res) => {
+  const startTime = Date.now();
+
   try {
     console.log("Datos recibidos en crearPrestamo:", req.body);
 
     const data = {
-      pre_inicio: new Date(), // Fecha de inicio (se genera en el backend)
-      pre_fin: req.body.pre_fin, // Fecha de fin (recibida del frontend)
-      usr_cedula: req.body.usr_cedula, // Cédula del solicitante (recibida del frontend)
-      est_id: 1, // Estado predeterminado "Creado"
-      elementos: req.body.elementos // Elementos del préstamo (recibidos del frontend)
+      pre_inicio: new Date(),
+      usr_cedula: req.body.usr_cedula,
+      est_id: req.body.est_id,
+      elementos: req.body.elementos,
     };
 
     // Validar campos obligatorios
-    if (!data.usr_cedula) {
-      throw new Error("La cédula del solicitante es nula o no se proporcionó.");
+    if (!data.usr_cedula || !data.est_id) {
+      throw new Error("Faltan campos obligatorios: usr_cedula o est_id.");
     }
     if (!data.elementos || data.elementos.length === 0) {
       throw new Error("No se proporcionaron elementos para el préstamo.");
     }
 
-    // Crear el préstamo
-    const prestamoResult = await new Promise((resolve, reject) => {
-      Prestamo.crear(data, (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      });
-    });
+    console.log("Datos validados:", data);
 
+    // Crear el préstamo
+    const prestamoResult = await Prestamo.crear(data);
     const prestamoId = prestamoResult.insertId;
     console.log("ID del préstamo creado:", prestamoId);
 
-    // Crear elementos del préstamo y actualizar cantidad del inventario
-    for (const elemento of data.elementos) {
-      if (!elemento.ele_id || !elemento.ele_cantidad) {
+    // Procesar cada elemento en paralelo
+    await Promise.all(data.elementos.map(async (elemento) => {
+      console.log("Procesando elemento:", elemento);
+
+      if (!elemento.ele_id || elemento.pre_ele_cantidad_prestado === undefined) {
         throw new Error("Uno o más elementos no tienen ID o cantidad válida.");
       }
 
       const prestamoElementoData = {
         pre_id: prestamoId,
         ele_id: elemento.ele_id,
-        pre_ele_cantidad_prestado: elemento.ele_cantidad,
+        pre_ele_cantidad_prestado: elemento.pre_ele_cantidad_prestado,
       };
 
-      await new Promise((resolve, reject) => {
-        PrestamoElemento.crear(prestamoElementoData, (err, results) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        });
-      });
+      // Crear elemento del préstamo
+      await PrestamoElemento.crear(prestamoElementoData);
 
-      await new Promise((resolve, reject) => {
-        Elemento.actualizarCantidad(elemento.ele_id, -elemento.ele_cantidad, (err, results) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        });
-      });
-    }
+      // Obtener y actualizar la cantidad del elemento
+      const elementoDb = await Elemento.obtenerPorId(elemento.ele_id);
+      const nuevaCantidadActual = elementoDb.ele_cantidad_actual - elemento.pre_ele_cantidad_prestado;
 
+      if (isNaN(nuevaCantidadActual)) {
+        throw new Error(`Cantidad inválida para el elemento ID ${elemento.ele_id}: ${nuevaCantidadActual}`);
+      }
+
+      await Elemento.actualizarStock(elemento.ele_id, nuevaCantidadActual);
+    }));
+
+    // Enviar respuesta al cliente
     res.status(201).json({ respuesta: true, mensaje: "¡Préstamo creado con éxito!", id: prestamoId });
+
+    const endTime = Date.now();
+    console.log(`Tiempo de ejecución total: ${endTime - startTime} ms`);
   } catch (error) {
     console.error(`Error al crear el préstamo: ${error.message}`);
     res.status(500).json({ respuesta: false, mensaje: `Error al crear el préstamo: ${error.message}` });

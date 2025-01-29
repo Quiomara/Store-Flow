@@ -12,6 +12,13 @@ import { Prestamo } from '../../../models/prestamo.model';
 import { Elemento } from '../../../models/elemento.model';
 import { NgIf, NgForOf } from '@angular/common';
 
+interface ElementoAgregado {
+  ele_id: number;
+  ele_nombre: string;
+  pre_ele_cantidad_prestado: number;
+  ele_cantidad_actual: number; // Añadir esta propiedad para mantener la cantidad actualizada
+}
+
 @Component({
   selector: 'app-instructor-request',
   templateUrl: './instructor-request.component.html',
@@ -36,7 +43,7 @@ export class InstructorRequestComponent implements OnInit {
   elementosFiltrados: Elemento[] = [];
   elementoSeleccionado: Elemento | null = null;
   mostrarElementos: boolean = false;
-  elementosAgregados: Elemento[] = [];
+  elementosAgregados: ElementoAgregado[] = []; // Usar la interfaz ElementoAgregado
 
   constructor(
     private elementoService: ElementoService, 
@@ -91,7 +98,12 @@ export class InstructorRequestComponent implements OnInit {
 
   agregarElemento(): void {
     if (this.nuevoElemento.cantidad && this.nuevoElemento.cantidad > 0 && this.elementoSeleccionado) {
-      const elementoAgregado = { ...this.elementoSeleccionado, ele_cantidad: this.nuevoElemento.cantidad };
+      const elementoAgregado: ElementoAgregado = {
+        ele_id: this.elementoSeleccionado.ele_id,
+        ele_nombre: this.elementoSeleccionado.ele_nombre,
+        pre_ele_cantidad_prestado: this.nuevoElemento.cantidad,
+        ele_cantidad_actual: this.elementoSeleccionado.ele_cantidad_actual - this.nuevoElemento.cantidad
+      };
       this.elementosAgregados.push(elementoAgregado);
   
       // Actualizar la cantidad disponible (ele_cantidad_actual)
@@ -112,15 +124,15 @@ export class InstructorRequestComponent implements OnInit {
     }
   }
 
-  eliminarElemento(elemento: Elemento): void {
-    this.elementosAgregados = this.elementosAgregados.filter(e => e !== elemento);
+  eliminarElemento(elemento: ElementoAgregado): void {
+    this.elementosAgregados = this.elementosAgregados.filter(e => e.ele_id !== elemento.ele_id);
   
     // Restaurar la cantidad disponible (ele_cantidad_actual)
     this.elementos = this.elementos.map(e => {
       if (e.ele_id === elemento.ele_id) {
         return {
           ...e,
-          ele_cantidad_actual: e.ele_cantidad_actual + elemento.ele_cantidad_actual
+          ele_cantidad_actual: e.ele_cantidad_actual + elemento.pre_ele_cantidad_prestado
         };
       }
       return e;
@@ -134,8 +146,18 @@ export class InstructorRequestComponent implements OnInit {
 
   enviarSolicitud(): void {
     const cedulaSolicitante = this.authService.getCedula();
+    const token = this.authService.getToken();
+    
+    console.log("Cédula recuperada:", cedulaSolicitante);
+    console.log("Token recuperado:", token);
+    
     if (cedulaSolicitante === null) {
       alert('Error: No se pudo obtener la cédula del usuario logueado.');
+      return;
+    }
+  
+    if (!token) {
+      alert('Error: No se pudo obtener el token de autenticación.');
       return;
     }
   
@@ -147,21 +169,24 @@ export class InstructorRequestComponent implements OnInit {
     // Mapear elementos agregados para enviar al backend
     const elementosParaEnviar = this.elementosAgregados.map(elemento => ({
       ele_id: elemento.ele_id,
-      ele_cantidad: elemento.ele_cantidad_actual // Asegúrate de que el backend espere esta propiedad
+      pre_ele_cantidad_prestado: elemento.pre_ele_cantidad_prestado
     }));
   
     const prestamo = {
       usr_cedula: Number(cedulaSolicitante),
-      elementos: elementosParaEnviar,
-      pre_fin: this.fechaActual
+      est_id: 1,
+      elementos: elementosParaEnviar
     };
   
+    console.log("Datos del préstamo a enviar:", prestamo);
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.authService.getToken()}`
+      'Authorization': `Bearer ${token}`
     });
-  
+
     const apiUrl = this.prestamoService.getPrestamosUrl() || 'http://localhost:3000/api/prestamos';
+    console.log("URL de la API:", apiUrl);
   
     this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
       (response: any) => {
@@ -192,34 +217,3 @@ export class InstructorRequestComponent implements OnInit {
     console.log('Formulario limpiado');
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

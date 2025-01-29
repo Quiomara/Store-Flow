@@ -63,7 +63,7 @@
       <tbody>
         <tr *ngFor="let elemento of elementosAgregados">
           <td>{{ elemento.ele_nombre }}</td>
-          <td>{{ elemento.ele_cantidad_actual }}</td> <!-- Mostrar ele_cantidad_actual -->
+          <td>{{ elemento.pre_ele_cantidad_prestado }}</td> <!-- Mostrar pre_ele_cantidad_prestado -->
           <td>
             <button mat-icon-button (click)="eliminarElemento(elemento)">
               <mat-icon>delete</mat-icon>
@@ -78,17 +78,3 @@
     </div>
   </form>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  

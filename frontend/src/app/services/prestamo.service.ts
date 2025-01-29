@@ -18,7 +18,6 @@ export class PrestamoService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  // Método para obtener los encabezados con el token de autorización
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     if (!token) {
@@ -30,7 +29,6 @@ export class PrestamoService {
     });
   }
 
-  // Método genérico para manejar errores HTTP
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Ocurrió un error:', error);
     let errorMessage = 'Ocurrió un error en la solicitud.';
@@ -42,7 +40,6 @@ export class PrestamoService {
     return throwError(() => new Error(errorMessage));
   }
 
-  // Método genérico para realizar peticiones HTTP con manejo de errores
   private request<T>(method: string, url: string, body?: any): Observable<T> {
     const headers = this.getHeaders();
     console.log('Headers enviados:', headers); // Depuración
@@ -50,8 +47,6 @@ export class PrestamoService {
       catchError(this.handleError)
     );
   }
-
-  // Métodos específicos del servicio
 
   createPrestamo(prestamo: Prestamo): Observable<any> {
     return this.request('POST', `${this.prestamosUrl}/crear`, prestamo);
@@ -63,7 +58,7 @@ export class PrestamoService {
     );
   }
 
-  updateStock(item: { ele_id: number; ele_cantidad: number }): Observable<any> {
+  updateStock(item: { ele_id: number; ele_cantidad_actual: number }): Observable<any> {
     return this.request('PUT', `${this.stockUrl}/actualizar-stock`, item);
   }
 
