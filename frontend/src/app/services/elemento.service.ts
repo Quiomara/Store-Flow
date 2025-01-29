@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Elemento } from '../models/prestamo.model';
+import { Elemento } from '../models/elemento.model';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -34,19 +34,22 @@ export class ElementoService {
       );
   }
 
-  actualizarCantidadPrestado(pre_id: number, ele_id: number, ele_cantidad: number): Observable<any> {
+  // Actualizar cantidad prestada
+  actualizarCantidadPrestado(pre_id: number, ele_id: number, pre_ele_cantidad_prestado: number): Observable<any> {
     const headers = this.getHeaders();
-    return this.http.put(`${this.apiUrl}/actualizarCantidadPrestado`, { pre_id, ele_id, ele_cantidad }, { headers })
+    return this.http.put(`${this.apiUrl}/actualizar-cantidad`, { pre_id, ele_id, pre_ele_cantidad_prestado }, { headers })
       .pipe(
         catchError(this.handleError.bind(this))
       );
   }
 
-  actualizarStock(item: { ele_id: number, ele_cantidad: number }): Observable<any> {
+  // Actualizar stock
+  actualizarStock(updateStock: { ele_id: number; ele_cantidad_actual: number; ele_cantidad_total: number }): Observable<any> {
     const headers = this.getHeaders();
-    return this.http.put(`${this.apiUrl}/actualizar-stock`, item, { headers }).pipe(
-      catchError(this.handleError.bind(this))
-    );
+    return this.http.put(`${this.apiUrl}/actualizar-stock`, updateStock, { headers })
+      .pipe(
+        catchError(this.handleError.bind(this))
+      );
   }
 
   private handleError(error: any): Observable<never> {
@@ -54,10 +57,3 @@ export class ElementoService {
     return throwError(error);
   }
 }
-
-
-
-
-
-
-

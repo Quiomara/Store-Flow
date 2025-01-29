@@ -18,10 +18,10 @@ export class AuthService {
         map(response => {
           console.log('Respuesta del servidor:', response);
           if (response && response.token) {
-            this.setToken(response.token);
+            this.setToken(response.token); // Almacena el token
             console.log('Token almacenado:', response.token);
             if (response.cedula) {
-              this.setCedula(response.cedula.toString());
+              this.setCedula(response.cedula.toString()); // Almacena la cédula
               console.log('Cédula almacenada:', response.cedula);
             }
             return response;
@@ -74,6 +74,7 @@ export class AuthService {
   setToken(token: string): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('token', token);
+      console.log('Token almacenado en localStorage:', token);
     }
   }
 
@@ -86,12 +87,12 @@ export class AuthService {
     }
     return null;
   }
-  
 
   // Borrar el token de localStorage
   clearToken(): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('token');
+      console.log('Token eliminado del localStorage');
     }
   }
 
@@ -117,19 +118,28 @@ export class AuthService {
   clearCedula(): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('cedula');
+      console.log('Cédula eliminada del localStorage');
     }
   }
 
   // Obtener encabezados de autenticación con el token
   getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
+    if (!token) {
+      console.error('No se encontró el token en localStorage.');
+      throw new Error('No se encontró el token de autenticación.');
+    }
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
   }
+
+  // Verificar si el usuario está autenticado
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    return !!token; // Devuelve true si el token existe, false si no
+  }
 }
-
-
 
 
 

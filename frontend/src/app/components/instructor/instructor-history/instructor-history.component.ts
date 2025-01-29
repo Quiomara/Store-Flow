@@ -11,6 +11,7 @@ import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; 
 import { AuthInterceptor } from '../../../services/auth.interceptor.service';
+import { Estado } from '../../../models/estado.model';
 
 @Component({
   selector: 'app-instructor-history',
@@ -35,8 +36,8 @@ export class InstructorHistoryComponent implements OnInit {
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
   filteredPrestamos: Prestamo[] = [];
-  estados: { est_id: number, est_nombre: string }[] = [];
-  filteredEstados: { est_id: number, est_nombre: string }[] = [];
+  estados: Estado[] = [];
+  filteredEstados: Estado[] = [];
   displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
   mensajeNoPrestamos: string = 'No se encontraron préstamos.';
 
@@ -82,16 +83,17 @@ export class InstructorHistoryComponent implements OnInit {
     if (cedula) { 
       this.prestamoService.getPrestamosPorCedula(cedula).subscribe(
         (data: any) => {
+          console.log('Datos recibidos del backend:', data); // Verifica los datos en la consola
           this.prestamos = data.map((item: any) => ({
             idPrestamo: item.pre_id,
             fechaHora: this.formatearFecha(item.pre_inicio),
-            fechaEntrega: this.formatearFecha(item.pre_fin),
+            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '', // Fecha Fin en blanco si no está definida
             estado: item.est_nombre,
-            items: item.items,
+            items: [], // Puedes ajustar esto si hay elementos asociados
             cedulaSolicitante: item.usr_cedula
           }));
-          this.filteredPrestamos = this.prestamos;
-          this.buscar();
+          this.filteredPrestamos = this.prestamos; // Mostrar todos los préstamos inicialmente
+          this.buscar(); // Aplicar filtros si existen
         },
         (error: any) => {
           console.error('Error al obtener el historial de préstamos', error);
@@ -110,7 +112,7 @@ export class InstructorHistoryComponent implements OnInit {
 
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
-      (data: { est_id: number, est_nombre: string }[]) => {
+      (data: Estado[]) => {
         this.estados = data;
         this.filteredEstados = data;
       },
@@ -182,7 +184,7 @@ export class InstructorHistoryComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe(result => {
       console.log('El modal se cerró');
-      this.getHistory();
+      this.getHistory(); // Recargar la lista de préstamos después de cerrar el modal
     });
   }
 
@@ -190,14 +192,11 @@ export class InstructorHistoryComponent implements OnInit {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
 
-  filtrarEstados(event: any): void {
-    const value = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredEstados = this.estados.filter(estado => estado.est_nombre.toLowerCase().includes(value));
-  }
 
-  seleccionarEstado(estado: { est_id: number, est_nombre: string }): void {
-    this.searchForm.get('searchEstado')?.setValue(estado.est_nombre);
-    this.filteredEstados = [];
+  seleccionarEstado(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const estadoSeleccionado = selectElement.value;
+    this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
     this.buscar();
   }
 }

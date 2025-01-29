@@ -16,20 +16,9 @@ const PrestamoElemento = {
   },
 
   // Método para actualizar la cantidad prestada
-  actualizarCantidadPrestado: (pre_id, ele_id, cantidadPrestado, callback) => {
-    const query = `
-      UPDATE prestamoselementos 
-      SET pre_ele_cantidad_prestado = ? 
-      WHERE pre_id = ? AND ele_id = ?
-    `;
-    const values = [cantidadPrestado, pre_id, ele_id];
-    
-    db.query(query, values, (err, results) => {
-      if (err) {
-        console.error('Error al actualizar PrestamosElementos:', err);
-      }
-      callback(err, results);
-    });
+  actualizarCantidadElemento: (pre_id, ele_id, cantidad, callback) => {
+    const query = `UPDATE PrestamosElementos SET pre_ele_cantidad_prestado = ? WHERE pre_id = ? AND ele_id = ?`;
+    db.query(query, [cantidad, pre_id, ele_id], callback);
   },
 
   eliminar: (pre_ele_id, callback) => {

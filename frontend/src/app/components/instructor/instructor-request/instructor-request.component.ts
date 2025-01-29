@@ -8,7 +8,8 @@ import { AuthService } from '../../../services/auth.service';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { SuccessModalComponent } from '../success-modal/success-modal.component';
-import { Prestamo, Elemento } from '../../../models/prestamo.model';
+import { Prestamo } from '../../../models/prestamo.model';
+import { Elemento } from '../../../models/elemento.model';
 import { NgIf, NgForOf } from '@angular/common';
 
 @Component({
@@ -92,17 +93,18 @@ export class InstructorRequestComponent implements OnInit {
     if (this.nuevoElemento.cantidad && this.nuevoElemento.cantidad > 0 && this.elementoSeleccionado) {
       const elementoAgregado = { ...this.elementoSeleccionado, ele_cantidad: this.nuevoElemento.cantidad };
       this.elementosAgregados.push(elementoAgregado);
-
+  
+      // Actualizar la cantidad disponible (ele_cantidad_actual)
       this.elementos = this.elementos.map(elemento => {
         if (elemento.ele_id === this.elementoSeleccionado!.ele_id) {
           return {
             ...elemento,
-            ele_cantidad: elemento.ele_cantidad - this.nuevoElemento.cantidad!
+            ele_cantidad_actual: elemento.ele_cantidad_actual - this.nuevoElemento.cantidad!
           };
         }
         return elemento;
       });
-
+  
       this.nuevoElemento = { nombre: '', cantidad: null };
       this.elementoSeleccionado = null;
     } else {
@@ -112,12 +114,13 @@ export class InstructorRequestComponent implements OnInit {
 
   eliminarElemento(elemento: Elemento): void {
     this.elementosAgregados = this.elementosAgregados.filter(e => e !== elemento);
-
+  
+    // Restaurar la cantidad disponible (ele_cantidad_actual)
     this.elementos = this.elementos.map(e => {
       if (e.ele_id === elemento.ele_id) {
         return {
           ...e,
-          ele_cantidad: e.ele_cantidad + elemento.ele_cantidad
+          ele_cantidad_actual: e.ele_cantidad_actual + elemento.ele_cantidad_actual
         };
       }
       return e;
@@ -126,7 +129,7 @@ export class InstructorRequestComponent implements OnInit {
 
   obtenerCantidadDisponible(id: number): number {
     const elemento = this.elementos.find(e => e.ele_id === id);
-    return elemento ? elemento.ele_cantidad : 0;
+    return elemento ? elemento.ele_cantidad_actual : 0;
   }
 
   enviarSolicitud(): void {
@@ -135,28 +138,40 @@ export class InstructorRequestComponent implements OnInit {
       alert('Error: No se pudo obtener la cédula del usuario logueado.');
       return;
     }
-
-    const prestamo: Omit<Prestamo, 'idPrestamo'> = {
-      cedulaSolicitante: Number(cedulaSolicitante),
-      elementos: this.elementosAgregados,
-      fecha: this.fechaActual
+  
+    if (!this.elementosAgregados || this.elementosAgregados.length === 0) {
+      alert('Error: No se han agregado elementos al préstamo.');
+      return;
+    }
+  
+    // Mapear elementos agregados para enviar al backend
+    const elementosParaEnviar = this.elementosAgregados.map(elemento => ({
+      ele_id: elemento.ele_id,
+      ele_cantidad: elemento.ele_cantidad_actual // Asegúrate de que el backend espere esta propiedad
+    }));
+  
+    const prestamo = {
+      usr_cedula: Number(cedulaSolicitante),
+      elementos: elementosParaEnviar,
+      pre_fin: this.fechaActual
     };
-
+  
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.authService.getToken()}`
     });
-
-    const apiUrl = this.prestamoService.apiUrl || 'http://localhost:3000/api/prestamos';
-
+  
+    const apiUrl = this.prestamoService.getPrestamosUrl() || 'http://localhost:3000/api/prestamos';
+  
     this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
       (response: any) => {
         console.log('Solicitud enviada con éxito', response);
-        this.mostrarModalExito(response.id); // Mostrar el modal con el ID del préstamo real
+        this.mostrarModalExito(response.id);
         this.limpiarFormulario();
       },
       (error: any) => {
         console.error('Error al enviar solicitud:', error);
+        alert('Error al enviar la solicitud. Por favor, inténtalo de nuevo.');
       }
     );
   }

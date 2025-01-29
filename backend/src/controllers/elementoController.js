@@ -1,124 +1,124 @@
 const Elemento = require('../models/elementoModel');
-const PrestamoElemento = require('../models/prestamoElementoModel'); // Importar el modelo de prestamosElementos
+const PrestamoElemento = require('../models/prestamoElementoModel');
 
-const crearElemento = (req, res) => {
+// Crear un nuevo elemento
+const crearElemento = async (req, res) => {
   const data = req.body;
-  Elemento.crear(data, (err, results) => {
-    if (err) {
-      console.error('Error al crear el elemento:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al crear el elemento.' });
-    }
+  try {
+    await Elemento.crear(data);
     res.json({ respuesta: true, mensaje: '¡Elemento creado con éxito!' });
-  });
+  } catch (err) {
+    console.error('Error al crear el elemento:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al crear el elemento.' });
+  }
 };
 
-const actualizarElemento = (req, res) => {
+// Actualizar un elemento
+const actualizarElemento = async (req, res) => {
   const data = req.body;
-  Elemento.actualizar(data, (err, results) => {
-    if (err) {
-      console.error('Error al actualizar el elemento:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el elemento.' });
-    }
+  try {
+    await Elemento.actualizar(data);
     res.json({ respuesta: true, mensaje: '¡Elemento actualizado con éxito!' });
-  });
+  } catch (err) {
+    console.error('Error al actualizar el elemento:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el elemento.' });
+  }
 };
 
-const actualizarCantidadPrestado = (req, res) => {
-  const { ele_id, ele_cantidad, pre_id } = req.body; 
+// Actualizar la cantidad prestada de un elemento
+const actualizarCantidadPrestado = async (req, res) => {
+  const { ele_id, cantidad, pre_id } = req.body;
 
-  console.log('Datos recibidos del frontend:', { ele_id, ele_cantidad, pre_id });
-
-  if (typeof ele_id !== 'number' || typeof ele_cantidad !== 'number' || typeof pre_id !== 'number') {
+  if (typeof ele_id !== 'number' || typeof cantidad !== 'number' || typeof pre_id !== 'number') {
     return res.status(400).json({ respuesta: false, mensaje: 'Datos inválidos.' });
   }
 
-  Elemento.actualizarCantidad(ele_id, ele_cantidad, (err, results) => {
-    if (err) {
-      console.error('Error al actualizar el stock en la tabla Elementos:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el stock.' });
+  try {
+    // Verificar si hay suficiente stock antes de actualizar
+    const elemento = await Elemento.obtenerPorId(ele_id);
+    if (elemento.ele_cantidad_actual < cantidad) {
+      return res.status(400).json({ respuesta: false, mensaje: 'No hay suficiente stock.' });
     }
 
-    PrestamoElemento.actualizarCantidadPrestado(pre_id, ele_id, ele_cantidad, (err, results) => {
-      if (err) {
-        console.error('Error al actualizar la cantidad en la tabla prestamosElementos:', err.stack);
-        return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad del préstamo.' });
-      }
+    // Actualizar la cantidad prestada en PrestamosElementos
+    await PrestamoElemento.actualizarCantidadPrestado(pre_id, ele_id, cantidad);
 
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado en el préstamo.' });
-      }
+    // Actualizar el stock en Elementos
+    await Elemento.actualizarStock(ele_id, -cantidad);
 
-      res.json({ respuesta: true, mensaje: 'Stock y cantidad del préstamo actualizados con éxito.', results });
-    });
-  });
+    res.json({ respuesta: true, mensaje: 'Cantidad del préstamo y stock actualizados con éxito.' });
+  } catch (err) {
+    console.error('Error al actualizar la cantidad prestada:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad prestada.' });
+  }
 };
 
-const actualizarStock = (req, res) => {
-  const { ele_id, ele_cantidad } = req.body;
-
-  console.log('Datos recibidos para actualizar stock:', { ele_id, ele_cantidad });
-
-  if (typeof ele_id !== 'number' || typeof ele_cantidad !== 'number') {
-    return res.status(400).json({ respuesta: false, mensaje: 'Datos inválidos.' });
+// Eliminar un elemento
+const eliminarElemento = async (req, res) => {
+  const ele_id = req.params.ele_id;
+  try {
+    await Elemento.eliminar(ele_id);
+    res.json({ respuesta: true, mensaje: '¡Elemento eliminado con éxito!' });
+  } catch (err) {
+    console.error('Error al eliminar el elemento:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el elemento.' });
   }
+};
 
-  Elemento.actualizarCantidad(ele_id, ele_cantidad, (err, results) => {
-    if (err) {
-      console.error('Error al actualizar el stock:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el stock.' });
-    }
+// Obtener todos los elementos
+const obtenerTodosElementos = async (req, res) => {
+  try {
+    const elementos = await Elemento.obtenerTodos();
+    res.send(elementos);
+  } catch (err) {
+    console.error('Error al obtener los elementos:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos.' });
+  }
+};
 
-    if (results.affectedRows === 0) {
+// Obtener un elemento por su ID
+const obtenerElementoPorId = async (req, res) => {
+  const ele_id = req.params.ele_id;
+  try {
+    const elemento = await Elemento.obtenerPorId(ele_id);
+    if (!elemento) {
       return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado.' });
     }
-
-    res.json({ respuesta: true, mensaje: 'Stock actualizado con éxito.', results });
-  });
-};
-
-const eliminarElemento = (req, res) => {
-  const ele_id = req.params.ele_id;
-  Elemento.eliminar(ele_id, (err, results) => {
-    if (err) {
-      console.error('Error al eliminar el elemento:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el elemento.' });
-    }
-    res.json({ respuesta: true, mensaje: '¡Elemento eliminado con éxito!' });
-  });
-};
-
-const obtenerTodosElementos = (req, res) => {
-  Elemento.obtenerTodos((err, results) => {
-    if (err) {
-      console.error('Error al obtener los elementos:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos.' });
-    }
-    res.send(results);
-  });
-};
-
-const obtenerElementoPorId = (req, res) => {
-  const ele_id = req.params.ele_id;
-  Elemento.obtenerPorId(ele_id).then((elemento) => {
-    if (!elemento) {
-      return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado' });
-    }
-    res.send({
-      ele_nombre: elemento.ele_nombre,
-      ele_cantidad: elemento.ele_cantidad
-    });
-  }).catch((err) => {
+    res.send(elemento);
+  } catch (err) {
     console.error('Error al obtener el elemento:', err.stack);
-    return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el elemento.' });
-  });
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el elemento.' });
+  }
+};
+
+// Actualizar el stock de un elemento
+const actualizarStock = async (req, res) => {
+  const { ele_id, ele_cantidad_actual } = req.body;
+
+  // Convertir a números
+  const eleIdNumber = Number(ele_id);
+  const cantidadNumber = Number(ele_cantidad_actual);
+
+  // Validar que sean números válidos
+  if (isNaN(eleIdNumber) || isNaN(cantidadNumber)) {
+    return res.status(400).json({ respuesta: false, mensaje: 'Datos inválidos.' });
+  }
+
+  try {
+    await Elemento.actualizarStock(eleIdNumber, cantidadNumber);
+    res.json({ respuesta: true, mensaje: 'Stock actualizado con éxito.' });
+  } catch (err) {
+    console.error('Error al actualizar el stock:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el stock.' });
+  }
 };
 
 module.exports = {
   crearElemento,
   actualizarElemento,
-  actualizarCantidadPrestado, // Añadir la nueva función
+  actualizarCantidadPrestado,
   eliminarElemento,
   obtenerTodosElementos,
   obtenerElementoPorId,
-  actualizarStock,
+  actualizarStock, // Exporta la nueva función
 };

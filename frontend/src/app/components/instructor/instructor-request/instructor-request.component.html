@@ -1,7 +1,7 @@
 <div class="instructor-request-container">
-  <h1 class="text-center font-weight-bold mb-4" >Sistema Integrado de Gestión</h1>
+  <h1 class="text-center font-weight-bold mb-4">Sistema Integrado de Gestión</h1>
   <h2 class="text-center font-weight-bold mb-4">PRÉSTAMO DE HERRAMIENTAS</h2>
-  
+
   <form (ngSubmit)="enviarSolicitud()">
     <div class="form-row justify-content-center mt-5">
       <div class="form-group col-md-2 text-center">
@@ -9,34 +9,42 @@
         <input type="text" id="fecha" [value]="fechaActual" disabled class="form-control text-center">
       </div>
     </div>
-    
+
     <div class="form-row justify-content-center mt-5">
       <div class="form-group col-md-6">
         <label for="elemento" class="text-center d-block">Elemento</label>
-        <input 
-          type="text" 
-          id="elemento" 
-          [(ngModel)]="nuevoElemento.nombre" 
-          name="elementoNombre" 
-          class="form-control" 
-          placeholder="Buscar elemento..." 
-          (focus)="mostrarListaElementos()" 
-          (input)="filtrarElementos()" 
+        <input
+          type="text"
+          id="elemento"
+          [(ngModel)]="nuevoElemento.nombre"
+          name="elementoNombre"
+          class="form-control"
+          placeholder="Buscar elemento..."
+          (focus)="mostrarListaElementos()"
+          (input)="filtrarElementos()"
           (blur)="ocultarListaElementos()">
         <ul *ngIf="mostrarElementos" class="list-group elemento-lista">
-          <li 
-            class="list-group-item" 
-            *ngFor="let elemento of elementosFiltrados" 
+          <li
+            class="list-group-item"
+            *ngFor="let elemento of elementosFiltrados"
             (click)="seleccionarElemento(elemento)">
             {{ elemento.ele_nombre }}
           </li>
         </ul>
       </div>
-      
+
       <div class="form-group col-md-6">
         <label for="cantidad" class="text-center d-block">Cantidad</label>
-        <input type="number" id="cantidad" [(ngModel)]="nuevoElemento.cantidad" name="elementoCantidad" class="form-control" placeholder="Cantidad">
-        <small *ngIf="elementoSeleccionado" class="text-muted">Disponibles: {{ obtenerCantidadDisponible(elementoSeleccionado.ele_id) }}</small>
+        <input
+          type="number"
+          id="cantidad"
+          [(ngModel)]="nuevoElemento.cantidad"
+          name="elementoCantidad"
+          class="form-control"
+          placeholder="Cantidad">
+        <small *ngIf="elementoSeleccionado" class="text-muted">
+          Disponibles: {{ obtenerCantidadDisponible(elementoSeleccionado.ele_id) }}
+        </small>
       </div>
     </div>
 
@@ -55,7 +63,7 @@
       <tbody>
         <tr *ngFor="let elemento of elementosAgregados">
           <td>{{ elemento.ele_nombre }}</td>
-          <td>{{ elemento.ele_cantidad }}</td>
+          <td>{{ elemento.ele_cantidad_actual }}</td> <!-- Mostrar ele_cantidad_actual -->
           <td>
             <button mat-icon-button (click)="eliminarElemento(elemento)">
               <mat-icon>delete</mat-icon>
@@ -64,7 +72,7 @@
         </tr>
       </tbody>
     </table>
-    
+
     <div class="form-row justify-content-center mt-5" *ngIf="elementosAgregados.length > 0">
       <button type="submit" class="btn btn-dark">Enviar Solicitud</button>
     </div>

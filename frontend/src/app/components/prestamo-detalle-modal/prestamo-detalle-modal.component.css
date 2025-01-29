@@ -68,3 +68,33 @@ mat-dialog-content {
   min-width: 150px; /* Ajustar según sea necesario */
   width: 150px; /* Fijar el tamaño de las cabeceras */
 }
+
+.estado-creado {
+  font-weight: bold;
+  color: #007bff; /* Color azul para el estado "Creado" */
+}
+
+.estado-en-proceso {
+  font-weight: bold;
+  color: #ffc107; /* Color amarillo para el estado "En proceso" */
+}
+
+.estado-en-prestamo {
+  font-weight: bold;
+  color: #17a2b8; /* Color turquesa para el estado "En préstamo" */
+}
+
+.estado-entregado {
+  font-weight: bold;
+  color: #28a745; /* Color verde para el estado "Entregado" */
+}
+
+.estado-cancelado {
+  font-weight: bold;
+  color: #dc3545; /* Color rojo para el estado "Cancelado" */
+}
+
+.estado-desconocido {
+  font-weight: bold;
+  color: #6c757d; /* Color gris para estados desconocidos */
+}

@@ -1,4 +1,3 @@
-// Para la autenticación y verificación de permisos.
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
@@ -15,18 +14,24 @@ const auth = (requiredRoles) => {
     }
 
     try {
-      const decoded = jwt.verify(token, 'tu_clave_secreta'); // Reemplaza 'tu_clave_secreta' con tu clave secreta
+      // Verificar y decodificar el token
+      const decoded = jwt.verify(token, 'tu_clave_secreta'); // Asegúrate de que esta clave coincida con la del frontend
       req.user = decoded;
 
       // Verificar el rol del usuario
       const query = `SELECT tip_usr_nombre FROM TipoUsuarios WHERE tip_usr_id = ?`;
       db.query(query, [req.user.tip_usr_id], (err, results) => {
-        if (err || results.length === 0) {
+        if (err) {
+          console.error('Error en la consulta SQL:', err);
+          return res.status(500).json({ respuesta: false, mensaje: 'Error interno del servidor.' });
+        }
+
+        if (results.length === 0) {
           return res.status(403).json({ respuesta: false, mensaje: 'Acceso denegado. Usuario no válido.' });
         }
 
         const userType = results[0].tip_usr_nombre;
-        console.log(`Tipo de usuario: ${userType}`); // Verificar que esto imprima 'Instructor' para tip_usr_id 2
+        console.log(`Tipo de usuario: ${userType}`); // Verificar que esto imprima el rol correcto
 
         // Verificar si el rol de usuario está en la lista de roles requeridos
         if (requiredRoles && !requiredRoles.includes(userType)) {
@@ -36,6 +41,7 @@ const auth = (requiredRoles) => {
         next();
       });
     } catch (ex) {
+      console.error('Error al verificar el token:', ex);
       res.status(400).json({ respuesta: false, mensaje: 'Token no válido.' });
     }
   };

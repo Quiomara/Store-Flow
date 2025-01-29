@@ -16,15 +16,19 @@ const crearPrestamo = async (req, res) => {
     console.log("Datos recibidos en crearPrestamo:", req.body);
 
     const data = {
-      pre_inicio: new Date(),
-      pre_fin: req.body.pre_fin,
-      usr_cedula: req.body.usr_cedula,
+      pre_inicio: new Date(), // Fecha de inicio (se genera en el backend)
+      pre_fin: req.body.pre_fin, // Fecha de fin (recibida del frontend)
+      usr_cedula: req.body.usr_cedula, // Cédula del solicitante (recibida del frontend)
       est_id: 1, // Estado predeterminado "Creado"
-      elementos: req.body.elementos
+      elementos: req.body.elementos // Elementos del préstamo (recibidos del frontend)
     };
 
+    // Validar campos obligatorios
     if (!data.usr_cedula) {
       throw new Error("La cédula del solicitante es nula o no se proporcionó.");
+    }
+    if (!data.elementos || data.elementos.length === 0) {
+      throw new Error("No se proporcionaron elementos para el préstamo.");
     }
 
     // Crear el préstamo
@@ -43,6 +47,10 @@ const crearPrestamo = async (req, res) => {
 
     // Crear elementos del préstamo y actualizar cantidad del inventario
     for (const elemento of data.elementos) {
+      if (!elemento.ele_id || !elemento.ele_cantidad) {
+        throw new Error("Uno o más elementos no tienen ID o cantidad válida.");
+      }
+
       const prestamoElementoData = {
         pre_id: prestamoId,
         ele_id: elemento.ele_id,
@@ -77,8 +85,7 @@ const crearPrestamo = async (req, res) => {
   }
 };
 
-//Actualizar Prestamo
-
+// Actualizar Préstamo
 const actualizarPrestamo = (req, res) => {
   const data = req.body;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
@@ -202,25 +209,31 @@ const eliminarPrestamo = (req, res) => {
 
 // Obtener Todos los Préstamos
 const obtenerTodosPrestamos = (req, res) => {
-  const { tip_usr_id: userRole } = req.user;
+  const { tip_usr_id: userRole } = req.user; // Obtener el rol del usuario
   console.log(`Obteniendo préstamos para el rol: ${userRole}`);
 
-  if (userRole === 3 || userRole === 1) { // Rol Almacén o Administrador
+  // Validar que el usuario tenga permisos (Rol Almacén o Administrador)
+  if (userRole === 3 || userRole === 1) {
     Prestamo.obtenerTodos((err, results) => {
-      if (err) return manejarError(res, "Error al obtener los préstamos.", err);
+      if (err) {
+        return manejarError(res, "Error al obtener los préstamos.", err);
+      }
 
-      console.log('Préstamos obtenidos:', results);
+      // Ordenar los préstamos por fecha de inicio (más reciente primero)
+      const prestamosOrdenados = results.sort((a, b) => new Date(b.pre_inicio) - new Date(a.pre_inicio));
+
+      console.log('Préstamos obtenidos y ordenados:', prestamosOrdenados);
       res.json({
         respuesta: true,
         mensaje: "¡Préstamos obtenidos con éxito!",
-        data: results,
+        data: prestamosOrdenados,
       });
     });
   } else {
+    // Si el usuario no tiene permisos, devolver un error 403 (Prohibido)
     res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
   }
 };
-
 
 // Obtener Préstamo por ID
 const obtenerPrestamoPorId = (req, res) => {
@@ -267,24 +280,33 @@ const obtenerPrestamoPorId = (req, res) => {
   });
 };
 
-
-
-
-
 // Obtener préstamos por cédula
-const obtenerPrestamosPorCedula = (req, res) => {
+const obtenerPrestamosPorCedula = async (req, res) => {
   const { usr_cedula } = req.params;
+
+  // Validar que la cédula no esté vacía
+  if (!usr_cedula) {
+    console.error('Error: La cédula no fue proporcionada.');
+    return res.status(400).json({ respuesta: false, mensaje: 'La cédula no fue proporcionada.' });
+  }
+
   console.log(`Obteniendo préstamos para la cédula: ${usr_cedula}`); // Log de depuración
 
-  Prestamo.obtenerPorCedula(usr_cedula, (err, results) => {
-    if (err) {
-      console.error('Error al obtener los préstamos:', err);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los préstamos.', err });
-    }
+  try {
+    // Obtener los préstamos usando una promesa
+    const results = await new Promise((resolve, reject) => {
+      Prestamo.obtenerPorCedula(usr_cedula, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    });
 
     if (results.length === 0) {
       console.log("No se encontraron préstamos para la cédula proporcionada.");
-      return res.status(404).json({ respuesta: false, mensaje: 'No se encontraron préstamos.' });
+      return res.status(404).json({ respuesta: false, mensaje: 'No se encontraron préstamos para la cédula proporcionada.' });
     }
 
     console.log("Préstamos obtenidos:", results);
@@ -293,23 +315,68 @@ const obtenerPrestamosPorCedula = (req, res) => {
       mensaje: "¡Préstamos obtenidos con éxito!",
       data: results
     });
+  } catch (err) {
+    console.error('Error al obtener los préstamos:', err);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los préstamos.', error: err.message });
+  }
+};
+
+// Obtener elementos del préstamo
+const obtenerElementoPrestamos = (req, res) => {
+  const pre_id = req.params.pre_id;
+
+  Prestamo.obtenerElementosPrestamo(pre_id, (err, results) => {
+    if (err) {
+      console.error('Error al obtener los elementos del préstamo:', err);
+      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos del préstamo' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado' });
+    }
+
+    // Extrae el estado del préstamo del primer resultado
+    const estadoPrestamo = results[0].estado;
+
+    // Formatea la respuesta para incluir el estado y los elementos
+    const respuesta = {
+      respuesta: true,
+      mensaje: '¡Elementos del préstamo obtenidos con éxito!',
+      estadoPrestamo: estadoPrestamo, // Incluye el estado del préstamo
+      data: results.map(item => ({
+        pre_id: item.pre_id,
+        ele_id: item.ele_id,
+        pre_ele_cantidad_prestado: item.pre_ele_cantidad_prestado,
+        nombre: item.nombre
+      }))
+    };
+
+    res.json(respuesta);
   });
 };
 
-// Método faltante: obtenerElementoPrestamos
-const obtenerElementoPrestamos = (req, res) => {
-  const { pre_id } = req.params;
-  PrestamoElemento.obtenerPorPrestamoId(pre_id)
-    .then((elementos) => {
-      res.json({
-        respuesta: true,
-        mensaje: "¡Elementos del préstamo obtenidos con éxito!",
-        data: elementos,
-      });
-    })
-    .catch((err) => {
-      manejarError(res, "Error al obtener los elementos del préstamo.", err);
-    });
+// Actualizar cantidad de un elemento en un préstamo
+const actualizarCantidadElemento = async (req, res) => {
+  const { pre_id, ele_id, pre_ele_cantidad_prestado } = req.body;
+
+  // Verificar que los campos necesarios estén presentes
+  if (!pre_id || !ele_id || pre_ele_cantidad_prestado === undefined) {
+    return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios: pre_id, ele_id o pre_ele_cantidad_prestado.' });
+  }
+
+  try {
+    // Actualizar la cantidad en PrestamosElementos
+    await Prestamo.actualizarCantidadElemento(pre_id, ele_id, pre_ele_cantidad_prestado);
+
+    // Actualizar el stock en Elementos
+    await Elemento.actualizarStock(ele_id, -pre_ele_cantidad_prestado);
+
+    // Si todo sale bien, enviar una respuesta exitosa
+    res.json({ respuesta: true, mensaje: 'Cantidad y stock actualizados con éxito' });
+  } catch (err) {
+    console.error('Error en actualizarCantidadElemento:', err);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad o el stock', error: err.message });
+  }
 };
 
 
@@ -320,5 +387,6 @@ module.exports = {
   obtenerTodosPrestamos,
   obtenerPrestamoPorId,
   obtenerPrestamosPorCedula,
-  obtenerElementoPrestamos, // Asegurarse de que esta función esté exportada
+  obtenerElementoPrestamos,
+  actualizarCantidadElemento,
 };

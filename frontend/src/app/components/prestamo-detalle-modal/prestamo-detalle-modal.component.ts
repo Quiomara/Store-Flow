@@ -6,13 +6,10 @@ import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { PrestamoService } from '../../services/prestamo.service';
-import { Prestamo, Elemento } from '../../models/prestamo.model';
-import { PrestamoUpdate } from '../../models/prestamo-update.model';
+import { Prestamo } from '../../models/prestamo.model';
+import { Elemento } from '../../models/elemento.model';
 import { ElementoService } from '../../services/elemento.service';
-
-interface EditableElemento extends Elemento {
-  editing?: boolean;
-}
+import { EditableElemento } from '../../models/editable-elemento.model'; // ✅ Importa EditableElemento
 
 @Component({
   selector: 'app-prestamo-detalle-modal',
@@ -61,20 +58,24 @@ export class PrestamoDetalleModalComponent implements OnInit {
       console.error('ID del préstamo no definido.');
       return;
     }
-
+  
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe(
       (response: any) => {
-        console.log('Datos recibidos en obtenerPrestamoDetalles:', response);
-
+        console.log('Respuesta completa del servicio:', response);
+  
         if (response && response.data) {
-          this.prestamo.elementos = response.data.map((item: any): Elemento => ({
+          this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
             ele_nombre: item.nombre || '',
-            ele_cantidad: Number(item.pre_ele_cantidad_prestado)
+            ele_cantidad_total: Number(item.ele_cantidad_total),
+            ele_cantidad_actual: Number(item.ele_cantidad_actual),
+            pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado), // Cantidad prestada
+            editing: false // Inicialmente, la edición está deshabilitada
           }));
-
+  
           this.originalItems = this.prestamo.elementos.map(item => ({ ...item }));
-          this.prestamo.estado = response.data.estadoPrestamo || '';
+          this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
+          console.log('Estado del préstamo asignado:', this.prestamo.estado);
         } else {
           console.error('Datos de respuesta no válidos:', response);
         }
@@ -86,7 +87,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
   }
 
   enableEditing(item: EditableElemento): void {
-    item.editing = true;
+    item.editing = true; // Habilitar la edición
   }
 
   cancelEditing(item: EditableElemento): void {
@@ -97,49 +98,100 @@ export class PrestamoDetalleModalComponent implements OnInit {
       } else {
         console.error('Elemento no encontrado en originalItems para cancelar edición.');
       }
-      item.editing = false;
+      item.editing = false; // Deshabilitar la edición
     }
   }
 
   saveChanges(item: EditableElemento): void {
     if (item.editing) {
       item.editing = false;
-
-      if (this.prestamo.idPrestamo === undefined) {
+  
+      // Verificar que el ID del préstamo esté definido
+      const pre_id = this.prestamo.idPrestamo;
+      if (pre_id === undefined) {
         console.error('ID del préstamo no definido.');
         return;
       }
-
+  
+      // Buscar el elemento original para comparar cantidades
       const originalItem = this.originalItems.find(
         (originalItem) => originalItem.ele_id === item.ele_id
       );
-      const cantidadOriginal = originalItem ? Number(originalItem.ele_cantidad) : 0;
-      const cantidadActual = Number(item.ele_cantidad);
-      const cantidadActualizada = cantidadActual - cantidadOriginal;
-
+  
+      if (!originalItem) {
+        console.error('Elemento original no encontrado.');
+        return;
+      }
+  
+      const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado); // Cantidad original prestada
+      const cantidadActual = Number(item.pre_ele_cantidad_prestado); // Nueva cantidad prestada
+      const diferencia = cantidadActual - cantidadOriginal; // Diferencia entre la nueva cantidad y la original
+  
       // Actualizar cantidad en PrestamosElementos
       const updatePrestamoElemento = {
-        pre_id: this.prestamo.idPrestamo,
+        pre_id: pre_id, // Usar la variable temporal pre_id
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
-
+  
       // Actualizar stock
       const updateStock = {
         ele_id: item.ele_id,
-        ele_cantidad: -cantidadActualizada // Negativo para reducir stock
+        ele_cantidad_actual: -diferencia, // Ajustar el stock según la diferencia
+        ele_cantidad_total: 0 // No cambia el total
       };
-
+  
       // Llamadas a servicios para actualizar
       this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
-        () => console.log('Cantidad en PrestamosElementos actualizada'),
+        () => {
+          console.log('Cantidad en PrestamosElementos actualizada');
+  
+          // Si la actualización en PrestamosElementos fue exitosa, actualizar el stock
+          this.elementoService.actualizarStock(updateStock).subscribe(
+            () => {
+              console.log('Stock actualizado');
+              // Aquí podrías agregar lógica adicional, como actualizar la vista o mostrar un mensaje de éxito
+            },
+            (error) => {
+              console.error('Error actualizando stock', error);
+  
+              // Revertir la actualización en PrestamosElementos si falla la actualización del stock
+              const revertUpdatePrestamoElemento = {
+                pre_id: pre_id, // Usar la variable temporal pre_id
+                ele_id: item.ele_id,
+                pre_ele_cantidad_prestado: cantidadOriginal
+              };
+  
+              this.prestamoService.updatePrestamoElemento(revertUpdatePrestamoElemento).subscribe(
+                () => console.log('Revertida la actualización en PrestamosElementos'),
+                (revertError) => console.error('Error al revertir la actualización en PrestamosElementos', revertError)
+              );
+            }
+          );
+        },
         (error) => console.error('Error actualizando PrestamosElementos', error)
       );
+    }
+  }
 
-      this.elementoService.actualizarStock(updateStock).subscribe(
-        () => console.log('Stock actualizado'),
-        (error) => console.error('Error actualizando stock', error)
-      );
+  getEstadoClass(estado: string | undefined): string {
+    if (!estado) {
+      return 'estado-desconocido'; // Clase por defecto si el estado es undefined
+    }
+
+    switch (estado) {
+      case 'Creado':
+        return 'estado-creado';
+      case 'En proceso':
+        return 'estado-en-proceso';
+      case 'En préstamo':
+        return 'estado-en-prestamo';
+      case 'Entregado':
+        return 'estado-entregado';
+      case 'Cancelado':
+        return 'estado-cancelado';
+      default:
+        return 'estado-desconocido'; // Clase por defecto para estados desconocidos
     }
   }
 
@@ -147,22 +199,3 @@ export class PrestamoDetalleModalComponent implements OnInit {
     this.dialogRef.close();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

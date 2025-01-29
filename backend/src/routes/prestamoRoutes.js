@@ -9,7 +9,10 @@ router.put('/actualizar', auth(['Administrador', 'Instructor']), prestamoControl
 router.delete('/:pre_id', auth(['Administrador', 'Almacen']), prestamoController.eliminarPrestamo);
 router.get('/', auth(['Administrador', 'Almacen']), prestamoController.obtenerTodosPrestamos);
 router.get('/:pre_id', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerPrestamoPorId);
-router.get('/usuario/:usr_cedula', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerPrestamosPorCedula); // Añadir auth con roles
+router.get('/usuario/:usr_cedula', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerPrestamosPorCedula);
 router.get('/:pre_id/detalles', auth(['Administrador', 'Instructor', 'Almacen']), prestamoController.obtenerElementoPrestamos);
+
+// Nueva ruta para actualizar la cantidad de elementos en un préstamo
+router.put('/actualizar-cantidad', auth(['Administrador', 'Instructor']), prestamoController.actualizarCantidadElemento);
 
 module.exports = router;

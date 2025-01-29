@@ -7,6 +7,7 @@ import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { PrestamoUpdate } from '../../../models/prestamo-update.model'; // Importar desde el archivo correcto
 import { UserService } from '../../../services/user.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-warehouse-requests',
@@ -62,13 +63,24 @@ export class WarehouseRequestsComponent implements OnInit {
   actualizarEstadoSolicitud(solicitud: Prestamo, nuevoEstado: string): void {
     const updateData: PrestamoUpdate = {
       pre_id: solicitud.idPrestamo!,
-      pre_fin: solicitud.fechaEntrega ? solicitud.fechaEntrega.toString() : undefined, // Usar toString
+      pre_fin: solicitud.fechaEntrega ? solicitud.fechaEntrega.toString() : undefined,
       usr_cedula: solicitud.cedulaSolicitante!,
       est_id: this.getEstadoId(nuevoEstado),
-      ele_id: solicitud.elementos[0].ele_id,  // Asegúrate de ajustar esto según tu lógica
-      ele_cantidad: solicitud.elementos[0].ele_cantidad  // Asegúrate de ajustar esto según tu lógica
+      ele_id: solicitud.elementos[0].ele_id,
+      ele_cantidad: solicitud.elementos[0].ele_cantidad_actual,
+      pre_ele_cantidad_prestado: (solicitud.elementos[0] as any).pre_ele_cantidad_prestado // Casting temporal
     };
-
+  
+    // Llamar al servicio para actualizar el estado del préstamo
+    this.prestamoService.updatePrestamo(updateData).subscribe(
+      () => {
+        console.log('Estado del préstamo actualizado');
+        this.obtenerSolicitudes(); // Refrescar la lista de solicitudes
+      },
+      (error: HttpErrorResponse) => {
+        console.error('Error al actualizar el estado del préstamo', error.message);
+      }
+    );
   }
 
   aprobarSolicitud(solicitud: Prestamo): void {
