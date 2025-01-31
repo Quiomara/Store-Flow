@@ -201,11 +201,11 @@ const eliminarPrestamo = (req, res) => {
 
 // Obtener Todos los Préstamos
 const obtenerTodosPrestamos = (req, res) => {
-  const { tip_usr_id: userRole } = req.user; // Obtener el rol del usuario
-  console.log(`Obteniendo préstamos para el rol: ${userRole}`);
+  const { tip_usr_id, usr_cedula } = req.user; // Obtener el rol del usuario y la cédula
+  console.log(`Obteniendo préstamos para el rol: ${tip_usr_id} del usuario con cédula: ${usr_cedula}`);
 
   // Validar que el usuario tenga permisos (Rol Almacén o Administrador)
-  if (userRole === 3 || userRole === 1) {
+  if (['Almacén', 'Administrador'].includes(tip_usr_id)) {
     Prestamo.obtenerTodos((err, results) => {
       if (err) {
         return manejarError(res, "Error al obtener los préstamos.", err);
@@ -213,7 +213,6 @@ const obtenerTodosPrestamos = (req, res) => {
 
       // Ordenar los préstamos por fecha de inicio (más reciente primero)
       const prestamosOrdenados = results.sort((a, b) => new Date(b.pre_inicio) - new Date(a.pre_inicio));
-
       console.log('Préstamos obtenidos y ordenados:', prestamosOrdenados);
       res.json({
         respuesta: true,
@@ -222,10 +221,12 @@ const obtenerTodosPrestamos = (req, res) => {
       });
     });
   } else {
-    // Si el usuario no tiene permisos, devolver un error 403 (Prohibido)
+    console.error(`No tiene permiso para ver los préstamos con el rol ${tip_usr_id}`); // Depuración de error
     res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
   }
 };
+
+
 
 // Obtener Préstamo por ID
 const obtenerPrestamoPorId = (req, res) => {

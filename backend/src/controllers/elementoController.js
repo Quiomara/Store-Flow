@@ -36,7 +36,7 @@ const actualizarCantidadPrestado = async (req, res) => {
   try {
     // Verificar si hay suficiente stock antes de actualizar
     const elemento = await Elemento.obtenerPorId(ele_id);
-    if (elemento.ele_cantidad_actual < cantidad) {
+    if (!elemento || elemento.ele_cantidad_actual < cantidad) {
       return res.status(400).json({ respuesta: false, mensaje: 'No hay suficiente stock.' });
     }
 
@@ -120,5 +120,5 @@ module.exports = {
   eliminarElemento,
   obtenerTodosElementos,
   obtenerElementoPorId,
-  actualizarStock, // Exporta la nueva función
+  actualizarStock,
 };

@@ -5,9 +5,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { PrestamoDetallesModalComponent } from '../prestamo-detalles-modal/prestamo-detalles-modal.component';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { Prestamo } from '../../../models/prestamo.model';
-import { PrestamoUpdate } from '../../../models/prestamo-update.model'; // Importar desde el archivo correcto
+import { PrestamoUpdate } from '../../../models/prestamo-update.model';
 import { UserService } from '../../../services/user.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar'; // Para mostrar mensajes de confirmación
 
 @Component({
   selector: 'app-warehouse-requests',
@@ -20,7 +21,12 @@ export class WarehouseRequestsComponent implements OnInit {
   solicitudes: Prestamo[] = [];
   solicitudesVisibles: Prestamo[] = [];
 
-  constructor(private prestamoService: PrestamoService, private userService: UserService, public dialog: MatDialog) {}
+  constructor(
+    private prestamoService: PrestamoService,
+    private userService: UserService,
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar // Para mostrar mensajes
+  ) {}
 
   ngOnInit(): void {
     this.obtenerSolicitudes();
@@ -68,42 +74,51 @@ export class WarehouseRequestsComponent implements OnInit {
       est_id: this.getEstadoId(nuevoEstado),
       ele_id: solicitud.elementos[0].ele_id,
       ele_cantidad: solicitud.elementos[0].ele_cantidad_actual,
-      pre_ele_cantidad_prestado: (solicitud.elementos[0] as any).pre_ele_cantidad_prestado // Casting temporal
+      pre_ele_cantidad_prestado: (solicitud.elementos[0] as any).pre_ele_cantidad_prestado
     };
-  
-    // Llamar al servicio para actualizar el estado del préstamo
+
     this.prestamoService.updatePrestamo(updateData).subscribe(
       () => {
-        console.log('Estado del préstamo actualizado');
-        this.obtenerSolicitudes(); // Refrescar la lista de solicitudes
+        this.snackBar.open(`Solicitud ${nuevoEstado.toLowerCase()} con éxito`, 'Cerrar', {
+          duration: 3000,
+        });
+        this.obtenerSolicitudes(); // Refrescar la lista
       },
       (error: HttpErrorResponse) => {
-        console.error('Error al actualizar el estado del préstamo', error.message);
+        this.snackBar.open(`Error al actualizar el estado: ${error.message}`, 'Cerrar', {
+          duration: 3000,
+        });
       }
     );
   }
 
   aprobarSolicitud(solicitud: Prestamo): void {
-    this.actualizarEstadoSolicitud(solicitud, 'En proceso');
+    if (confirm('¿Estás seguro de aprobar esta solicitud?')) {
+      this.actualizarEstadoSolicitud(solicitud, 'En proceso');
+    }
   }
 
   rechazarSolicitud(solicitud: Prestamo): void {
-    this.actualizarEstadoSolicitud(solicitud, 'Cancelado');
+    if (confirm('¿Estás seguro de rechazar esta solicitud?')) {
+      this.actualizarEstadoSolicitud(solicitud, 'Cancelado');
+    }
   }
 
   marcarComoEnPrestamo(solicitud: Prestamo): void {
-    this.actualizarEstadoSolicitud(solicitud, 'En préstamo');
+    if (confirm('¿Estás seguro de marcar esta solicitud como "En préstamo"?')) {
+      this.actualizarEstadoSolicitud(solicitud, 'En préstamo');
+    }
   }
 
   marcarComoEntregado(solicitud: Prestamo): void {
-    solicitud.estado = 'Entregado';
-    solicitud.fechaEntrega = new Date().toLocaleString();
-    this.actualizarEstadoSolicitud(solicitud, 'Entregado');
+    if (confirm('¿Estás seguro de marcar esta solicitud como "Entregado"?')) {
+      this.actualizarEstadoSolicitud(solicitud, 'Entregado');
+    }
   }
 
   verDetalles(solicitud: Prestamo): void {
     this.dialog.open(PrestamoDetallesModalComponent, {
-      width: '80%',  // Establece el tamaño del modal aquí
+      width: '80%',
       data: {
         solicitud,
         actualizarEstado: this.actualizarEstadoSolicitud.bind(this)
@@ -112,29 +127,17 @@ export class WarehouseRequestsComponent implements OnInit {
   }
 
   private getEstadoId(estado: string): number {
-    // Implementa tu lógica para convertir el estado en un ID numérico
     switch (estado) {
       case 'En proceso':
-        return 1; // Ejemplo, ajusta según tu lógica
+        return 1;
       case 'Cancelado':
-        return 2; // Ejemplo, ajusta según tu lógica
+        return 2;
       case 'En préstamo':
-        return 3; // Ejemplo, ajusta según tu lógica
+        return 3;
       case 'Entregado':
-        return 4; // Ejemplo, ajusta según tu lógica
+        return 4;
       default:
-        return 0; // Estado desconocido
+        return 0;
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-

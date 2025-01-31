@@ -10,20 +10,17 @@ require('dotenv').config(); // Asegúrate de cargar las variables de entorno
  * @param {Object} req - Objeto de solicitud.
  * @param {Object} res - Objeto de respuesta.
  */
-const login = (req, res) => {
+const login = async (req, res) => {
   const { correo, contrasena } = req.body;
 
-  // Verificar que el correo y la contraseña se proporcionaron
-  if (!correo || !contrasena) {
-    return res.status(400).send({ error: 'Correo y contraseña son necesarios.' });
-  }
-
-  // Consultar la base de datos para verificar si el usuario existe
-  const query = `SELECT * FROM Usuarios WHERE usr_correo = ?`;
-  db.query(query, [correo], (err, results) => {
-    if (err) {
-      return res.status(500).send({ error: 'Error en el servidor.' });
+  try {
+    // Verificar que el correo y la contraseña se proporcionaron
+    if (!correo || !contrasena) {
+      return res.status(400).send({ error: 'Correo y contraseña son necesarios.' });
     }
+
+    // Consultar la base de datos para verificar si el usuario existe
+    const [results] = await db.query('SELECT * FROM Usuarios WHERE usr_correo = ?', [correo]);
 
     // Verificar si el usuario no está registrado
     if (results.length === 0) {
@@ -43,20 +40,18 @@ const login = (req, res) => {
     const token = jwt.sign({ usr_cedula: user.usr_cedula, tip_usr_id: user.tip_usr_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Obtener el tipo de usuario
-    const userTypeQuery = `SELECT tip_usr_nombre FROM TipoUsuarios WHERE tip_usr_id = ?`;
-    db.query(userTypeQuery, [user.tip_usr_id], (err, typeResults) => {
-      if (err) {
-        return res.status(500).send({ error: 'Error en el servidor.' });
-      }
+    const [typeResults] = await db.query('SELECT tip_usr_nombre FROM TipoUsuarios WHERE tip_usr_id = ?', [user.tip_usr_id]);
 
-      if (typeResults.length === 0) {
-        return res.status(400).send({ error: 'Tipo de usuario no encontrado.' });
-      }
+    if (typeResults.length === 0) {
+      return res.status(400).send({ error: 'Tipo de usuario no encontrado.' });
+    }
 
-      const userType = typeResults[0].tip_usr_nombre;
-      res.send({ token, userType, cedula: user.usr_cedula }); // Incluir la cédula en la respuesta
-    });
-  });
+    const userType = typeResults[0].tip_usr_nombre;
+    res.send({ token, userType, cedula: user.usr_cedula }); // Incluir la cédula en la respuesta
+  } catch (error) {
+    console.error('Error en el servidor:', error);
+    res.status(500).send({ error: 'Error en el servidor.' });
+  }
 };
 
 /**
@@ -64,33 +59,31 @@ const login = (req, res) => {
  * @param {Object} req - Objeto de solicitud.
  * @param {Object} res - Objeto de respuesta.
  */
-const forgotPassword = (req, res) => {
+const forgotPassword = async (req, res) => {
   const { correo } = req.body;
 
-  const query = `SELECT * FROM Usuarios WHERE usr_correo = ?`;
-  db.query(query, [correo], (err, results) => {
-    if (err) {
-      return res.status(500).send({ error: 'Error en el servidor.' });
-    }
+  try {
+    // Verificar si el usuario existe
+    const [results] = await db.query('SELECT * FROM Usuarios WHERE usr_correo = ?', [correo]);
 
     if (results.length === 0) {
       return res.status(404).send({ error: 'Usuario no registrado. Por favor contacta con un administrador.' });
     }
 
+    // Generar token de restablecimiento
     const resetToken = crypto.randomBytes(20).toString('hex');
     const resetTokenExpiry = Date.now() + 3600000; // 1 hora
 
-    const updateQuery = `UPDATE Usuarios SET reset_token = ?, reset_token_expiry = ? WHERE usr_correo = ?`;
-    db.query(updateQuery, [resetToken, resetTokenExpiry, correo], (err, results) => {
-      if (err) {
-        return res.status(500).send({ error: 'Error en el servidor.' });
-      }
+    // Actualizar el usuario con el token y su fecha de expiración
+    await db.query('UPDATE Usuarios SET reset_token = ?, reset_token_expiry = ? WHERE usr_correo = ?', [resetToken, resetTokenExpiry, correo]);
 
-      // Envía el correo con el token
-      sendResetEmail(correo, resetToken);
-      res.send({ message: `Ve a tu correo ${correo} y haz clic en el enlace de restablecimiento de contraseña que se te ha enviado.` });
-    });
-  });
+    // Enviar el correo con el token
+    await sendResetEmail(correo, resetToken);
+    res.send({ message: `Ve a tu correo ${correo} y haz clic en el enlace de restablecimiento de contraseña que se te ha enviado.` });
+  } catch (error) {
+    console.error('Error en el servidor:', error);
+    res.status(500).send({ error: 'Error en el servidor.' });
+  }
 };
 
 /**
@@ -98,20 +91,17 @@ const forgotPassword = (req, res) => {
  * @param {Object} req - Objeto de solicitud.
  * @param {Object} res - Objeto de respuesta.
  */
-const resetPassword = (req, res) => {
+const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
-  // Verificar que el token y la nueva contraseña se proporcionaron
-  if (!token || !newPassword) {
-    return res.status(400).send({ message: 'Token y nueva contraseña son necesarios.' });
-  }
-
-  // Consultar la base de datos para verificar si el token es válido y no ha expirado
-  const query = `SELECT * FROM Usuarios WHERE reset_token = ? AND reset_token_expiry > ?`;
-  db.query(query, [token, Date.now()], (err, results) => {
-    if (err) {
-      return res.status(500).send({ error: 'Error en el servidor.' });
+  try {
+    // Verificar que el token y la nueva contraseña se proporcionaron
+    if (!token || !newPassword) {
+      return res.status(400).send({ message: 'Token y nueva contraseña son necesarios.' });
     }
+
+    // Consultar la base de datos para verificar si el token es válido y no ha expirado
+    const [results] = await db.query('SELECT * FROM Usuarios WHERE reset_token = ? AND reset_token_expiry > ?', [token, Date.now()]);
 
     if (results.length === 0) {
       return res.status(400).send({ message: 'Token inválido o ha expirado.' });
@@ -121,21 +111,13 @@ const resetPassword = (req, res) => {
 
     // Actualizar la contraseña en la base de datos
     const hashedPassword = bcrypt.hashSync(newPassword, 10);
-    const updateQuery = `UPDATE Usuarios SET usr_contrasena = ?, reset_token = NULL, reset_token_expiry = NULL WHERE usr_cedula = ?`;
-    db.query(updateQuery, [hashedPassword, user.usr_cedula], (err, results) => {
-      if (err) {
-        return res.status(500).send({ error: 'Error en el servidor.' });
-      }
+    await db.query('UPDATE Usuarios SET usr_contrasena = ?, reset_token = NULL, reset_token_expiry = NULL WHERE usr_cedula = ?', [hashedPassword, user.usr_cedula]);
 
-      res.send({ message: 'Contraseña restablecida con éxito' });
-    });
-  });
+    res.send({ message: 'Contraseña restablecida con éxito' });
+  } catch (error) {
+    console.error('Error en el servidor:', error);
+    res.status(500).send({ error: 'Error en el servidor.' });
+  }
 };
 
 module.exports = { login, forgotPassword, resetPassword };
-
-
-
-
-
-

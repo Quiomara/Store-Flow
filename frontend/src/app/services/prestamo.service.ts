@@ -21,6 +21,7 @@ export class PrestamoService {
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     if (!token) {
+      console.error('Token de autenticación no disponible.');
       throw new Error('Token de autenticación no disponible.');
     }
     return new HttpHeaders({
@@ -31,10 +32,12 @@ export class PrestamoService {
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Ocurrió un error:', error);
+    if (error.status === 401 || error.status === 403) {
+      this.authService.clearToken();
+      window.location.href = '/login';
+    }
     let errorMessage = 'Ocurrió un error en la solicitud.';
-    if (error.status === 401) {
-      errorMessage = 'No autorizado. Verifica tu token de autenticación.';
-    } else if (error.error && error.error.message) {
+    if (error.error && error.error.message) {
       errorMessage = error.error.message;
     }
     return throwError(() => new Error(errorMessage));
@@ -42,7 +45,7 @@ export class PrestamoService {
 
   private request<T>(method: string, url: string, body?: any): Observable<T> {
     const headers = this.getHeaders();
-    console.log('Headers enviados:', headers); // Depuración
+    console.log('Headers enviados:', headers);
     return this.http.request<T>(method, url, { body, headers }).pipe(
       catchError(this.handleError)
     );
@@ -63,7 +66,7 @@ export class PrestamoService {
   }
 
   getHistory(): Observable<Prestamo[]> {
-    return this.getPrestamos(); // Reutiliza el método getPrestamos
+    return this.getPrestamos();
   }
 
   getEstados(): Observable<Estado[]> {
@@ -86,7 +89,7 @@ export class PrestamoService {
   getPrestamoDetalles(prestamoId: number): Observable<any> {
     return this.request('GET', `${this.prestamosUrl}/${prestamoId}/detalles`).pipe(
       map(response => {
-        console.log('Respuesta del servicio:', response); // Depuración
+        console.log('Respuesta del servicio:', response);
         return response;
       })
     );

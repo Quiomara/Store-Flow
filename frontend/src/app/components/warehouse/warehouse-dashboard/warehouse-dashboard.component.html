@@ -1,51 +1,52 @@
 <div class="warehouse-dashboard container-fluid d-flex flex-column justify-content-center align-items-center vh-100">
-    <header class="w-100 d-flex justify-content-end p-3">
-      <div class="dropdown">
-        <div class="warehouse-label d-flex align-items-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-user-cog"></i> <span class="ml-2">Almacén</span>
-        </div>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-          <a class="dropdown-item" href="#">Actualizar Datos</a>
-          <a class="dropdown-item" href="#">Cerrar Sesión</a>
-        </div>
+  <header class="w-100 d-flex justify-content-end p-3">
+    <div class="dropdown">
+      <div class="warehouse-label d-flex align-items-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-user-cog"></i> <span class="ml-2">Almacén</span>
       </div>
-    </header>
-    <div class="content-container bg-white p-4 rounded" style="width: 90%; max-width: 1200px;">
-      <div class="row no-gutters">
-        <aside class="sidebar col-12 col-md-3 p-3 rounded d-flex flex-column align-items-center">
-          <img src="/img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
-          <ul class="nav flex-column mt-auto mb-auto">
-            <li class="nav-item mb-2 text-center">
-              <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['loan-requests']">
-                <i class="fas fa-file-alt"></i>
-                <span>Solicitudes de Préstamos</span>
-              </a>
-            </li>
-            <li class="nav-item mb-2 text-center">
-              <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['register-item']">
-                <i class="fas fa-plus-square"></i>
-                <span>Registrar Elemento</span>
-              </a>
-            </li>
-            <li class="nav-item mb-2 text-center">
-              <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['inventory']">
-                <i class="fas fa-boxes"></i>
-                <span>Inventario</span>
-              </a>
-            </li>
-            <li class="nav-item mb-2 text-center">
-              <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['history']">
-                <i class="fas fa-history"></i>
-                <span>Historial</span>
-              </a>
-            </li>
-          </ul>
-        </aside>
-        <main class="content col-12 col-md-9">
-          <router-outlet></router-outlet>
-        </main>
+      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+        <a class="dropdown-item" href="#">Actualizar Datos</a>
+        <a class="dropdown-item" href="#">Cerrar Sesión</a>
       </div>
     </div>
+  </header>
+  <div class="content-container bg-white p-4 rounded" style="width: 90%; max-width: 1200px;">
+    <div class="row no-gutters">
+      <aside class="sidebar col-12 col-md-3 p-3 rounded d-flex flex-column align-items-center">
+        <img src="/img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
+        <ul class="nav flex-column mt-auto mb-auto">
+          <li class="nav-item mb-2 text-center">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['loan-requests']" aria-label="Solicitudes de Préstamos">
+              <i class="fas fa-file-alt"></i>
+              <span>Solicitudes de Préstamos</span>
+            </a>
+          </li>
+          <li class="nav-item mb-2 text-center">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['register-item']" aria-label="Registrar Elemento">
+              <i class="fas fa-plus-square"></i>
+              <span>Registrar Elemento</span>
+            </a>
+          </li>
+          <li class="nav-item mb-2 text-center">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['inventory']" aria-label="Inventario">
+              <i class="fas fa-boxes"></i>
+              <span>Inventario</span>
+            </a>
+          </li>
+          <li class="nav-item mb-2 text-center">
+            <a class="btn btn-secondary btn-block d-flex flex-column align-items-center" [routerLink]="['history']" aria-label="Historial">
+              <i class="fas fa-history"></i>
+              <span>Historial</span>
+            </a>
+          </li>
+        </ul>
+      </aside>
+      <main class="content col-12 col-md-9">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
   </div>
+</div>
+
   
   

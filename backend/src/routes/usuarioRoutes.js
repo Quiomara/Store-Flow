@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 
 // Rutas para usuarios
 router.post('/registrar', auth(['Administrador']), usuarioController.registrarUsuario);
-router.put('/actualizar', auth(['Administrador', 'Instructor', 'Almacen']), usuarioController.actualizarUsuario);
+router.put('/actualizar', auth(['Administrador', 'Instructor', 'Almacén']), usuarioController.actualizarUsuario);
 router.get('/:usr_cedula', auth(['Administrador']), usuarioController.obtenerUsuario);
 router.delete('/:usr_cedula', auth(['Administrador']), usuarioController.eliminarUsuario);
 router.get('/', auth(['Administrador']), usuarioController.obtenerTodosUsuarios);
