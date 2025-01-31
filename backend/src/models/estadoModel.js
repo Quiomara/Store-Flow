@@ -1,36 +1,41 @@
 const db = require('../config/db');
 
 const Estado = {
-  obtenerTodos: (callback) => {
+  // Obtener todos los estados
+  obtenerTodos: async () => {
     const query = 'SELECT * FROM Estados'; // Asegúrate de que el nombre de la tabla es correcto
-    db.query(query, (error, results) => {
-      if (error) {
-        console.error('Error al obtener los estados:', error);
-        return callback(error, null);
-      }
-      callback(null, results);
-    });
-  },
-  obtenerPorId: (est_id, callback) => {
-    const query = 'SELECT * FROM Estados WHERE est_id = ?';
-    db.query(query, [est_id], callback);
+    const [results] = await db.query(query);
+    return results;
   },
 
-  crear: (data, callback) => {
+  // Obtener estado por ID
+  obtenerPorId: async (est_id) => {
+    const query = 'SELECT * FROM Estados WHERE est_id = ?';
+    const [results] = await db.query(query, [est_id]);
+    return results;
+  },
+
+  // Crear estado
+  crear: async (data) => {
     const query = 'INSERT INTO Estados (est_nombre) VALUES (?)';
     const values = [data.est_nombre];
-    db.query(query, values, callback);
+    const [result] = await db.query(query, values);
+    return result;
   },
 
-  actualizar: (data, callback) => {
+  // Actualizar estado
+  actualizar: async (data) => {
     const query = 'UPDATE Estados SET est_nombre = ? WHERE est_id = ?';
     const values = [data.est_nombre, data.est_id];
-    db.query(query, values, callback);
+    const [result] = await db.query(query, values);
+    return result;
   },
 
-  eliminar: (est_id, callback) => {
+  // Eliminar estado
+  eliminar: async (est_id) => {
     const query = 'DELETE FROM Estados WHERE est_id = ?';
-    db.query(query, [est_id], callback);
+    const [result] = await db.query(query, [est_id]);
+    return result;
   }
 };
 

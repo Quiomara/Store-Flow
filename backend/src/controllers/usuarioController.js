@@ -1,8 +1,7 @@
-// Para manejar las operaciones CRUD de usuarios.
 const bcrypt = require('bcryptjs');
 const Usuario = require('../models/usuarioModel');
 
-const registrarUsuario = (req, res) => {
+const registrarUsuario = async (req, res) => {
   const data = req.body;
 
   console.log('Datos recibidos para el registro:', data);
@@ -21,56 +20,38 @@ const registrarUsuario = (req, res) => {
     return res.status(400).json({ respuesta: false, mensaje: 'Faltan datos requeridos.' });
   }
 
-  // Verificar si el usuario ya existe por cédula
-  Usuario.buscarPorId(data.usr_cedula, (err, results) => {
-    if (err) {
-      console.error('Error al verificar la cédula del usuario:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
-    }
-
-    if (results.length > 0) {
+  try {
+    // Verificar si el usuario ya existe por cédula
+    const usuarioPorCedula = await Usuario.buscarPorId(data.usr_cedula);
+    if (usuarioPorCedula.length > 0) {
       return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con la cédula proporcionada.' });
     }
 
     // Verificar si el usuario ya existe por correo electrónico
-    Usuario.buscarPorCorreo(data.usr_correo, (err, results) => {
-      if (err) {
-        console.error('Error al verificar el correo del usuario:', err.stack);
-        return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
-      }
+    const usuarioPorCorreo = await Usuario.buscarPorCorreo(data.usr_correo);
+    if (usuarioPorCorreo.length > 0) {
+      return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el correo proporcionado.' });
+    }
 
-      if (results.length > 0) {
-        return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el correo proporcionado.' });
-      }
+    // Verificar si el usuario ya existe por teléfono
+    const usuarioPorTelefono = await Usuario.buscarPorTelefono(data.usr_telefono);
+    if (usuarioPorTelefono.length > 0) {
+      return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el teléfono proporcionado.' });
+    }
 
-      // Verificar si el usuario ya existe por teléfono
-      Usuario.buscarPorTelefono(data.usr_telefono, (err, results) => {
-        if (err) {
-          console.error('Error al verificar el teléfono del usuario:', err.stack);
-          return res.status(500).json({ respuesta: false, mensaje: 'Error en el servidor.' });
-        }
+    // Encriptar la contraseña
+    data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
 
-        if (results.length > 0) {
-          return res.status(400).json({ respuesta: false, mensaje: 'El usuario ya existe con el teléfono proporcionado.' });
-        }
-
-        // Encriptar la contraseña
-        data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
-
-        // Crear usuario
-        Usuario.crear(data, (err, results) => {
-          if (err) {
-            console.error('Error al registrar el usuario:', err.stack);
-            return res.status(500).json({ respuesta: false, mensaje: `Error al registrar el usuario: ${err.message}` });
-          }
-          res.json({ respuesta: true, mensaje: '¡Usuario registrado con éxito!' });
-        });
-      });
-    });
-  });
+    // Crear usuario
+    await Usuario.crear(data);
+    res.json({ respuesta: true, mensaje: '¡Usuario registrado con éxito!' });
+  } catch (err) {
+    console.error('Error al registrar el usuario:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: `Error al registrar el usuario: ${err.message}` });
+  }
 };
 
-const actualizarUsuario = (req, res) => {
+const actualizarUsuario = async (req, res) => {
   const data = req.body;
   const userId = req.user.usr_cedula;
   const userRole = req.user.tip_usr_id;
@@ -79,73 +60,69 @@ const actualizarUsuario = (req, res) => {
     return res.status(403).json({ respuesta: false, mensaje: 'Acceso denegado. No puede actualizar la información de otro usuario.' });
   }
 
-  if (data.usr_contrasena) {
-    data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
-  }
-
-  Usuario.actualizar(data, (err, results) => {
-    if (err) {
-      console.error('Error al actualizar el usuario:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el usuario.' });
+  try {
+    if (data.usr_contrasena) {
+      data.usr_contrasena = bcrypt.hashSync(data.usr_contrasena, 10);
     }
+
+    await Usuario.actualizar(data);
     res.json({ respuesta: true, mensaje: '¡Usuario actualizado con éxito!' });
-  });
+  } catch (err) {
+    console.error('Error al actualizar el usuario:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el usuario.' });
+  }
 };
 
-const eliminarUsuario = (req, res) => {
+const eliminarUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
 
-  Usuario.eliminar(usr_cedula, (err, results) => {
-    if (err) {
-      console.error('Error al eliminar el usuario:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el usuario.' });
-    }
-
-    if (results.affectedRows === 0) {
+  try {
+    const result = await Usuario.eliminar(usr_cedula);
+    if (result.affectedRows === 0) {
       return res.status(404).json({ respuesta: false, mensaje: 'Usuario no encontrado.' });
     }
-
     res.json({ respuesta: true, mensaje: '¡Usuario eliminado con éxito!' });
-  });
+  } catch (err) {
+    console.error('Error al eliminar el usuario:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el usuario.' });
+  }
 };
 
-const obtenerUsuario = (req, res) => {
+const obtenerUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
 
-  Usuario.buscarPorId(usr_cedula, (err, results) => {
-    if (err) {
-      console.error('Error al obtener el usuario:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el usuario.' });
-    }
-
+  try {
+    const results = await Usuario.buscarPorId(usr_cedula);
     if (results.length === 0) {
       return res.status(404).json({ respuesta: false, mensaje: 'Usuario no encontrado.' });
     }
-
     res.json({ respuesta: true, mensaje: '¡Usuario obtenido con éxito!', data: results[0] });
-  });
+  } catch (err) {
+    console.error('Error al obtener el usuario:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el usuario.' });
+  }
 };
 
-const obtenerTodosUsuarios = (req, res) => {
-  Usuario.buscarTodos((err, results) => {
-    if (err) {
-      console.error('Error al obtener los usuarios:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios.' });
-    }
+const obtenerTodosUsuarios = async (req, res) => {
+  try {
+    const results = await Usuario.buscarTodos();
     res.json({ respuesta: true, mensaje: '¡Usuarios obtenidos con éxito!', data: results });
-  });
+  } catch (err) {
+    console.error('Error al obtener los usuarios:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios.' });
+  }
 };
 
-const obtenerUsuariosPorTipo = (req, res) => {
+const obtenerUsuariosPorTipo = async (req, res) => {
   const tip_usr_id = req.params.tip_usr_id;
 
-  Usuario.buscarPorTipo(tip_usr_id, (err, results) => {
-    if (err) {
-      console.error('Error al obtener los usuarios por tipo:', err.stack);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios por tipo.' });
-    }
+  try {
+    const results = await Usuario.buscarPorTipo(tip_usr_id);
     res.json({ respuesta: true, mensaje: '¡Usuarios obtenidos por tipo con éxito!', data: results });
-  });
+  } catch (err) {
+    console.error('Error al obtener los usuarios por tipo:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los usuarios por tipo.' });
+  }
 };
 
 module.exports = {
@@ -156,5 +133,3 @@ module.exports = {
   obtenerTodosUsuarios,
   obtenerUsuariosPorTipo
 };
-
-

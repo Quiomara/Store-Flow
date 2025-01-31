@@ -1,29 +1,34 @@
 const db = require('../config/db');
 
 const UbicacionElemento = {
-  crear: (data, callback) => {
+  crear: async (data) => {
     const query = `INSERT INTO UbicacionElementos (ubi_nombre) VALUES (?)`;
-    db.query(query, [data.ubi_nombre], callback);
+    const [result] = await db.query(query, [data.ubi_nombre]);
+    return result;
   },
 
-  actualizar: (data, callback) => {
+  actualizar: async (data) => {
     const query = 'UPDATE UbicacionElementos SET ubi_nombre = ? WHERE ubi_ele_id = ?';
-    db.query(query, [data.ubi_nombre, data.ubi_ele_id], callback);
+    const [result] = await db.query(query, [data.ubi_nombre, data.ubi_ele_id]);
+    return result;
   },
 
-  eliminar: (ubi_ele_id, callback) => {
+  eliminar: async (ubi_ele_id) => {
     const query = `DELETE FROM UbicacionElementos WHERE ubi_ele_id = ?`;
-    db.query(query, [ubi_ele_id], callback);
+    const [result] = await db.query(query, [ubi_ele_id]);
+    return result;
   },
 
-  obtenerTodos: (callback) => {
+  obtenerTodos: async () => {
     const query = `SELECT * FROM UbicacionElementos`;
-    db.query(query, callback);
+    const [rows] = await db.query(query);
+    return rows;
   },
 
-  obtenerPorId: (ubi_ele_id, callback) => {
+  obtenerPorId: async (ubi_ele_id) => {
     const query = `SELECT * FROM UbicacionElementos WHERE ubi_ele_id = ?`;
-    db.query(query, [ubi_ele_id], callback);
+    const [rows] = await db.query(query, [ubi_ele_id]);
+    return rows;
   }
 };
 

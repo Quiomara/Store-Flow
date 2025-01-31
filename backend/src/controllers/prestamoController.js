@@ -10,6 +10,8 @@ const manejarError = (res, mensaje, err) => {
   return res.status(500).json({ respuesta: false, mensaje });
 };
 
+// Crear un nuevo préstamo
+// Crear un nuevo préstamo
 const crearPrestamo = async (req, res) => {
   const startTime = Date.now();
 
@@ -52,8 +54,10 @@ const crearPrestamo = async (req, res) => {
         pre_ele_cantidad_prestado: elemento.pre_ele_cantidad_prestado,
       };
 
-      // Crear elemento del préstamo
+      console.log('Intentando insertar en prestamoselementos:', prestamoElementoData);
       await PrestamoElemento.crear(prestamoElementoData);
+
+      console.log(`Elemento ${elemento.ele_id} insertado en prestamoselementos`);
 
       // Obtener y actualizar la cantidad del elemento
       const elementoDb = await Elemento.obtenerPorId(elemento.ele_id);
@@ -63,7 +67,9 @@ const crearPrestamo = async (req, res) => {
         throw new Error(`Cantidad inválida para el elemento ID ${elemento.ele_id}: ${nuevaCantidadActual}`);
       }
 
+      console.log(`Actualizando stock para el elemento ${elemento.ele_id}: nueva cantidad ${nuevaCantidadActual}`);
       await Elemento.actualizarStock(elemento.ele_id, nuevaCantidadActual);
+      console.log(`Stock actualizado para el elemento ${elemento.ele_id}`);
     }));
 
     // Enviar respuesta al cliente
@@ -78,18 +84,22 @@ const crearPrestamo = async (req, res) => {
 };
 
 // Actualizar Préstamo
-const actualizarPrestamo = (req, res) => {
+const actualizarPrestamo = async (req, res) => {
   const data = req.body;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
 
-  Prestamo.obtenerEstadoYUsuarioPorId(data.pre_id, (err, results) => {
-    if (err) return res.status(500).json({ respuesta: false, mensaje: "Error al obtener el préstamo.", err });
-    if (results.length === 0) {
+  try {
+    // Obtener el estado y el usuario del préstamo
+    const results = await Prestamo.obtenerEstadoYUsuarioPorId(data.pre_id);
+
+    // Verificar si el préstamo existe
+    if (!results || results.length === 0) {
       return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
     }
 
     const { est_id, usr_cedula } = results[0];
 
+    // Verificar permisos del usuario
     if (userRole === 2 && userCedula !== usr_cedula) {
       return res.status(403).json({
         respuesta: false,
@@ -97,6 +107,7 @@ const actualizarPrestamo = (req, res) => {
       });
     }
 
+    // Verificar el estado del préstamo
     if (![1, 2].includes(est_id)) {
       return res.status(400).json({
         respuesta: false,
@@ -104,6 +115,7 @@ const actualizarPrestamo = (req, res) => {
       });
     }
 
+    // Preparar los datos para la actualización
     const updateData = {
       pre_id: data.pre_id,
       pre_inicio: results[0].pre_inicio, // No se actualiza la fecha de inicio
@@ -114,33 +126,28 @@ const actualizarPrestamo = (req, res) => {
     };
 
     // Actualizar el préstamo
-    Prestamo.actualizar(updateData, (err) => {
-      if (err) {
-        return res.status(500).json({ respuesta: false, mensaje: "Error al actualizar el préstamo.", err });
-      }
+    await Prestamo.actualizar(updateData);
 
-      // Actualizar la cantidad de elementos en la tabla Elementos
-      if (data.ele_id && data.ele_cantidad) {
-        Prestamo.actualizarCantidad(data.ele_id, data.ele_cantidad, (err) => {
-          if (err) {
-            return res.status(500).json({ respuesta: false, mensaje: "Error al actualizar la cantidad de elementos.", err });
-          }
-          res.json({ respuesta: true, mensaje: "¡Préstamo y cantidad de elementos actualizados con éxito!" });
-        });
-      } else {
-        res.json({ respuesta: true, mensaje: "¡Préstamo actualizado con éxito!" });
-      }
-    });
-  });
+    // Actualizar la cantidad de elementos en la tabla Elementos (si se proporciona)
+    if (data.ele_id && data.ele_cantidad) {
+      await Prestamo.actualizarCantidadElemento(data.ele_id, data.ele_cantidad);
+      res.json({ respuesta: true, mensaje: "¡Préstamo y cantidad de elementos actualizados con éxito!" });
+    } else {
+      res.json({ respuesta: true, mensaje: "¡Préstamo actualizado con éxito!" });
+    }
+  } catch (err) {
+    console.error('Error al actualizar el préstamo:', err);
+    res.status(500).json({ respuesta: false, mensaje: "Error al actualizar el préstamo." });
+  }
 };
 
 // Eliminar Préstamo
-const eliminarPrestamo = (req, res) => {
+const eliminarPrestamo = async (req, res) => {
   const { pre_id } = req.params;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
 
-  Prestamo.obtenerEstadoYUsuarioPorId(pre_id, async (err, results) => {
-    if (err) return manejarError(res, "Error al obtener el préstamo.", err);
+  try {
+    const results = await Prestamo.obtenerEstadoYUsuarioPorId(pre_id);
     if (results.length === 0) {
       return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
     }
@@ -154,123 +161,73 @@ const eliminarPrestamo = (req, res) => {
       return res.status(400).json({ respuesta: false, mensaje: 'El préstamo no se puede eliminar, ya que no está en estado "Creado" o "En Proceso".' });
     }
 
-    try {
-      const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
+    const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
 
-      // Devolver las cantidades de los elementos al inventario
-      for (const elemento of elementos) {
-        await new Promise((resolve, reject) => {
-          Elemento.actualizarCantidad(elemento.ele_id, elemento.pre_ele_cantidad_prestado, (err) => {
-            if (err) {
-              console.error("Error al actualizar la cantidad del elemento:", err.stack);
-              reject(err);
-            } else {
-              console.log("Cantidad del elemento actualizada con éxito.");
-              resolve();
-            }
-          });
-        });
-      }
-
-      // Eliminar los elementos del préstamo
-      await new Promise((resolve, reject) => {
-        PrestamoElemento.eliminarPorPrestamoId(pre_id, (err, results) => {
-          if (err) {
-            console.error("Error al eliminar elementos del préstamo:", err.stack);
-            reject(err);
-          } else {
-            console.log("Elementos del préstamo eliminados con éxito.");
-            resolve();
-          }
-        });
-      });
-
-      // Eliminar el préstamo
-      Prestamo.eliminar(pre_id, (err, results) => {
-        if (err) return manejarError(res, "Error al eliminar el préstamo.", err);
-        if (results.affectedRows === 0) {
-          return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
-        }
-        res.json({ respuesta: true, mensaje: "¡Préstamo eliminado con éxito!" });
-      });
-    } catch (error) {
-      manejarError(res, "Error al actualizar los elementos del préstamo.", error);
+    // Devolver las cantidades de los elementos al inventario
+    for (const elemento of elementos) {
+      await Elemento.actualizarStock(elemento.ele_id, elemento.pre_ele_cantidad_prestado); // Cambiado a `actualizarStock`
     }
-  });
-};
 
-// Obtener Todos los Préstamos
-const obtenerTodosPrestamos = (req, res) => {
-  const { tip_usr_id, usr_cedula } = req.user; // Obtener el rol del usuario y la cédula
-  console.log(`Obteniendo préstamos para el rol: ${tip_usr_id} del usuario con cédula: ${usr_cedula}`);
+    // Eliminar los elementos del préstamo
+    await PrestamoElemento.eliminarPorPrestamoId(pre_id);
 
-  // Validar que el usuario tenga permisos (Rol Almacén o Administrador)
-  if (['Almacén', 'Administrador'].includes(tip_usr_id)) {
-    Prestamo.obtenerTodos((err, results) => {
-      if (err) {
-        return manejarError(res, "Error al obtener los préstamos.", err);
-      }
+    // Eliminar el préstamo
+    await Prestamo.eliminar(pre_id);
 
-      // Ordenar los préstamos por fecha de inicio (más reciente primero)
-      const prestamosOrdenados = results.sort((a, b) => new Date(b.pre_inicio) - new Date(a.pre_inicio));
-      console.log('Préstamos obtenidos y ordenados:', prestamosOrdenados);
-      res.json({
-        respuesta: true,
-        mensaje: "¡Préstamos obtenidos con éxito!",
-        data: prestamosOrdenados,
-      });
-    });
-  } else {
-    console.error(`No tiene permiso para ver los préstamos con el rol ${tip_usr_id}`); // Depuración de error
-    res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
+    res.json({ respuesta: true, mensaje: "¡Préstamo eliminado con éxito!" });
+  } catch (error) {
+    console.error('Error al eliminar el préstamo:', error);
+    res.status(500).json({ respuesta: false, mensaje: "Error al eliminar el préstamo." });
   }
 };
 
+// Obtener todos los préstamos
+const obtenerTodosPrestamos = async (req, res) => {
+  try {
+    const { tip_usr_id, usr_cedula } = req.user; // Obtener el rol del usuario y la cédula
+    console.log(`Obteniendo préstamos para el rol: ${tip_usr_id} del usuario con cédula: ${usr_cedula}`);
 
+    // Validar que el usuario tenga permisos (Rol Almacén o Administrador)
+    if ([1, 3].includes(tip_usr_id)) {
+      const prestamos = await Prestamo.obtenerTodos();
+      console.log('Préstamos obtenidos y ordenados:', prestamos);
+      res.json({ respuesta: true, mensaje: "¡Préstamos obtenidos con éxito!", data: prestamos });
+    } else {
+      console.error(`No tiene permiso para ver los préstamos con el rol ${tip_usr_id}`); // Depuración de error
+      res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
+    }
+  } catch (err) {
+    console.error('Error al obtener los préstamos:', err.stack);
+    res.status(500).json({ respuesta: false, mensaje: "Error al obtener los préstamos." });
+  }
+};
 
-// Obtener Préstamo por ID
-const obtenerPrestamoPorId = (req, res) => {
-  const { pre_id } = req.params;
-  console.log(`Obteniendo préstamo con ID: ${pre_id}`);
+const obtenerPrestamoPorId = async (req, res) => {
+  const pre_id = req.params.pre_id;
 
-  Prestamo.obtenerPorId(pre_id, (err, results) => {
-    if (err) {
-      console.error("Error al obtener el préstamo:", err);
-      return res.status(500).json({ respuesta: false, mensaje: "Error al obtener el préstamo.", err });
+  try {
+    // Obtener el préstamo
+    const prestamo = await Prestamo.obtenerPorId(pre_id); // Cambiado a `obtenerPorId`
+
+    // Verificar si el préstamo existe
+    if (!prestamo) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado.' });
     }
 
-    if (results.length === 0) {
-      console.log("Préstamo no encontrado");
-      return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
-    }
+    // Obtener los elementos asociados al préstamo
+    const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
 
-    const prestamo = results[0];
-    console.log("Préstamo obtenido:", prestamo);
+    // Crear un nuevo objeto con los datos del préstamo y los elementos
+    const respuesta = {
+      ...prestamo, // `prestamo` es un objeto, no un array
+      elementos: elementos,
+    };
 
-    // Obtener solo el primer elemento asociado al préstamo
-    const queryElementos = `
-      SELECT pe.ele_id, el.ele_nombre, pe.pre_ele_cantidad_prestado AS ele_cantidad
-      FROM PrestamosElementos pe
-      JOIN Elementos el ON pe.ele_id = el.ele_id
-      WHERE pe.pre_id = ? LIMIT 1;
-    `;
-
-    db.query(queryElementos, [pre_id], (err, elementos) => {
-      if (err) {
-        console.error('Error al obtener los elementos del préstamo:', err);
-        return res.status(500).json({ respuesta: false, mensaje: "Error al obtener los elementos del préstamo.", err });
-      }
-
-      console.log("Elemento del préstamo obtenido:", elementos);
-
-      prestamo.elementos = elementos;
-      res.json({
-        respuesta: true,
-        mensaje: "¡Préstamo obtenido con éxito!",
-        data: prestamo
-      });
-    });
-  });
+    res.json({ respuesta: true, mensaje: 'Préstamo obtenido con éxito.', data: respuesta });
+  } catch (err) {
+    console.error('Error al obtener el préstamo:', err);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener el préstamo.' });
+  }
 };
 
 // Obtener préstamos por cédula
@@ -286,16 +243,7 @@ const obtenerPrestamosPorCedula = async (req, res) => {
   console.log(`Obteniendo préstamos para la cédula: ${usr_cedula}`); // Log de depuración
 
   try {
-    // Obtener los préstamos usando una promesa
-    const results = await new Promise((resolve, reject) => {
-      Prestamo.obtenerPorCedula(usr_cedula, (err, data) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data);
-        }
-      });
-    });
+    const results = await Prestamo.obtenerPorCedula(usr_cedula);
 
     if (results.length === 0) {
       console.log("No se encontraron préstamos para la cédula proporcionada.");
@@ -315,14 +263,11 @@ const obtenerPrestamosPorCedula = async (req, res) => {
 };
 
 // Obtener elementos del préstamo
-const obtenerElementoPrestamos = (req, res) => {
+const obtenerElementoPrestamos = async (req, res) => {
   const pre_id = req.params.pre_id;
 
-  Prestamo.obtenerElementosPrestamo(pre_id, (err, results) => {
-    if (err) {
-      console.error('Error al obtener los elementos del préstamo:', err);
-      return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos del préstamo' });
-    }
+  try {
+    const results = await Prestamo.obtenerElementosPrestamo(pre_id);
 
     if (results.length === 0) {
       return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado' });
@@ -345,7 +290,10 @@ const obtenerElementoPrestamos = (req, res) => {
     };
 
     res.json(respuesta);
-  });
+  } catch (err) {
+    console.error('Error al obtener los elementos del préstamo:', err);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos del préstamo' });
+  }
 };
 
 // Actualizar cantidad de un elemento en un préstamo
@@ -371,7 +319,6 @@ const actualizarCantidadElemento = async (req, res) => {
     res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad o el stock', error: err.message });
   }
 };
-
 
 module.exports = {
   crearPrestamo,

@@ -7,52 +7,63 @@ const manejarError = (res, mensaje, err) => {
 };
 
 // Obtener todos los estados
-const obtenerTodosEstados = (req, res) => {
-  Estado.obtenerTodos((err, results) => {
-    if (err) {
-      console.error('Error al obtener los estados:', err);
-      return res.status(500).json({ message: 'Error al obtener los estados' });
-    }
-    res.json(results); // Enviar los resultados directamente
-  });
+const obtenerTodosEstados = async (req, res) => {
+  try {
+    const estados = await Estado.obtenerTodos();
+    res.json(estados); // Enviar los resultados directamente
+  } catch (err) {
+    manejarError(res, 'Error al obtener los estados.', err);
+  }
 };
 
 // Obtener estado por ID
-const obtenerEstadoPorId = (req, res) => {
+const obtenerEstadoPorId = async (req, res) => {
   const { est_id } = req.params;
-  Estado.obtenerPorId(est_id, (err, results) => {
-    if (err) return manejarError(res, 'Error al obtener el estado.', err);
-    if (results.length === 0) return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
-    res.json({ respuesta: true, mensaje: '¡Estado obtenido con éxito!', data: results[0] });
-  });
+  try {
+    const estado = await Estado.obtenerPorId(est_id);
+    if (estado.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
+    }
+    res.json({ respuesta: true, mensaje: '¡Estado obtenido con éxito!', data: estado[0] });
+  } catch (err) {
+    manejarError(res, 'Error al obtener el estado.', err);
+  }
 };
 
 // Crear estado
-const crearEstado = (req, res) => {
+const crearEstado = async (req, res) => {
   const data = req.body;
-  Estado.crear(data, (err, result) => {
-    if (err) return manejarError(res, 'Error al crear el estado.', err);
+  try {
+    const result = await Estado.crear(data);
     res.json({ respuesta: true, mensaje: '¡Estado creado con éxito!', id: result.insertId });
-  });
+  } catch (err) {
+    manejarError(res, 'Error al crear el estado.', err);
+  }
 };
 
 // Actualizar estado
-const actualizarEstado = (req, res) => {
+const actualizarEstado = async (req, res) => {
   const data = req.body;
-  Estado.actualizar(data, (err) => {
-    if (err) return manejarError(res, 'Error al actualizar el estado.', err);
+  try {
+    await Estado.actualizar(data);
     res.json({ respuesta: true, mensaje: '¡Estado actualizado con éxito!' });
-  });
+  } catch (err) {
+    manejarError(res, 'Error al actualizar el estado.', err);
+  }
 };
 
 // Eliminar estado
-const eliminarEstado = (req, res) => {
+const eliminarEstado = async (req, res) => {
   const { est_id } = req.params;
-  Estado.eliminar(est_id, (err, result) => {
-    if (err) return manejarError(res, 'Error al eliminar el estado.', err);
-    if (result.affectedRows === 0) return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
+  try {
+    const result = await Estado.eliminar(est_id);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
+    }
     res.json({ respuesta: true, mensaje: '¡Estado eliminado con éxito!' });
-  });
+  } catch (err) {
+    manejarError(res, 'Error al eliminar el estado.', err);
+  }
 };
 
 module.exports = {

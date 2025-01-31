@@ -33,13 +33,10 @@ const auth = (requiredRoles) => {
       const userId = results[0].tip_usr_id;
       console.log(`Tipo de usuario: ${userType} (ID: ${userId})`); // Depuración: Imprime el tipo de usuario y su ID
 
-      // Verificar si el rol de usuario está en la lista de roles requeridos
-      if (requiredRoles && !requiredRoles.includes(userType)) {
-        // Permitir acceso si el ID del usuario es 1 (Administrador), 2 (Instructor) o 3 (Almacén)
-        if (![1, 2, 3].includes(userId)) {
-          console.error(`Acceso denegado. Permisos insuficientes para el rol de ${userType}.`);
-          return res.status(403).json({ respuesta: false, mensaje: `Acceso denegado. Permisos insuficientes para el rol de ${userType}.` });
-        }
+      // Verificar si el rol del usuario está en la lista de roles requeridos o si su ID está permitido
+      if (requiredRoles && !requiredRoles.includes(userType) && ![1, 2, 3].includes(userId)) {
+        console.error(`Acceso denegado. Permisos insuficientes para el rol de ${userType}.`);
+        return res.status(403).json({ respuesta: false, mensaje: `Acceso denegado. Permisos insuficientes para el rol de ${userType}.` });
       }
 
       // Si todo está bien, continuar con la siguiente función middleware
