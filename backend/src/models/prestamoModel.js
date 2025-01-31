@@ -1,14 +1,15 @@
 const db = require('../config/db');
 
 const Prestamo = {
-  // Crear un nuevo préstamo
   crear: async (data) => {
+    console.log('Intentando insertar en la base de datos:', data); // Log de los datos a insertar
     const query = `INSERT INTO Prestamos (pre_inicio, usr_cedula, est_id) VALUES (?, ?, ?)`;
     const values = [data.pre_inicio, data.usr_cedula, data.est_id];
     const [result] = await db.execute(query, values);
+    console.log('Resultado de la inserción:', result); // Log del resultado de la inserción
     return { insertId: result.insertId };
   },
-
+  
   // Actualizar un préstamo
   actualizar: async (data) => {
     const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;

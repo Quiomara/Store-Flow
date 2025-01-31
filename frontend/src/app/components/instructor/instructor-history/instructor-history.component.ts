@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog'; 
-import { MatIconModule } from '@angular/material/icon'; 
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
 import { PrestamoService } from '../../../services/prestamo.service';
-import { Prestamo } from '../../../models/prestamo.model';
 import { AuthService } from '../../../services/auth.service';
-import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component'; 
-import { AuthInterceptor } from '../../../services/auth.interceptor.service';
+import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
+import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 
 @Component({
   selector: 'app-instructor-history',
@@ -20,33 +19,32 @@ import { Estado } from '../../../models/estado.model';
   standalone: true,
   imports: [
     CommonModule,
-    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     MatTableModule,
     MatSnackBarModule,
-    MatDialogModule, 
-    MatIconModule
-  ],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    MatDialogModule,
+    MatIconModule,
+    MatPaginatorModule
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
-  filteredPrestamos: Prestamo[] = [];
+  filteredPrestamos: MatTableDataSource<Prestamo>;
   estados: Estado[] = [];
-  filteredEstados: Estado[] = [];
-  displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
   mensajeNoPrestamos: string = 'No se encontraron préstamos.';
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
 
   constructor(
     private fb: FormBuilder,
     private prestamoService: PrestamoService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    public dialog: MatDialog 
+    public dialog: MatDialog
   ) {
     this.searchForm = this.fb.group({
       searchId: [''],
@@ -54,7 +52,7 @@ export class InstructorHistoryComponent implements OnInit {
       searchFecha: ['']
     });
 
-    this.searchForm.valueChanges.subscribe(() => this.buscar());
+    this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
   async ngOnInit(): Promise<void> {
@@ -80,20 +78,21 @@ export class InstructorHistoryComponent implements OnInit {
 
   async getHistory(): Promise<void> {
     const cedula = await this.authService.getCedula();
-    if (cedula) { 
+    if (cedula) {
       this.prestamoService.getPrestamosPorCedula(cedula).subscribe(
         (data: any) => {
-          console.log('Datos recibidos del backend:', data); // Verifica los datos en la consola
+          console.log('Datos recibidos del backend:', data);
           this.prestamos = data.map((item: any) => ({
             idPrestamo: item.pre_id,
             fechaHora: this.formatearFecha(item.pre_inicio),
-            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '', // Fecha Fin en blanco si no está definida
+            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '',
             estado: item.est_nombre,
-            items: [], // Puedes ajustar esto si hay elementos asociados
+            items: [],
             cedulaSolicitante: item.usr_cedula
           }));
-          this.filteredPrestamos = this.prestamos; // Mostrar todos los préstamos inicialmente
-          this.buscar(); // Aplicar filtros si existen
+          this.filteredPrestamos.data = this.prestamos;
+          this.filteredPrestamos.paginator = this.paginator;
+          this.buscar();
         },
         (error: any) => {
           console.error('Error al obtener el historial de préstamos', error);
@@ -114,7 +113,6 @@ export class InstructorHistoryComponent implements OnInit {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {
         this.estados = data;
-        this.filteredEstados = data;
       },
       (error: any) => {
         console.error('Error al obtener los estados', error);
@@ -127,31 +125,32 @@ export class InstructorHistoryComponent implements OnInit {
 
   buscar(): void {
     const { searchId, searchEstado, searchFecha } = this.searchForm.value;
-    this.filteredPrestamos = this.prestamos;
+    let filteredData = this.prestamos;
 
     if (searchId) {
-      this.filteredPrestamos = this.filteredPrestamos.filter(
+      filteredData = filteredData.filter(
         prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
       );
     }
 
     if (searchEstado && searchEstado.trim() !== '') {
-      this.filteredPrestamos = this.filteredPrestamos.filter(
+      filteredData = filteredData.filter(
         prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
       );
     }
 
     if (searchFecha) {
-      this.filteredPrestamos = this.filteredPrestamos.filter(
+      filteredData = filteredData.filter(
         prestamo => prestamo.fechaHora && prestamo.fechaHora.split('T')[0] === searchFecha
       );
     }
 
+    this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
 
   actualizarMensajeNoPrestamos(searchEstado: string): void {
-    if (this.filteredPrestamos.length === 0) {
+    if (this.filteredPrestamos.data.length === 0) {
       switch (searchEstado?.toLowerCase()) {
         case 'creado':
           this.mensajeNoPrestamos = 'No hay préstamos creados.';
@@ -181,17 +180,16 @@ export class InstructorHistoryComponent implements OnInit {
       width: '800px',
       data: { prestamo }
     });
-  
-    dialogRef.afterClosed().subscribe(result => {
+
+    dialogRef.afterClosed().subscribe(() => {
       console.log('El modal se cerró');
-      this.getHistory(); // Recargar la lista de préstamos después de cerrar el modal
+      this.getHistory();
     });
   }
 
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
-
 
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
@@ -200,37 +198,3 @@ export class InstructorHistoryComponent implements OnInit {
     this.buscar();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
