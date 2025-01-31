@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { UserService } from '../../../services/user.service';
+import { CentroService } from '../../../services/centro.service'; // Importa el servicio de centros
 import { User, UserBackend } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
@@ -31,7 +32,7 @@ import { EditUserComponent } from '../edit-user/edit-user.component';
   ],
   templateUrl: './search-user.component.html',
   styleUrls: ['./search-user.component.css'],
-  providers: [UserService]
+  providers: [UserService, CentroService] // Añade el servicio de centros
 })
 export class SearchUserComponent implements OnInit, AfterViewInit {
   searchForm: FormGroup;
@@ -49,7 +50,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator, { static: true }) paginator!: MatPaginator;
 
-  constructor(private userService: UserService, private fb: FormBuilder, public dialog: MatDialog) {
+  constructor(private userService: UserService, private centroService: CentroService, private fb: FormBuilder, public dialog: MatDialog) {
     this.searchForm = this.fb.group({
       nombre: [''],
       centroFormacion: [''],
@@ -59,9 +60,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.loadUsers();
     this.loadCentros();
-
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -77,8 +76,13 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   loadUsers(): void {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
-        this.searchResults = response;
-        this.filteredResults = response;
+        this.searchResults = response.map(user => {
+          // Asignar nombre del centro de formación
+          const centro = this.centros.find(c => c.cen_id === parseInt(user.centroFormacion));
+          user.centroFormacion = centro ? centro.cen_nombre : 'N/A';
+          return user;
+        });
+        this.filteredResults = this.searchResults;
         this.dataSource.data = this.filteredResults;
         this.sortUsersAlphabetically();
         this.updatePaginator();
@@ -90,12 +94,25 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   }
 
   loadCentros(): void {
-    this.userService.getCentros().subscribe(
+    this.centroService.getCentros().subscribe(
       (response: any) => {
-        this.centros = response;
+        this.centros = response.data; // Ajusta esto según el formato de la respuesta
+        console.log('Centros de formación obtenidos:', this.centros);
+        
+        // Cargar los usuarios después de cargar los centros
+        this.loadUsers();
       },
       (error: any) => {
         console.error('Error al obtener centros de formación', error);
+        if (error.error) {
+          console.error('Detalles del error:', error.error);
+        }
+        if (error.message) {
+          console.error('Mensaje del error:', error.message);
+        }
+        if (error.status) {
+          console.error('Código de estado del error:', error.status);
+        }
       }
     );
   }
@@ -104,7 +121,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     this.filteredResults = this.searchResults.filter(user => {
       const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
       const nombreFiltrado = values.nombre.toLowerCase();
-      const centroFiltrado = this.centros.find(centro => centro.id.toString() === values.centroFormacion)?.nombre || '';
+      const centroFiltrado = this.centros.find(centro => centro.cen_id.toString() === values.centroFormacion)?.cen_nombre || '';
 
       return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
              (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
@@ -142,7 +159,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
           usr_segundo_apellido: result.segundoApellido,
           usr_correo: result.email,
           usr_telefono: result.telefono,
-          cen_id: this.centros.find(centro => centro.nombre === result.centroFormacion)?.id,
+          cen_id: this.centros.find(centro => centro.cen_nombre === result.centroFormacion)?.cen_id,
           tip_usr_id: this.tiposUsuario.find(tipo => tipo.nombre === result.tipoUsuario)?.id
         };
 
@@ -180,25 +197,3 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

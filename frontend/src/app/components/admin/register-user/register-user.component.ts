@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../services/user.service';
+import { CentroService } from '../../../services/centro.service'; // Importa el servicio de centros
 import { User, UserBackend } from '../../../models/user.model';
 import { NotificationToastComponent } from '../notification-toast/notification-toast.component';
 
@@ -11,7 +12,7 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
   imports: [CommonModule, FormsModule, NotificationToastComponent],
   templateUrl: './register-user.component.html',
   styleUrls: ['./register-user.component.css'],
-  providers: [UserService]
+  providers: [UserService, CentroService] // Añade el servicio de centros
 })
 export class RegisterUserComponent implements OnInit {
   @ViewChild(NotificationToastComponent) notificationToast!: NotificationToastComponent;
@@ -31,32 +32,54 @@ export class RegisterUserComponent implements OnInit {
     confirmarContrasena: ''
   };
 
-  centros: any[] = [];
-  tiposUsuario: any[] = [];
-  errores: any = {};
+  centros: any[] = []; // Array para almacenar los centros de formación
+  tiposUsuario: any[] = []; // Array para almacenar los tipos de usuario
+  errores: any = {}; // Objeto para manejar errores
   registroExitoso: boolean = false;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private centroService: CentroService // Inyecta el servicio de centros
+  ) {}
 
   ngOnInit() {
-    this.userService.getCentros().subscribe(
-      response => {
-        this.centros = response;
+    this.obtenerCentrosFormacion(); // Llama al método para obtener los centros
+    this.obtenerTiposUsuario(); // Llama al método para obtener los tipos de usuario
+  }
+
+  // Método para obtener los centros de formación
+  obtenerCentrosFormacion(): void {
+    this.centroService.getCentros().subscribe(
+      (response: any) => {
+        this.centros = response.data; // Ajusta esto según el formato de la respuesta
+        console.log('Centros de formación obtenidos:', this.centros);
       },
-      error => {
+      (error) => {
         console.error('Error al obtener centros de formación', error);
+        if (error.error) {
+          console.error('Detalles del error:', error.error);
+        }
+        if (error.message) {
+          console.error('Mensaje del error:', error.message);
+        }
+        if (error.status) {
+          console.error('Código de estado del error:', error.status);
+        }
       }
     );
+  }
 
+  // Método para obtener los tipos de usuario
+  obtenerTiposUsuario(): void {
     this.userService.getTiposUsuario().subscribe(
-      response => {
+      (response: any) => {
         if (Array.isArray(response)) {
-          this.tiposUsuario = response;
+          this.tiposUsuario = response; // Asigna los tipos de usuario recibidos
         } else {
           console.error('Formato de respuesta inesperado para tipos de usuario:', response);
         }
       },
-      error => {
+      (error) => {
         console.error('Error al obtener tipos de usuario', error);
       }
     );
@@ -66,6 +89,7 @@ export class RegisterUserComponent implements OnInit {
     this.errores = {};
     this.registroExitoso = false;
 
+    // Validaciones de campos
     if (this.user.email !== this.user.confirmarEmail) {
       this.errores.confirmarEmail = 'Los correos electrónicos no coinciden.';
       return;
@@ -98,10 +122,12 @@ export class RegisterUserComponent implements OnInit {
       this.errores.centroFormacion = 'Este campo es obligatorio.';
     }
 
+    // Si hay errores, no continuar
     if (Object.keys(this.errores).length > 0) {
       return;
     }
 
+    // Crear el objeto para enviar al backend
     const usuario: UserBackend = {
       usr_cedula: this.user.cedula,
       usr_primer_nombre: this.user.primerNombre,
@@ -115,17 +141,20 @@ export class RegisterUserComponent implements OnInit {
       cen_id: this.user.centroFormacion
     };
 
+    // Registrar el usuario
     this.userService.registerUser(usuario).subscribe(
-      response => {
+      (response) => {
         console.log('Usuario registrado exitosamente', response);
         this.registroExitoso = true;
         this.notificationToast.message = 'Usuario Registrado';
         this.notificationToast.isVisible = true;
 
+        // Ocultar la notificación después de 3 segundos
         setTimeout(() => {
           this.notificationToast.isVisible = false;
         }, 3000);
 
+        // Reiniciar el formulario
         this.user = {
           cedula: 0,
           primerNombre: '',
@@ -142,7 +171,7 @@ export class RegisterUserComponent implements OnInit {
         };
         this.errores = {};
       },
-      error => {
+      (error) => {
         console.error('Error al registrar usuario', error);
         const mensaje = error.error.mensaje;
         if (mensaje.includes('cédula')) {
@@ -158,45 +187,3 @@ export class RegisterUserComponent implements OnInit {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
