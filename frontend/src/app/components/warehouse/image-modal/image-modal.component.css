@@ -1,0 +1,57 @@
+/* Contenedor principal del diálogo - Asegura modo flex */
+.mat-mdc-dialog-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100%;
+    padding: 20px; /* Opcional: espacio alrededor del modal en mobile */
+  }
+  
+  /* Contenedores intermedios de Angular Material */
+  .mat-mdc-dialog-container > div {
+    display: flex !important;
+    width: 100%;
+    min-height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Contenedor específico de tu modal */
+  .modal-content {
+    width: 400px;
+    max-width: 90%;
+    margin: auto; /* Fallback para navegadores antiguos */
+    position: relative;
+
+    border-radius: 8px;
+    padding: 20px;
+
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center; /* Centrar el texto */
+    width: 100%; /* Asegurar que el header ocupe todo el ancho del modal */
+    margin-bottom: 20px; /* Añadir espacio debajo del header */
+  }
+  
+  .modal-header h2 {
+    flex: 1;
+    margin: 0;
+    font-weight: bold; /* <- Añade esta línea */
+}
+  
+  .close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .imagen-elemento {
+    max-width: 80%; /* Hacer la imagen más pequeña */
+    height: auto;
+    margin: 20px auto; /* Centrar la imagen y añadir espacio alrededor */
+    display: block; /* Asegurar que la imagen se muestre como bloque */
+  }
+  

@@ -4,9 +4,11 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Importar MatDialog y MatDialogModule
 import { CommonModule } from '@angular/common';
 import { ElementoService } from '../../../services/elemento.service';
 import { Elemento } from '../../../models/elemento.model';
+import { ImageModalComponent } from '../image-modal/image-modal.component'; // Importar el componente del modal
 
 @Component({
   selector: 'app-inventory',
@@ -17,6 +19,7 @@ import { Elemento } from '../../../models/elemento.model';
     MatPaginatorModule,
     MatTableModule,
     MatSnackBarModule,
+    MatDialogModule, // Importar MatDialogModule
     MatIconModule
   ],
   templateUrl: './inventory.component.html',
@@ -30,7 +33,7 @@ export class InventoryComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private elementoService: ElementoService) {
+  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private elementoService: ElementoService, private dialog: MatDialog) {
     this.searchForm = this.fb.group({
       searchId: [''],
       searchElemento: [''],
@@ -83,8 +86,10 @@ export class InventoryComponent implements OnInit {
     this.filteredInventario.data = filteredData;
   }
 
-  verImagen(imagen: string): void {
-    this.snackBar.open('Mostrando imagen: ' + imagen, '', { duration: 2000 });
+  verImagen(imagen: string, nombre: string): void {
+    this.dialog.open(ImageModalComponent, {
+      data: { imagen, nombre }
+    });
   }
 
   editarElemento(elemento: Elemento): void {
