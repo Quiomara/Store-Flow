@@ -16,28 +16,26 @@
     justify-content: center;
     align-items: center;
     max-height: 570px;
-    overflow-y: auto;
+    overflow-y: scroll; /* Aseguramos que tenga scroll vertical */
     border: 1px solid #ddd;
     border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 0;
     margin: 0;
   }
   
   .table {
     width: 100%;
+    margin-top: 20px;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: fixed; /* Asegura que la tabla no se sobresalga */
   }
   
   .table th,
   .table td {
-    text-align: center;
+    text-align: center; /* Centramos el texto en las celdas */
     vertical-align: middle;
-    word-wrap: break-word;
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Para evitar que el contenido se sobresalga */
+    padding: 8px; /* Asegura que el contenido tenga espacio suficiente */
   }
   
   .table th {
@@ -52,6 +50,43 @@
   
   .table tr:hover {
     background-color: #f1f1f1;
+  }
+  
+  .no-results {
+    margin-top: 20px;
+    text-align: center;
+    color: #888888;
+  }
+  
+  .user-table-container {
+    max-height: 570px; /* Define una altura máxima para la tabla */
+    overflow-y: auto; /* Habilita el scroll vertical */
+    position: relative;
+  }
+  
+  /* Estilos personalizados para la cabecera de la tabla */
+  .mat-mdc-header-cell,
+  .mat-cell { /* Centramos tanto la cabecera como las celdas */
+    text-align: center; /* Centramos el texto */
+  }
+  
+  .acciones-header {
+    width: 100px; /* Ajuste del ancho de la columna de acciones */
+  }
+  
+  .delete-button {
+    color: red !important; /* Color del botón de eliminar con !important para asegurarlo */
+  }
+  
+  /* Ajuste para el contenido en el formulario */
+  .form-inline .form-control {
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .centered-cell {
+    text-align: center; /* Alinea horizontalmente */
+    vertical-align: middle; /* Alinea verticalmente */
   }
   
   .icon-btn {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse,  HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Elemento } from '../models/elemento.model';
@@ -16,14 +16,15 @@ export class ElementoService {
 
   // elemento.service.ts
   private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    let headers = new HttpHeaders();
-    if (token) {
-      headers = headers
-        .set('Authorization', `Bearer ${token}`)
-        .set('Content-Type', 'multipart/form-data'); // ✅ Necesario para FormData
-    }
-    return headers;
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+    });
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('Ocurrió un error:', error);
+    return throwError(() => new Error(error.message));
   }
 
   // Método para crear un elemento
@@ -43,7 +44,7 @@ export class ElementoService {
   getElementos(): Observable<Elemento[]> {
     const headers = this.getHeaders();
     return this.http
-      .get<Elemento[]>(`${this.apiUrl}`, { headers })
+      .get<Elemento[]>(`${this.apiUrl}/elementos`, { headers }) // Concatenar la ruta /elementos
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -75,8 +76,5 @@ export class ElementoService {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  private handleError(error: any): Observable<never> {
-    console.error('Ocurrió un error:', error);
-    return throwError(error);
-  }
+  
 }
