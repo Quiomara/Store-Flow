@@ -22,8 +22,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 console.log('Definiendo rutas...');
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', auth(['Administrador', 'Instructor']), usuarioRoutes);
-app.use('/api/ubicacion-elementos', auth(['Administrador', 'Almacen']), ubicacionElementoRoutes); 
-app.use('/api/elementos', auth(['Administrador', 'Instructor', 'Almacen']), elementoRoutes); 
+app.use('/api/ubicacion-elementos', auth(['Administrador', 'Almacen']), ubicacionElementoRoutes);
+app.use('/api/elementos', auth(['Administrador', 'Instructor', 'Almacen']), elementoRoutes);
 app.use('/api/prestamos', auth(['Administrador', 'Instructor', 'Almacen']), prestamoRoutes);
 app.use('/api/estados', auth(['Administrador', 'Instructor', 'Almacen']), estadoRoutes); // Registrar las rutas de estado
 app.use('/api/centros', auth(['Administrador']), centroDeFormacionRoutes);
@@ -38,7 +38,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
 });
-
 
 console.log('Exportando la aplicación...');
 module.exports = app;

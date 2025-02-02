@@ -1,32 +1,39 @@
 <div class="container-fluid vh-100 d-flex justify-content-center align-items-start pt-5">
-    <div class="registrar-elemento bg-white p-4" style="width: 90%; max-width: 800px;">
-      <h2 class="text-center mb-5"><strong>Registrar Elemento</strong></h2> <!-- Título con más margen inferior -->
-  
-      <div class="form-row mb-3"> <!-- Más espaciado entre filas -->
+  <div class="registrar-elemento bg-white p-4" style="width: 90%; max-width: 800px;">
+    <h2 class="text-center mb-5"><strong>Registrar Elemento</strong></h2>
+
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+      <div class="form-row mb-3">
         <div class="form-group col-md-6">
-          <label for="nombre" class="font-weight-bold">Nombre Elemento</label> <!-- Texto en negrilla -->
-          <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ingrese el nombre del elemento">
+          <label for="ele_nombre" class="font-weight-bold">Nombre Elemento</label>
+          <input type="text" id="ele_nombre" formControlName="ele_nombre" class="form-control" placeholder="Ingrese el nombre del elemento" required>
         </div>
         <div class="form-group col-md-6">
-          <label for="cantidad" class="font-weight-bold">Cantidad</label> <!-- Texto en negrilla -->
-          <input type="number" id="cantidad" name="cantidad" class="form-control" placeholder="Ingrese la cantidad">
+          <label for="ele_cantidad_total" class="font-weight-bold">Cantidad Total</label>
+          <input type="number" id="ele_cantidad_total" formControlName="ele_cantidad_total" class="form-control" placeholder="Ingrese la cantidad total" required>
         </div>
       </div>
-  
-      <div class="form-row mb-3"> <!-- Más espaciado entre filas -->
+
+      <div class="form-row mb-3">
         <div class="form-group col-md-6">
-          <label for="ubicacion" class="font-weight-bold">Ubicación</label> <!-- Texto en negrilla -->
-          <input type="text" id="ubicacion" name="ubicacion" class="form-control" placeholder="Ingrese la ubicación">
+          <label for="ubi_ele_id" class="font-weight-bold">Ubicación</label>
+          <select id="ubi_ele_id" formControlName="ubi_ele_id" class="form-control" required>
+            <option value="" disabled selected>Seleccione una ubicación</option>
+            <option *ngFor="let ubicacion of ubicaciones" [value]="ubicacion.ubi_ele_id">
+              {{ ubicacion.ubi_nombre }}
+            </option>
+          </select>
         </div>
         <div class="form-group col-md-6">
-          <label for="imagen" class="font-weight-bold">Elige la imagen a subir:</label> <!-- Texto en negrilla -->
-          <input type="file" id="imagen" name="imagen" class="form-control">
+          <label for="ele_imagen" class="font-weight-bold">Elige la imagen a subir:</label>
+          <input type="file" id="ele_imagen" (change)="onFileSelected($event)" class="form-control">
           <small class="form-text text-muted">Ningún archivo seleccionado</small>
         </div>
       </div>
-  
-      <div class="text-right"> <!-- Alineación a la derecha -->
-        <button type="submit" class="btn btn-primary btn-sm">Registrar</button> <!-- Botón más pequeño -->
+
+      <div class="text-right">
+        <button type="submit" class="btn btn-primary btn-sm">Registrar</button>
       </div>
-    </div>
+    </form>
   </div>
+</div>

@@ -16,3 +16,20 @@
     padding: 5px 10px; /* Ajusta el padding para un botón más pequeño */
     font-size: 14px; /* Ajusta el tamaño de la fuente */
   }
+
+  .snack-bar-success {
+    background-color: #4caf50; /* Verde para éxito */
+    color: white;
+  }
+  
+  .snack-bar-error {
+    background-color: #f44336; /* Rojo para error */
+    color: white;
+  }
+  
+  .snack-bar-warning {
+    background-color: #ff9800; /* Naranja para advertencia */
+    color: white;
+  }
+  
+  

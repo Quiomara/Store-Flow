@@ -69,6 +69,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
             ele_nombre: item.nombre || '',
             ele_cantidad_total: Number(item.ele_cantidad_total),
             ele_cantidad_actual: Number(item.ele_cantidad_actual),
+            ubi_ele_id: item.ubi_ele_id || '', // Asegúrate de incluir esta propiedad
             pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado), // Cantidad prestada
             editing: false // Inicialmente, la edición está deshabilitada
           }));

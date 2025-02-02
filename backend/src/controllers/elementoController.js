@@ -3,7 +3,23 @@ const PrestamoElemento = require('../models/prestamoElementoModel');
 
 // Crear un nuevo elemento
 const crearElemento = async (req, res) => {
-  const data = req.body;
+  console.log('Datos recibidos en el backend:', req.body);
+
+  const { ele_nombre, ele_cantidad_total, ubi_ele_id, ele_imagen } = req.body;
+
+  if (!ele_nombre || typeof ele_cantidad_total === 'undefined' || !ubi_ele_id) {
+    console.log('Datos faltantes:', { ele_nombre, ele_cantidad_total, ubi_ele_id });
+    return res.status(400).json({ respuesta: false, mensaje: 'Todos los campos son obligatorios.' });
+  }
+
+  const data = {
+    ele_nombre,
+    ele_cantidad_total,
+    ele_cantidad_actual: ele_cantidad_total,
+    ele_imagen,
+    ubi_ele_id
+  };
+
   try {
     await Elemento.crear(data);
     res.json({ respuesta: true, mensaje: '¡Elemento creado con éxito!' });

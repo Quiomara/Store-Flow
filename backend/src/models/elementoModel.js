@@ -3,6 +3,9 @@ const db = require('../config/db');
 const Elemento = {
   // Crear un nuevo elemento
   crear: async (data) => {
+    if (!data.ele_nombre) {
+      throw new Error("El campo 'ele_nombre' es obligatorio.");
+    }
     const query = `
       INSERT INTO Elementos (ele_nombre, ele_cantidad_total, ele_cantidad_actual, ele_imagen, ubi_ele_id)
       VALUES (?, ?, ?, ?, ?)
@@ -14,9 +17,11 @@ const Elemento = {
       data.ele_imagen,
       data.ubi_ele_id
     ];
+    console.log('Datos a insertar:', values); // Agregar log para verificar los datos
     const [result] = await db.query(query, values);
     return result;
   },
+
 
   // Actualizar un elemento
   actualizar: async (data) => {
