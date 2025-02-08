@@ -15,9 +15,12 @@ const auth = require('./middleware/auth');
 const app = express();
 
 console.log('Configurando middlewares...');
+
+// Configurar el tamaño máximo permitido para el cuerpo de la solicitud
+app.use(bodyParser.json({ limit: '25mb' }));
+app.use(bodyParser.urlencoded({ limit: '25mb', extended: true }));
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
 
 console.log('Definiendo rutas...');
 app.use('/api/auth', authRoutes);

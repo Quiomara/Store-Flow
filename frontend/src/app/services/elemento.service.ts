@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Elemento } from '../models/elemento.model';
 import { Router } from '@angular/router'; // Importar Router para redireccionar
+import { Elemento } from '../models/elemento.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,14 +13,15 @@ export class ElementoService {
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  // Método para obtener encabezados con el token
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
     if (!token) {
+      console.warn('No se encontró el token en localStorage, redirigiendo al login.');
       this.router.navigate(['/login']); // Redirigir al login si no hay token
-      throw new Error('No se encontró el token en localStorage');
+      return new HttpHeaders(); // Devolver encabezados vacíos para evitar lanzar excepciones
     }
     return new HttpHeaders({
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     });
   }
@@ -52,13 +53,13 @@ export class ElementoService {
     );
   }
 
-  // Obtener todos los elementos
-  getElementos(): Observable<Elemento[]> {
-    const headers = this.getHeaders();
-    return this.http.get<Elemento[]>(`${this.apiUrl}/elementos`, { headers }).pipe(
-      catchError(this.handleError.bind(this))
-    );
-  }
+// Obtener todos los elementos
+getElementos(): Observable<Elemento[]> {
+  const headers = this.getHeaders();
+  return this.http.get<Elemento[]>(`${this.apiUrl}/elementos`, { headers }).pipe(
+    catchError(this.handleError.bind(this))
+  );
+}
 
   actualizarCantidadPrestado(pre_id: number, ele_id: number, pre_ele_cantidad_prestado: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/actualizar-cantidad`, { pre_id, ele_id, pre_ele_cantidad_prestado }, { headers: this.getHeaders() }).pipe(

@@ -102,6 +102,10 @@ export class InventoryComponent implements OnInit {
           ...elemento,
           ubi_nombre: this.ubicaciones.find(ubicacion => ubicacion.ubi_ele_id === elemento.ubi_ele_id)?.ubi_nombre || ''
         }));
+
+        // Ordenar los elementos por `ele_id` en orden ascendente
+        this.inventario.sort((a, b) => a.ele_id - b.ele_id);
+
         this.filteredInventario.data = this.inventario;
       },
       error: (error: any) => {

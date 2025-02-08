@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, LoginResponse  } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,30 +27,29 @@ export class LoginComponent {
       return;
     }
 
-    this.authService.login(this.email, this.password).subscribe(
-      response => {
-        if (response && response.token) {
-          this.errorMessage = '';  // Limpiar el mensaje de error
-          // Guardar el token y la cédula en localStorage
-          this.authService.setToken(response.token);
-          if (response.cedula) {
-            this.authService.setCedula(response.cedula);
-          }
-          this.redirectUser(response.userType);
+    this.authService.login(this.email, this.password).subscribe({
+      next: (response: LoginResponse) => { // <-- Especifica el tipo
+        this.errorMessage = '';
+        this.authService.setToken(response.token);
+        
+        if (response.cedula) {
+          this.authService.setCedula(response.cedula);
         }
+
+        // Verificación adicional para TypeScript
+        if (!response.userType) {
+          this.errorMessage = 'Error: Tipo de usuario no definido';
+          return;
+        }
+        
+        this.redirectUser(response.userType);
       },
-      error => {
+      error: (error) => {
         this.errorMessage = error.message || 'Error desconocido.';
         console.error('Detalles del error:', error);
-        // Mostrar todos los detalles del error
-        if (error.error) {
-          this.errorMessage += ` Detalles del error: ${JSON.stringify(error.error)}`;
-        }
-        if (error.status) {
-          this.errorMessage += ` (Status: ${error.status})`;
-        }
+        // ... resto del manejo de errores
       }
-    );
+    });
   }
   
 
@@ -77,52 +76,3 @@ export class LoginComponent {
     });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

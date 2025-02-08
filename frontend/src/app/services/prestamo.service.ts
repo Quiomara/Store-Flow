@@ -21,9 +21,11 @@ export class PrestamoService {
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     if (!token) {
-      console.error('Token de autenticación no disponible.');
-      throw new Error('Token de autenticación no disponible.');
+      console.warn('Token de autenticación no disponible, redirigiendo al login.');
+      this.authService.clearToken(); // Limpiar cualquier token presente
+      return new HttpHeaders(); // Devolver encabezados vacíos para evitar lanzar excepciones
     }
+    console.log('Usando token en PrestamoService:', token); // Log para verificar el token
     return new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -31,15 +33,17 @@ export class PrestamoService {
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    console.error('Ocurrió un error:', error);
+    let errorMessage = 'Error desconocido';
     if (error.status === 401 || error.status === 403) {
+      console.warn('No autorizado. Redirigiendo al inicio de sesión...');
       this.authService.clearToken();
-      window.location.href = '/login';
+      errorMessage = 'No autorizado. Redirigiendo al inicio de sesión...';
+    } else if (error.error instanceof ErrorEvent) {
+      errorMessage = `Error del cliente: ${error.error.message}`;
+    } else {
+      errorMessage = `Error ${error.status}: ${error.error?.message || error.statusText}`;
     }
-    let errorMessage = 'Ocurrió un error en la solicitud.';
-    if (error.error && error.error.message) {
-      errorMessage = error.error.message;
-    }
+    console.error('Error en PrestamoService:', errorMessage, '\nDetalles:', error);
     return throwError(() => new Error(errorMessage));
   }
 

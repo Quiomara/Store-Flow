@@ -26,10 +26,10 @@
   <div class="form-row">
     <label for="ele_imagen" class="font-weight-bold">Elige la imagen a subir:</label>
     <input type="file" id="ele_imagen" (change)="onFileSelected($event)" class="form-control">
-    <small *ngIf="!data.form.get('ele_imagen')?.value" class="form-text text-muted">Ningún archivo seleccionado</small>
+    <small *ngIf="!fileSelected" class="form-text text-muted">Ningún archivo seleccionado</small>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)="onNoClick()">Cancelar</button>
-  <button mat-button [mat-dialog-close]="data.form.value">Guardar</button>
+  <button mat-button (click)="guardar()">Guardar</button> <!-- Llamar al método guardar -->
 </mat-dialog-actions>
