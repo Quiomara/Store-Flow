@@ -1,0 +1,35 @@
+<h2 mat-dialog-title class="modal-title">Editar Información del Elemento</h2>
+<mat-dialog-content [formGroup]="data.form">
+  <div class="form-row">
+    <mat-form-field class="full-width">
+      <mat-label>Nombre del Elemento</mat-label>
+      <input matInput formControlName="ele_nombre" #nombreInput>
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field class="full-width">
+      <mat-label>Cantidad</mat-label>
+      <input matInput type="number" formControlName="ele_cantidad_total">
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <mat-form-field class="full-width">
+      <mat-label>Ubicación</mat-label>
+      <mat-select formControlName="ubi_nombre">
+        <mat-option value="" disabled>Seleccione una ubicación</mat-option>
+        <mat-option *ngFor="let ubicacion of ubicaciones" [value]="ubicacion.ubi_nombre">
+          {{ ubicacion.ubi_nombre }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="form-row">
+    <label for="ele_imagen" class="font-weight-bold">Elige la imagen a subir:</label>
+    <input type="file" id="ele_imagen" (change)="onFileSelected($event)" class="form-control">
+    <small *ngIf="!data.form.get('ele_imagen')?.value" class="form-text text-muted">Ningún archivo seleccionado</small>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Cancelar</button>
+  <button mat-button [mat-dialog-close]="data.form.value">Guardar</button>
+</mat-dialog-actions>

@@ -1,57 +1,52 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { Router } from '@angular/router'; // Importar Router para redireccionar
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth'; // Base URL del endpoint de autenticación
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {} // Inyectar Router
 
   // Método para iniciar sesión de usuario
   login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password })
-      .pipe(
-        map(response => {
-          console.log('Respuesta del servidor:', response);
-          if (response && response.token) {
-            this.setToken(response.token); // Almacena el token
-            console.log('Token almacenado:', response.token);
-            if (response.cedula) {
-              this.setCedula(response.cedula.toString()); // Almacena la cédula
-              console.log('Cédula almacenada:', response.cedula);
-            }
-            return response;
+    return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
+      map((response) => {
+        if (response && response.token) {
+          this.setToken(response.token); // Almacenar el token
+          if (response.cedula) {
+            this.setCedula(response.cedula.toString()); // Almacenar la cédula
           }
-          throw new Error('Inicio de sesión fallido');
-        }),
-        catchError(this.handleLoginError.bind(this))
-      );
+          return response;
+        }
+        throw new Error('Inicio de sesión fallido');
+      }),
+      catchError(this.handleLoginError)
+    );
   }
 
   // Método para manejar la recuperación de contraseñas
   forgotPassword(email: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email })
-      .pipe(
-        map(response => response),
-        catchError(this.handleError.bind(this))
-      );
+    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { correo: email }).pipe(
+      map((response) => response),
+      catchError(this.handleError)
+    );
   }
 
   // Método para manejar el restablecimiento de contraseñas
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/reset-password`, { token, newPassword })
-      .pipe(
-        map(response => response),
-        catchError(this.handleError.bind(this))
-      );
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, { token, newPassword }).pipe(
+      map((response) => response),
+      catchError(this.handleError)
+    );
   }
 
   // Manejo de errores del inicio de sesión
-  private handleLoginError(error: any): Observable<never> {
+  private handleLoginError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
     if (error.status === 400) {
       errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
@@ -65,78 +60,57 @@ export class AuthService {
   }
 
   // Manejo general de errores
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Ocurrió un error:', error);
     return throwError(() => new Error('Ocurrió un error'));
   }
 
   // Almacenamiento del token en localStorage
   setToken(token: string): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('token', token);
-      console.log('Token almacenado en localStorage:', token);
-    }
+    localStorage.setItem('token', token);
   }
 
   // Recuperación del token desde localStorage
   getToken(): string | null {
-    if (typeof localStorage !== 'undefined') {
-      const token = localStorage.getItem('token');
-      console.log('Recuperando token del localStorage:', token);  // Verificación del token
-      return token;
-    }
-    return null;
+    return localStorage.getItem('token');
   }
 
   // Borrar el token de localStorage
   clearToken(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('token');
-      console.log('Token eliminado del localStorage');
-    }
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']); // Redirigir al login
   }
 
   // Almacenamiento de la cédula en localStorage
   setCedula(cedula: string): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('cedula', cedula);
-      console.log('Cédula almacenada en localStorage:', cedula);
-    }
+    localStorage.setItem('cedula', cedula);
   }
 
   // Recuperación de la cédula desde localStorage
   getCedula(): string | null {
-    if (typeof localStorage !== 'undefined') {
-      const cedula = localStorage.getItem('cedula');
-      console.log('Recuperando cédula del localStorage:', cedula);
-      return cedula;
-    }
-    return null;
+    return localStorage.getItem('cedula');
   }
 
   // Borrar la cédula de localStorage
   clearCedula(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('cedula');
-      console.log('Cédula eliminada del localStorage');
-    }
+    localStorage.removeItem('cedula');
   }
 
   // Obtener encabezados de autenticación con el token
   getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
     if (!token) {
-      console.error('No se encontró el token en localStorage.');
-      throw new Error('No se encontró el token de autenticación.');
+      console.warn('No se encontró el token de autenticación, redirigiendo al login.');
+      this.router.navigate(['/login']); // Redirigir al login si no hay token
+      return new HttpHeaders(); // Devolver encabezados vacíos
     }
     return new HttpHeaders({
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     });
   }
 
   // Verificar si el usuario está autenticado
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    return !!token; // Devuelve true si el token existe, false si no
+    return !!this.getToken(); // Devuelve true si el token existe, false si no
   }
 }

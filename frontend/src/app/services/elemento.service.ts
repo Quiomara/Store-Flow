@@ -1,80 +1,80 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse,  HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Elemento } from '../models/elemento.model';
-import { AuthService } from './auth.service';
-import { Ubicacion } from '../models/ubicacion.model';
+import { Router } from '@angular/router'; // Importar Router para redireccionar
 
 @Injectable({
   providedIn: 'root',
 })
 export class ElementoService {
-  private apiUrl = 'http://localhost:3000/api'; // ✅ URL base general
+  private apiUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
-  // elemento.service.ts
   private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.router.navigate(['/login']); // Redirigir al login si no hay token
+      throw new Error('No se encontró el token en localStorage');
+    }
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+      Authorization: `Bearer ${token}`,
     });
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    console.error('Ocurrió un error:', error);
-    return throwError(() => new Error(error.message));
-  }
+    let errorMessage = 'Error desconocido';
 
-  // Método para crear un elemento
+    if (error.status === 401 || error.status === 403) {
+      localStorage.removeItem('token'); // Eliminar el token inválido
+      console.warn('No autorizado. Redirigiendo al inicio de sesión...');
+      this.router.navigate(['/login']); // Redirigir al login
+      errorMessage = 'No autorizado. Redirigiendo al inicio de sesión...';
+    } else if (error.error instanceof ErrorEvent) {
+      errorMessage = `Error del cliente: ${error.error.message}`;
+    } else {
+      errorMessage = `Error ${error.status}: ${error.error?.message || error.statusText}`;
+    }
+
+    console.error('Error en ElementoService:', errorMessage, '\nDetalles:', error);
+    return throwError(() => new Error(errorMessage));
+  }
+  
+  // Métodos del servicio (sin cambios)
   crearElemento(elemento: any): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-    });
-
-    return this.http.post(`${this.apiUrl}/elementos/crear`, elemento, { headers })
-      .pipe(
-        catchError(this.handleError)
-      );
+    return this.http.post(`${this.apiUrl}/elementos/crear`, elemento, { 
+      headers: this.getHeaders() 
+    }).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  // Método para obtener la lista de elementos
+  // Obtener todos los elementos
   getElementos(): Observable<Elemento[]> {
     const headers = this.getHeaders();
-    return this.http
-      .get<Elemento[]>(`${this.apiUrl}/elementos`, { headers }) // Concatenar la ruta /elementos
-      .pipe(catchError(this.handleError.bind(this)));
+    return this.http.get<Elemento[]>(`${this.apiUrl}/elementos`, { headers }).pipe(
+      catchError(this.handleError.bind(this))
+    );
   }
 
-  // Actualizar cantidad prestada
-  actualizarCantidadPrestado(
-    pre_id: number,
-    ele_id: number,
-    pre_ele_cantidad_prestado: number
-  ): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http
-      .put(
-        `${this.apiUrl}/actualizar-cantidad`,
-        { pre_id, ele_id, pre_ele_cantidad_prestado },
-        { headers }
-      )
-      .pipe(catchError(this.handleError.bind(this)));
+  actualizarCantidadPrestado(pre_id: number, ele_id: number, pre_ele_cantidad_prestado: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/actualizar-cantidad`, { pre_id, ele_id, pre_ele_cantidad_prestado }, { headers: this.getHeaders() }).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  // Actualizar stock
-  actualizarStock(updateStock: {
-    ele_id: number;
-    ele_cantidad_actual: number;
-    ele_cantidad_total: number;
-  }): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http
-      .put(`${this.apiUrl}/actualizar-stock`, updateStock, { headers })
-      .pipe(catchError(this.handleError.bind(this)));
+  actualizarStock(updateStock: { ele_id: number; ele_cantidad_actual: number; ele_cantidad_total: number; }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/actualizar-stock`, updateStock, { headers: this.getHeaders() }).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  
+  actualizarElemento(elemento: Elemento): Observable<any> {
+    return this.http.put(`${this.apiUrl}/elementos/actualizar`, elemento, { headers: this.getHeaders() }).pipe(
+      catchError(this.handleError)
+    );
+  }
 }

@@ -58,22 +58,23 @@ export class PrestamoDetalleModalComponent implements OnInit {
       console.error('ID del préstamo no definido.');
       return;
     }
-  
+
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe(
       (response: any) => {
         console.log('Respuesta completa del servicio:', response);
-  
+
         if (response && response.data) {
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
             ele_nombre: item.nombre || '',
             ele_cantidad_total: Number(item.ele_cantidad_total),
             ele_cantidad_actual: Number(item.ele_cantidad_actual),
-            ubi_ele_id: item.ubi_ele_id || '', // Asegúrate de incluir esta propiedad
+            ubi_ele_id: item.ubi_ele_id, // Asegúrate de incluir esta propiedad
+            ubi_nombre: item.ubi_nombre || '', // Asegúrate de incluir esta propiedad
             pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado), // Cantidad prestada
             editing: false // Inicialmente, la edición está deshabilitada
           }));
-  
+
           this.originalItems = this.prestamo.elementos.map(item => ({ ...item }));
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
           console.log('Estado del préstamo asignado:', this.prestamo.estado);
@@ -106,47 +107,47 @@ export class PrestamoDetalleModalComponent implements OnInit {
   saveChanges(item: EditableElemento): void {
     if (item.editing) {
       item.editing = false;
-  
+
       // Verificar que el ID del préstamo esté definido
       const pre_id = this.prestamo.idPrestamo;
       if (pre_id === undefined) {
         console.error('ID del préstamo no definido.');
         return;
       }
-  
+
       // Buscar el elemento original para comparar cantidades
       const originalItem = this.originalItems.find(
         (originalItem) => originalItem.ele_id === item.ele_id
       );
-  
+
       if (!originalItem) {
         console.error('Elemento original no encontrado.');
         return;
       }
-  
+
       const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado); // Cantidad original prestada
       const cantidadActual = Number(item.pre_ele_cantidad_prestado); // Nueva cantidad prestada
       const diferencia = cantidadActual - cantidadOriginal; // Diferencia entre la nueva cantidad y la original
-  
+
       // Actualizar cantidad en PrestamosElementos
       const updatePrestamoElemento = {
         pre_id: pre_id, // Usar la variable temporal pre_id
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
-  
+
       // Actualizar stock
       const updateStock = {
         ele_id: item.ele_id,
         ele_cantidad_actual: -diferencia, // Ajustar el stock según la diferencia
         ele_cantidad_total: 0 // No cambia el total
       };
-  
+
       // Llamadas a servicios para actualizar
       this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
         () => {
           console.log('Cantidad en PrestamosElementos actualizada');
-  
+
           // Si la actualización en PrestamosElementos fue exitosa, actualizar el stock
           this.elementoService.actualizarStock(updateStock).subscribe(
             () => {
@@ -155,14 +156,14 @@ export class PrestamoDetalleModalComponent implements OnInit {
             },
             (error) => {
               console.error('Error actualizando stock', error);
-  
+
               // Revertir la actualización en PrestamosElementos si falla la actualización del stock
               const revertUpdatePrestamoElemento = {
                 pre_id: pre_id, // Usar la variable temporal pre_id
                 ele_id: item.ele_id,
                 pre_ele_cantidad_prestado: cantidadOriginal
               };
-  
+
               this.prestamoService.updatePrestamoElemento(revertUpdatePrestamoElemento).subscribe(
                 () => console.log('Revertida la actualización en PrestamosElementos'),
                 (revertError) => console.error('Error al revertir la actualización en PrestamosElementos', revertError)

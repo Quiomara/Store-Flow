@@ -1,0 +1,29 @@
+.modal-title {
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .form-column {
+    flex: 1;
+    padding: 0 10px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  mat-form-field {
+    display: block;
+  }
+  
+  input[type="file"] {
+    width: 100%;
+  }
+  

@@ -7,6 +7,7 @@ import {
 import express from 'express';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import 'localstorage-polyfill'; // Polyfill para localStorage en el servidor
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -14,21 +15,10 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+// Configurar el polyfill para localStorage en el servidor
+global['localStorage'] = localStorage; // Hacer que localStorage esté disponible globalmente
 
-/**
- * Serve static files from /browser
- */
+// Configurar middleware para servir archivos estáticos
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
@@ -37,9 +27,7 @@ app.use(
   }),
 );
 
-/**
- * Handle all other requests by rendering the Angular application.
- */
+// Manejar todas las solicitudes con Angular Universal
 app.use('/**', (req, res, next) => {
   angularApp
     .handle(req)
@@ -49,10 +37,7 @@ app.use('/**', (req, res, next) => {
     .catch(next);
 });
 
-/**
- * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
- */
+// Iniciar el servidor si este archivo es el punto de entrada principal
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
   app.listen(port, () => {
@@ -60,7 +45,5 @@ if (isMainModule(import.meta.url)) {
   });
 }
 
-/**
- * The request handler used by the Angular CLI (dev-server and during build).
- */
+// Exportar el manejador de solicitudes para uso en otros módulos
 export const reqHandler = createNodeRequestHandler(app);

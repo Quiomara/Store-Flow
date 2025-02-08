@@ -26,7 +26,7 @@ export class LoginComponent {
       this.errorMessage = 'Correo y contraseña son necesarios.';
       return;
     }
-  
+
     this.authService.login(this.email, this.password).subscribe(
       response => {
         if (response && response.token) {

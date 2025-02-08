@@ -22,7 +22,6 @@ const Elemento = {
     return result;
   },
 
-
   // Actualizar un elemento
   actualizar: async (data) => {
     const query = `
@@ -38,8 +37,16 @@ const Elemento = {
       data.ubi_ele_id,
       data.ele_id
     ];
-    const [result] = await db.query(query, values);
-    return result;
+    console.log('Datos a actualizar en la base de datos:', values); // Log para verificar los datos
+
+    try {
+      const [result] = await db.query(query, values);
+      console.log('Resultado de la consulta de actualización:', result); // Log para verificar el resultado
+      return result;
+    } catch (err) {
+      console.error('Error en la consulta de actualización:', err); // Log para verificar el error
+      throw err;
+    }
   },
 
   // Actualizar el stock (cantidad actual)
@@ -63,7 +70,11 @@ const Elemento = {
 
   // Obtener todos los elementos
   obtenerTodos: async () => {
-    const query = `SELECT * FROM Elementos`;
+    const query = `
+      SELECT e.ele_id, e.ele_nombre, e.ele_cantidad_total, e.ele_cantidad_actual, e.ele_imagen, e.ubi_ele_id, u.ubi_nombre
+      FROM Elementos e
+      JOIN UbicacionElementos u ON e.ubi_ele_id = u.ubi_ele_id
+    `;
     const [results] = await db.query(query);
     return results;
   },
@@ -71,9 +82,10 @@ const Elemento = {
   // Obtener un elemento por su ID
   obtenerPorId: async (ele_id) => {
     const query = `
-      SELECT ele_id, ele_nombre, ele_cantidad_total, ele_cantidad_actual, ele_imagen, ubi_ele_id
-      FROM Elementos
-      WHERE ele_id = ?
+      SELECT e.ele_id, e.ele_nombre, e.ele_cantidad_total, e.ele_cantidad_actual, e.ele_imagen, e.ubi_ele_id, u.ubi_nombre
+      FROM Elementos e
+      JOIN UbicacionElementos u ON e.ubi_ele_id = u.ubi_ele_id
+      WHERE e.ele_id = ?
     `;
     const [results] = await db.query(query, [ele_id]);
     return results[0] || null;

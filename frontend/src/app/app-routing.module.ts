@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 
+// Importar los componentes necesarios
 import { LoginComponent } from './components/login/login.component';
 import { ForgotPasswordPopupComponent } from './components/forgot-password-popup/forgot-password-popup.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
@@ -14,9 +15,9 @@ import { InstructorRequestComponent } from './components/instructor/instructor-r
 import { WarehouseRequestsComponent } from './components/warehouse/warehouse-requests/warehouse-requests.component';
 import { InstructorHistoryComponent } from './components/instructor/instructor-history/instructor-history.component';
 import { WarehouseHistoryComponent } from './components/warehouse/warehouse-history/warehouse-history.component';
-import { PrestamoDetalleModalComponent } from './components/prestamo-detalle-modal/prestamo-detalle-modal.component'; // Importa el componente del modal
+import { PrestamoDetalleModalComponent } from './components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { RegisterElementComponent } from './components/warehouse/register-element/register-element.component';
-import {InventoryComponent } from './components/warehouse/inventory/inventory.component'
+import { InventoryComponent } from './components/warehouse/inventory/inventory.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -45,8 +46,8 @@ export const routes: Routes = [
     component: WarehouseDashboardComponent,
     children: [
       { path: 'loan-requests', component: WarehouseRequestsComponent },
-      { path: 'register-element', component: RegisterElementComponent }, // Placeholder component
-      { path: 'inventory', component: InventoryComponent }, // Placeholder component
+      { path: 'register-element', component: RegisterElementComponent },
+      { path: 'inventory', component: InventoryComponent },
       { path: 'history', component: WarehouseHistoryComponent },
       { path: '', redirectTo: 'loan-requests', pathMatch: 'full' }
     ]
@@ -60,4 +61,3 @@ export const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
-

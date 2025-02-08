@@ -33,13 +33,16 @@ const crearElemento = async (req, res) => {
 const actualizarElemento = async (req, res) => {
   const data = req.body;
   try {
-    await Elemento.actualizar(data);
-    res.json({ respuesta: true, mensaje: '¡Elemento actualizado con éxito!' });
+    console.log('Datos recibidos para actualizar:', data); // Log para verificar los datos recibidos
+    const result = await Elemento.actualizar(data);
+    console.log('Resultado de la actualización:', result); // Log para verificar el resultado de la actualización
+    res.json({ respuesta: true, mensaje: '¡Elemento actualizado con éxito!', result });
   } catch (err) {
-    console.error('Error al actualizar el elemento:', err.stack);
-    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el elemento.' });
+    console.error('Error al actualizar el elemento:', err.stack); // Log para verificar el error
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el elemento.', error: err });
   }
 };
+
 
 // Actualizar la cantidad prestada de un elemento
 const actualizarCantidadPrestado = async (req, res) => {
