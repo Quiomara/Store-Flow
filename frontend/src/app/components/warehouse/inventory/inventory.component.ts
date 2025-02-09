@@ -122,6 +122,8 @@ export class InventoryComponent implements OnInit {
     });
   }
   
+  
+  
 
   applyFilter(): void {
     const { searchId, searchElemento } = this.searchForm.value;
@@ -221,34 +223,35 @@ export class InventoryComponent implements OnInit {
   }
 
   eliminarElemento(elemento: Elemento): void {
-    console.log('Elemento a eliminar:', elemento); // Verificar el valor de elemento
+    console.log('Elemento a eliminar:', elemento); // Verifica que el objeto esté completo
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
-      data: { elemento: elemento } // Pasar el objeto completo
+      data: { elemento: elemento } // Pasa el objeto completo
     });
   
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result: Elemento | null) => {
       if (result) {
-        console.log('ID del elemento para eliminar:', elemento.ele_id); // Verificar ele_id
-        if (!elemento.ele_id) {
+        console.log('ID del elemento para eliminar (recibido del diálogo):', result.ele_id);
+        console.log('Elemento completo recibido del diálogo:', result);
+        if (!result.ele_id) {
           console.error('ele_id es undefined');
           return;
         }
-        this.elementoService.eliminarElemento(elemento.ele_id).subscribe(
+        this.elementoService.eliminarElemento(result.ele_id).subscribe(
           (response: any) => {
-            this.inventario = this.inventario.filter(e => e.ele_id !== elemento.ele_id); // Actualizar el inventario local
+            this.inventario = this.inventario.filter(e => e.ele_id !== result.ele_id);
             this.filteredInventario.data = this.inventario;
-            this.snackBar.open(`Elemento "${elemento.ele_nombre}" eliminado correctamente`, '', {
+            this.snackBar.open(`Elemento "${result.ele_nombre}" eliminado correctamente`, '', {
               duration: 3000,
               horizontalPosition: 'right',
               verticalPosition: 'bottom',
               panelClass: ['snack-bar-success']
             });
-            this.obtenerInventario(); // Refrescar la lista
+            this.obtenerInventario();
           },
           (error: any) => {
             console.error('Error al eliminar el elemento:', error);
-            this.snackBar.open(`Error al eliminar "${elemento.ele_nombre}"`, '', {
+            this.snackBar.open(`Error al eliminar "${result.ele_nombre}"`, '', {
               duration: 3000,
               horizontalPosition: 'right',
               verticalPosition: 'bottom',
@@ -259,10 +262,11 @@ export class InventoryComponent implements OnInit {
             }
           }
         );
+      } else {
+        console.log('Eliminación cancelada. El diálogo de confirmación cerró sin confirmar.');
       }
     });
   }
-  
   
   
 
