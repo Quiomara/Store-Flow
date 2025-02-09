@@ -1,17 +1,5 @@
-import {
-  Component,
-  Inject,
-  AfterViewInit,
-  ViewChild,
-  ElementRef,
-  ChangeDetectorRef,
-  OnInit,
-} from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogModule,
-} from '@angular/material/dialog';
+import { Component, Inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, OnInit,} from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule,} from '@angular/material/dialog';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -56,7 +44,7 @@ export class EditModalComponent implements OnInit, AfterViewInit {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private http: HttpClient
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.ubicaciones = this.data.ubicaciones;
@@ -106,7 +94,7 @@ export class EditModalComponent implements OnInit, AfterViewInit {
               height = MAX_HEIGHT;
             }
           }
-          
+
           canvas.width = width;
           canvas.height = height;
           ctx?.drawImage(img, 0, 0, width, height);

@@ -8,7 +8,7 @@ import { Ubicacion } from '../../../models/ubicacion.model';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { UbicacionService } from '../../../services/ubicacion.service';
-import { MatSnackBar } from '@angular/material/snack-bar'; // 
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-register-element',
@@ -28,7 +28,7 @@ export class RegisterElementComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private ubicacionService: UbicacionService,
-    private snackBar: MatSnackBar // Inyectar MatSnackBar
+    private snackBar: MatSnackBar
   ) {
     this.formulario = this.fb.group({
       ele_nombre: ['', Validators.required],
@@ -39,7 +39,7 @@ export class RegisterElementComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.authService.getToken()) {
+    if (!this.authService.isAuthenticated()) { // Usar método isAuthenticated para verificar autenticación
       this.router.navigate(['/login']);
       return;
     }
@@ -87,7 +87,7 @@ export class RegisterElementComponent implements OnInit {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'bottom',
-            panelClass: ['snack-bar-success'] // Clase CSS para el color verde
+            panelClass: ['snack-bar-success']
           });
           this.formulario.reset();
         },

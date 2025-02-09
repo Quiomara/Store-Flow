@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { Ubicacion } from '../models/ubicacion.model';
+import { AuthService } from './auth.service'; // Importar AuthService para obtener el token
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,11 @@ import { Ubicacion } from '../models/ubicacion.model';
 export class UbicacionService {
   private apiUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private authService: AuthService // Inyectar AuthService para obtener el token
+  ) {}
 
   getUbicaciones(): Observable<Ubicacion[]> {
     const headers = this.getHeaders();
@@ -21,7 +26,7 @@ export class UbicacionService {
   }
 
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
+    const token = this.authService.getToken(); // Usar AuthService para obtener el token
     if (!token) {
       console.warn('No se encontró el token en localStorage, redirigiendo al login.');
       this.router.navigate(['/login']);

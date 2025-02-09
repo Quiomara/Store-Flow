@@ -66,6 +66,9 @@ export class InstructorRequestComponent implements OnInit {
       },
       (error: any) => {
         console.error('Error al obtener elementos:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.authService.logout(); // Cerrar sesión si el token es inválido
+        }
       }
     );
   }
