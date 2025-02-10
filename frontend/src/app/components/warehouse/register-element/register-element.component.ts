@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Ubicacion } from '../../../models/ubicacion.model';
@@ -18,9 +18,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./register-element.component.css'],
 })
 export class RegisterElementComponent implements OnInit {
+  @ViewChild('nombreInput', { static: false }) nombreInput!: ElementRef;
   formulario: FormGroup;
   ubicaciones: Ubicacion[] = [];
   imagenSeleccionada: string | null = null;
+  readonly MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
   constructor(
     private fb: FormBuilder,
@@ -28,7 +30,8 @@ export class RegisterElementComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private ubicacionService: UbicacionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {
     this.formulario = this.fb.group({
       ele_nombre: ['', Validators.required],
@@ -39,11 +42,20 @@ export class RegisterElementComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.authService.isAuthenticated()) { // Usar método isAuthenticated para verificar autenticación
+    if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
     this.obtenerUbicaciones();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      if (this.nombreInput) {
+        this.nombreInput.nativeElement.focus();
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   obtenerUbicaciones(): void {
@@ -59,11 +71,41 @@ export class RegisterElementComponent implements OnInit {
 
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
+    if (file.size > this.MAX_FILE_SIZE) {
+      alert('El archivo es demasiado grande. El tamaño máximo permitido es de 25 MB.');
+      return;
+    }
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        this.imagenSeleccionada = reader.result as string;
-        this.formulario.patchValue({ ele_imagen: this.imagenSeleccionada });
+        const img = new Image();
+        img.src = reader.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+          const resizedImage = canvas.toDataURL('image/jpeg');
+          this.formulario.patchValue({ ele_imagen: resizedImage });
+        };
       };
       reader.readAsDataURL(file);
     }
@@ -75,7 +117,7 @@ export class RegisterElementComponent implements OnInit {
         ele_nombre: this.formulario.get('ele_nombre')?.value,
         ele_cantidad_total: this.formulario.get('ele_cantidad_total')?.value,
         ubi_ele_id: this.formulario.get('ubi_ele_id')?.value,
-        ele_imagen: this.imagenSeleccionada
+        ele_imagen: this.formulario.get('ele_imagen')?.value,
       };
 
       console.log('Datos enviados:', elementoData);
@@ -87,7 +129,7 @@ export class RegisterElementComponent implements OnInit {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'bottom',
-            panelClass: ['snack-bar-success']
+            panelClass: ['snack-bar-success'],
           });
           this.formulario.reset();
         },
@@ -97,7 +139,7 @@ export class RegisterElementComponent implements OnInit {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'bottom',
-            panelClass: ['snack-bar-error']
+            panelClass: ['snack-bar-error'],
           });
         }
       );
@@ -106,7 +148,7 @@ export class RegisterElementComponent implements OnInit {
         duration: 3000,
         horizontalPosition: 'right',
         verticalPosition: 'bottom',
-        panelClass: ['snack-bar-warning']
+        panelClass: ['snack-bar-warning'],
       });
     }
   }
