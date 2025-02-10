@@ -7,7 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { User } from '../../../models/user.model';
-import { UserService } from '../../../services/user.service'; // Importa el servicio de usuario si es necesario para obtener datos
+import { UserService } from '../../../services/user.service';
+import { CentroService } from '../../../services/centro.service';
 
 @Component({
   selector: 'app-edit-user',
@@ -27,17 +28,13 @@ import { UserService } from '../../../services/user.service'; // Importa el serv
 export class EditUserComponent implements OnInit {
   editForm: FormGroup;
   centros: any[] = [];
-  tiposUsuario: any[] = [
-    { id: 1, nombre: 'Administrador' },
-    { id: 2, nombre: 'Instructor' },
-    { id: 3, nombre: 'Almacen' }
-    // Añade más tipos de usuario según sea necesario
-  ];
+  tiposUsuario: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<EditUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: User,
-    private userService: UserService // Inyecta el servicio de usuario si es necesario
+    private userService: UserService,
+    private centroService: CentroService
   ) {
     this.editForm = new FormGroup({
       cedula: new FormControl({ value: data.cedula, disabled: true }, Validators.required),
@@ -47,28 +44,52 @@ export class EditUserComponent implements OnInit {
       segundoApellido: new FormControl(data.segundoApellido),
       email: new FormControl(data.email, [Validators.required, Validators.email]),
       telefono: new FormControl(data.telefono, Validators.required),
-      centroFormacion: new FormControl(data.centroFormacion, Validators.required),
-      tipoUsuario: new FormControl(data.tipoUsuario, Validators.required) // Campo tipo usuario
+      centroFormacion: new FormControl('', Validators.required),
+      tipoUsuario: new FormControl(data.tipoUsuario, Validators.required)
     });
   }
 
   ngOnInit(): void {
-    this.loadCentros();
+    this.obtenerCentrosFormacion();
+    this.obtenerTiposUsuario();
   }
 
-  loadCentros(): void {
-    this.userService.getCentros().subscribe(
+  obtenerCentrosFormacion(): void {
+    this.centroService.getCentros().subscribe(
+      (response: any) => {
+        this.centros = response.data;
+        console.log('Centros de formación obtenidos:', this.centros);
+        this.editForm.patchValue({
+          centroFormacion: this.data.centroFormacion
+        });
+        console.log('Centro de formación inicializado:', this.editForm.get('centroFormacion')?.value);
+      },
+      (error) => {
+        console.error('Error al obtener centros de formación', error);
+        if (error.error) {
+          console.error('Detalles del error:', error.error);
+        }
+        if (error.message) {
+          console.error('Mensaje del error:', error.message);
+        }
+        if (error.status) {
+          console.error('Código de estado del error:', error.status);
+        }
+      }
+    );
+  }
+
+  obtenerTiposUsuario(): void {
+    this.userService.getTiposUsuario().subscribe(
       (response: any) => {
         if (Array.isArray(response)) {
-          this.centros = response;
-        } else if (response && Array.isArray(response.data)) {
-          this.centros = response.data;
+          this.tiposUsuario = response;
         } else {
-          console.error('Formato de respuesta inesperado para centros de formación:', response);
+          console.error('Formato de respuesta inesperado para tipos de usuario:', response);
         }
       },
-      (error: any) => {
-        console.error('Error al obtener centros de formación', error);
+      (error) => {
+        console.error('Error al obtener tipos de usuario', error);
       }
     );
   }
@@ -76,7 +97,7 @@ export class EditUserComponent implements OnInit {
   onSave(): void {
     if (this.editForm.valid) {
       const updatedUser = { ...this.data, ...this.editForm.getRawValue() };
-      console.log('Datos actualizados que se enviarán:', updatedUser); // Debugging
+      console.log('Datos actualizados que se enviarán:', updatedUser);
       this.dialogRef.close(updatedUser);
     }
   }
@@ -85,6 +106,3 @@ export class EditUserComponent implements OnInit {
     this.dialogRef.close();
   }
 }
-
-
-

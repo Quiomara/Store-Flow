@@ -6,8 +6,10 @@ export interface User {
   segundoApellido?: string;
   email: string;
   confirmarEmail: string;
-  centroFormacion: string;
+  centroFormacion: string; // Este campo se mapea desde cen_nombre
+  cen_nombre?: string; // Añadir este campo opcional
   tipoUsuario: string;
+  tip_usr_nombre?: string; // Añadir este campo opcional
   telefono?: string;
   contrasena: string;
   confirmarContrasena: string;
@@ -24,8 +26,7 @@ export interface UserBackend {
   usr_telefono?: string;
   tip_usr_id: string;
   cen_id: string;
+  cen_nombre?: string; // Añadir este campo opcional
+  tip_usr_nombre?: string; // Añadir este campo opcional
 }
 
-
-
-  

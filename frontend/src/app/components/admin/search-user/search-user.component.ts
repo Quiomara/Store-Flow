@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { UserService } from '../../../services/user.service';
-import { CentroService } from '../../../services/centro.service'; // Importa el servicio de centros
+import { CentroService } from '../../../services/centro.service';
 import { User, UserBackend } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
@@ -32,7 +32,7 @@ import { EditUserComponent } from '../edit-user/edit-user.component';
   ],
   templateUrl: './search-user.component.html',
   styleUrls: ['./search-user.component.css'],
-  providers: [UserService, CentroService] // Añade el servicio de centros
+  providers: [UserService, CentroService]
 })
 export class SearchUserComponent implements OnInit, AfterViewInit {
   searchForm: FormGroup;
@@ -76,12 +76,19 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   loadUsers(): void {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
+        console.log('Usuarios obtenidos:', response); // Verifica los usuarios obtenidos
+
         this.searchResults = response.map(user => {
-          // Asignar nombre del centro de formación
-          const centro = this.centros.find(c => c.cen_id === parseInt(user.centroFormacion));
-          user.centroFormacion = centro ? centro.cen_nombre : 'N/A';
+          console.log(`Centro de formación para usuario ${user.primerNombre} ${user.primerApellido}:`, user.cen_nombre);
+          console.log(`Tipo de usuario para usuario ${user.primerNombre} ${user.primerApellido}:`, user.tip_usr_nombre);
+
+          user.centroFormacion = user.cen_nombre || 'N/A'; // Asigna directamente el nombre del centro
+          user.tipoUsuario = user.tip_usr_nombre || 'N/A'; // Asigna directamente el nombre del tipo de usuario
           return user;
         });
+
+        console.log('Usuarios con centros y tipos de usuario asignados:', this.searchResults); // Verifica los usuarios después de asignar el centro y tipo de usuario
+
         this.filteredResults = this.searchResults;
         this.dataSource.data = this.filteredResults;
         this.sortUsersAlphabetically();
@@ -96,23 +103,13 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   loadCentros(): void {
     this.centroService.getCentros().subscribe(
       (response: any) => {
-        this.centros = response.data; // Ajusta esto según el formato de la respuesta
-        console.log('Centros de formación obtenidos:', this.centros);
-        
-        // Cargar los usuarios después de cargar los centros
-        this.loadUsers();
+        this.centros = response.data;
+        console.log('Centros de formación obtenidos:', this.centros); // Verifica los centros obtenidos
+
+        this.loadUsers(); // Carga los usuarios después de obtener los centros
       },
       (error: any) => {
         console.error('Error al obtener centros de formación', error);
-        if (error.error) {
-          console.error('Detalles del error:', error.error);
-        }
-        if (error.message) {
-          console.error('Mensaje del error:', error.message);
-        }
-        if (error.status) {
-          console.error('Código de estado del error:', error.status);
-        }
       }
     );
   }
@@ -121,13 +118,16 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     this.filteredResults = this.searchResults.filter(user => {
       const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
       const nombreFiltrado = values.nombre.toLowerCase();
-      const centroFiltrado = this.centros.find(centro => centro.cen_id.toString() === values.centroFormacion)?.cen_nombre || '';
+      const centroFiltrado = this.centros.find(c => c.cen_id === Number(values.centroFormacion))?.cen_nombre; // Encontrar el nombre del centro por ID
+      console.log('Valores del formulario:', values); // Log para verificar los valores del formulario
 
       return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
              (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
              (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
              (values.cedula === '' || user.cedula.toString().includes(values.cedula));
     });
+
+    console.log('Resultados filtrados:', this.filteredResults); // Log para verificar los resultados filtrados
 
     this.dataSource.data = this.filteredResults;
     this.sortUsersAlphabetically();
@@ -144,9 +144,13 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   }
 
   onEdit(user: User): void {
+    const centroNombre = this.centros.find(c => c.cen_id === user.centroFormacion)?.cen_nombre || user.centroFormacion;
     const dialogRef = this.dialog.open(EditUserComponent, {
       width: '600px',
-      data: user
+      data: {
+        ...user,
+        centroFormacion: centroNombre
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {

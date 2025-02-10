@@ -4,6 +4,7 @@ import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { User, UserBackend } from '../models/user.model';
 import { AuthService } from './auth.service';
+import { Prestamo } from '../models/prestamo.model';
 
 interface ApiResponse<T> {
   respuesta: boolean;
@@ -60,21 +61,21 @@ export class UserService {
 
   // Método para obtener todos los usuarios
   getUsers(): Observable<User[]> {
-    return forkJoin([this.getCentros(), this.getTiposUsuario(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
+    return forkJoin([this.getCentros(), this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios`, { headers: this.getHeaders() })])
       .pipe(
-        map(([centros, tiposUsuario, response]) => {
+        map(([centros, response]) => {
           if (response.respuesta) {
-            return response.data.map(user => this.mapUser(user, centros, tiposUsuario));
+            return response.data.map(user => this.mapUser(user, centros)); // Pasa solo los argumentos necesarios
           } else {
             throw new Error(response.mensaje);
           }
         })
       );
   }
-
-  private mapUser(user: UserBackend, centros: Centro[], tiposUsuario: TipoUsuario[]): User {
-    const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || 'N/A';
-    const tipoUsuario = tiposUsuario.find(tipo => tipo.id === Number(user.tip_usr_id))?.nombre || 'N/A';
+  
+  private mapUser(user: UserBackend, centros: Centro[]): User {
+    const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || user.cen_nombre || 'N/A';
+    const tipoUsuario = user.tip_usr_nombre || 'N/A'; // Asigna el nombre del tipo de usuario
 
     return {
       cedula: user.usr_cedula,
@@ -88,9 +89,12 @@ export class UserService {
       tipoUsuario: tipoUsuario,
       telefono: user.usr_telefono,
       contrasena: user.usr_contrasena,
-      confirmarContrasena: user.usr_contrasena
+      confirmarContrasena: user.usr_contrasena,
+      cen_nombre: user.cen_nombre, // Añadir el campo opcional
+      tip_usr_nombre: user.tip_usr_nombre // Añadir el campo opcional
     };
   }
+  
 
   // Método para buscar usuarios
   searchUsers(query: string): Observable<User[]> {
@@ -143,4 +147,9 @@ export class UserService {
         })
       );
   }
+
+  getPrestamos(): Observable<Prestamo[]> {
+    return this.http.get<Prestamo[]>(`${this.apiUrl}/prestamos`);
+  }
+
 }

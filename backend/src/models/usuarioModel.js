@@ -2,7 +2,12 @@ const db = require('../config/db');
 
 const Usuario = {
   buscarPorId: async (usr_cedula) => {
-    const query = 'SELECT * FROM Usuarios WHERE usr_cedula = ?';
+    const query = `
+      SELECT U.*, C.cen_nombre, T.tip_usr_nombre
+      FROM Usuarios U
+      JOIN Centros C ON U.cen_id = C.cen_id
+      JOIN TipoUsuarios T ON U.tip_usr_id = T.tip_usr_id
+      WHERE U.usr_cedula = ?`;
     const [rows] = await db.query(query, [usr_cedula]);
     return rows;
   },
@@ -38,7 +43,11 @@ const Usuario = {
   },
 
   buscarTodos: async () => {
-    const query = 'SELECT * FROM Usuarios';
+    const query = `
+      SELECT U.*, C.cen_nombre, T.tip_usr_nombre
+      FROM Usuarios U
+      JOIN Centros C ON U.cen_id = C.cen_id
+      JOIN TipoUsuarios T ON U.tip_usr_id = T.tip_usr_id`;
     const [rows] = await db.query(query);
     return rows;
   },

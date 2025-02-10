@@ -2,23 +2,13 @@
 import { Elemento } from './elemento.model'; // ✅ Importación necesaria
 
 export interface Prestamo {
-  idPrestamo?: number; 
+  idPrestamo?: number;
   cedulaSolicitante: number;
   solicitante?: string;
   fechaHora?: string;
   elementos: Elemento[]; // Ahora TypeScript reconocerá el tipo
   fecha: string;
   estado?: string;
-  fechaEntrega?: string;
+  fechaEntrega?: string;
+  instructorNombre?: string; // Nueva propiedad para el nombre completo del instructor
 }
-
-
-
-
-
-
-
-
-
-
-  

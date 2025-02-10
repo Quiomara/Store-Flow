@@ -49,8 +49,8 @@
       <mat-form-field class="half-width">
         <mat-label>Centro de Formación</mat-label>
         <mat-select formControlName="centroFormacion">
-          <mat-option *ngFor="let centro of centros" [value]="centro.nombre">
-            {{ centro.nombre }}
+          <mat-option *ngFor="let centro of centros" [value]="centro.cen_nombre">
+            {{ centro.cen_nombre }}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -70,4 +70,3 @@
     <button mat-button color="primary" type="submit">Guardar</button>
   </mat-dialog-actions>
 </form>
-
