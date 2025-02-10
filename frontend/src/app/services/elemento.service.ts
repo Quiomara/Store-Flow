@@ -70,10 +70,11 @@ export class ElementoService {
   }
 
   actualizarStock(updateStock: { ele_id: number; ele_cantidad_actual: number; ele_cantidad_total: number; }): Observable<any> {
-    return this.http.put(`${this.apiUrl}/actualizar-stock`, updateStock, { headers: this.getHeaders() }).pipe(
+    return this.http.put(`${this.apiUrl}/elementos/actualizar-stock`, updateStock, { headers: this.getHeaders() }).pipe(
       catchError(this.handleError)
     );
   }
+  
 
   actualizarElemento(elemento: Elemento): Observable<any> {
     return this.http.put(`${this.apiUrl}/elementos/actualizar`, elemento, { headers: this.getHeaders() }).pipe(
