@@ -60,17 +60,16 @@ export class PrestamoService {
   }
 
   getPrestamos(): Observable<Prestamo[]> {
-    return this.request<Prestamo[]>('GET', this.prestamosUrl).pipe(
-      map(response => Array.isArray(response) ? response : [])
+    return this.request<{respuesta: boolean, mensaje: string, data: Prestamo[]}>('GET', this.prestamosUrl).pipe(
+      map(response => {
+        console.log('Respuesta recibida en getPrestamos:', response);
+        return response.data ? response.data : [];
+      })
     );
-  }
-
+  }  
+  
   updateStock(item: { ele_id: number; ele_cantidad_actual: number }): Observable<any> {
     return this.request('PUT', `${this.stockUrl}/actualizar-stock`, item);
-  }
-
-  getHistory(): Observable<Prestamo[]> {
-    return this.getPrestamos();
   }
 
   getEstados(): Observable<Estado[]> {

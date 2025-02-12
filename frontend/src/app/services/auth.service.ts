@@ -24,52 +24,53 @@ export class AuthService {
     private router: Router
   ) {}
 
- // auth.service.ts
- login(email: string, password: string): Observable<any> {
-  return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
-    map((response) => {
-      if (response && response.token) {
-        this.setToken(response.token); // Almacenar el token
-        console.log('Token almacenado correctamente:', response.token); // Confirmar almacenamiento
-        return response;
-      }
-      throw new Error('Inicio de sesión fallido');
-    }),
-    catchError(this.handleLoginError)
-  );
-}
-
-setToken(token: string): void {
-  localStorage.setItem(this.TOKEN_KEY, token); // Usar la clave constante
-  console.log('Token almacenado con clave:', this.TOKEN_KEY);
-}
-
-getToken(): string | null {
-  return localStorage.getItem(this.TOKEN_KEY); // Misma clave aquí
-}
-
-clearToken(): void {
-  localStorage.removeItem(this.TOKEN_KEY);
-}
-
-private handleLoginError(error: HttpErrorResponse): Observable<never> {
-  let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
-  if (error.status === 400) {
-    errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
-  } else if (error.status === 404) {
-    errorMessage = error.error.error || 'Correo no registrado. Por favor contacta con un administrador.';
-  } else if (error.status === 500) {
-    errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
+  // Método para iniciar sesión
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
+      map((response) => {
+        if (response && response.token) {
+          this.setToken(response.token); // Almacenar el token
+          console.log('Token almacenado correctamente:', response.token); // Confirmar almacenamiento
+          return response;
+        }
+        throw new Error('Inicio de sesión fallido');
+      }),
+      catchError(this.handleLoginError)
+    );
   }
-  console.error('Detalles del error de inicio de sesión:', error);
-  return throwError(() => new Error(errorMessage));
-}
 
-private handleError(error: HttpErrorResponse): Observable<never> {
-  console.error('Ocurrió un error:', error);
-  return throwError(() => new Error('Ocurrió un error'));
-}
+  setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token); // Usar la clave constante
+    console.log('Token almacenado con clave:', this.TOKEN_KEY);
+  }
 
+  getToken(): string | null {
+    const token = localStorage.getItem(this.TOKEN_KEY); // Misma clave aquí
+    console.log(`Token recuperado: ${token}`); // Confirmar recuperación
+    return token;
+  }
+
+  clearToken(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  private handleLoginError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
+    if (error.status === 400) {
+      errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
+    } else if (error.status === 404) {
+      errorMessage = error.error.error || 'Correo no registrado. Por favor contacta con un administrador.';
+    } else if (error.status === 500) {
+      errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
+    }
+    console.error('Detalles del error de inicio de sesión:', error);
+    return throwError(() => new Error(errorMessage));
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('Ocurrió un error:', error);
+    return throwError(() => new Error('Ocurrió un error'));
+  }
 
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { correo: email }).pipe(
@@ -85,8 +86,6 @@ private handleError(error: HttpErrorResponse): Observable<never> {
       catchError(this.handleError)
     );
   }
-
-  
 
   // Gestión de cédula
   setCedula(cedula: string): void {
@@ -121,8 +120,6 @@ private handleError(error: HttpErrorResponse): Observable<never> {
     return response;
   }
 
-  
-
   private getLoginErrorMessage(error: HttpErrorResponse): string {
     const defaultMessage = 'Error de autenticación. Verifique sus credenciales';
     
@@ -133,8 +130,6 @@ private handleError(error: HttpErrorResponse): Observable<never> {
       500: 'Error interno del servidor'
     }[error.status] || defaultMessage;
   }
-
-  
 
   // Validación de expiración de token (requiere implementación JWT)
   private isTokenExpired(token: string): boolean {
@@ -149,6 +144,7 @@ private handleError(error: HttpErrorResponse): Observable<never> {
   // Cierre de sesión completo
   logout(): void {
     this.clearToken();
+    this.clearCedula();
     this.router.navigate(['/login']);
   }
 }
