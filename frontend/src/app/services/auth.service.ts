@@ -18,6 +18,7 @@ export class AuthService {
   private readonly apiUrl = 'http://localhost:3000/api/auth';
   private readonly TOKEN_KEY = 'authToken'; // Usar nombre consistente
   private readonly CEDULA_KEY = 'userCedula';
+  private readonly USER_TYPE_KEY = 'userType'; // Clave para almacenar el tipo de usuario
 
   constructor(
     private http: HttpClient,
@@ -30,6 +31,9 @@ export class AuthService {
       map((response) => {
         if (response && response.token) {
           this.setToken(response.token); // Almacenar el token
+          if (response.userType) {
+            this.setUserType(response.userType); // Almacenar el tipo de usuario
+          }
           console.log('Token almacenado correctamente:', response.token); // Confirmar almacenamiento
           return response;
         }
@@ -52,6 +56,19 @@ export class AuthService {
 
   clearToken(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  // Métodos para gestionar el tipo de usuario
+  setUserType(userType: string): void {
+    localStorage.setItem(this.USER_TYPE_KEY, userType);
+  }
+
+  getUserType(): string | null {
+    return localStorage.getItem(this.USER_TYPE_KEY);
+  }
+
+  clearUserType(): void {
+    localStorage.removeItem(this.USER_TYPE_KEY);
   }
 
   private handleLoginError(error: HttpErrorResponse): Observable<never> {
@@ -112,7 +129,7 @@ export class AuthService {
     }
 
     this.setToken(response.token);
-    
+
     if (response.cedula) {
       this.setCedula(response.cedula);
     }
@@ -122,7 +139,7 @@ export class AuthService {
 
   private getLoginErrorMessage(error: HttpErrorResponse): string {
     const defaultMessage = 'Error de autenticación. Verifique sus credenciales';
-    
+
     return {
       400: error.error?.error || 'Credenciales inválidas',
       401: 'Acceso no autorizado',
@@ -145,6 +162,14 @@ export class AuthService {
   logout(): void {
     this.clearToken();
     this.clearCedula();
+    this.clearUserType();
     this.router.navigate(['/login']);
+  }
+
+  // Método para obtener el ID del usuario
+  getUserId(): number {
+    // Implementación para obtener el ID del usuario
+    const userId = 3; // Ejemplo estático, reemplaza con la lógica real
+    return userId;
   }
 }

@@ -9,7 +9,9 @@ import { PrestamoService } from '../../services/prestamo.service';
 import { Prestamo } from '../../models/prestamo.model';
 import { Elemento } from '../../models/elemento.model';
 import { ElementoService } from '../../services/elemento.service';
-import { EditableElemento } from '../../models/editable-elemento.model'; // ✅ Importa EditableElemento
+import { EditableElemento } from '../../models/editable-elemento.model';
+import { AuthService } from '../../services/auth.service';
+import { Estado } from '../../models/estado.model';
 
 @Component({
   selector: 'app-prestamo-detalle-modal',
@@ -29,18 +31,22 @@ export class PrestamoDetalleModalComponent implements OnInit {
   prestamo: Prestamo = {
     cedulaSolicitante: 0,
     elementos: [],
-    fecha: ''
+    fecha: '',
+    estado: 'Desconocido' // Inicializar el estado para evitar undefined
   };
   displayedColumns: string[] = ['nombre', 'cantidad', 'acciones'];
   originalItems: EditableElemento[] = [];
+  puedeCambiarEstado = false; // Variable para verificar si el usuario puede cambiar el estado
+  estados: Estado[] = []; // Variable para almacenar los estados
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<PrestamoDetalleModalComponent>,
     private prestamoService: PrestamoService,
-    private elementoService: ElementoService
+    private elementoService: ElementoService,
+    private authService: AuthService // Inyectar el servicio de autenticación
   ) {
-    this.prestamo = data.prestamo || this.prestamo;
+    this.prestamo = data.prestamo || { ...this.prestamo, estado: 'Desconocido' };
     console.log('Constructor - data recibida:', data); // Log para verificar los datos iniciales
   }
 
@@ -51,6 +57,32 @@ export class PrestamoDetalleModalComponent implements OnInit {
     } else {
       console.error('ID del préstamo no definido.');
     }
+  
+    // Verificar el rol y el ID del usuario
+    const userType = this.authService.getUserType(); // Obtener el tipo de usuario
+    const userId = this.authService.getUserId(); // Obtener el ID del usuario
+    console.log('userType:', userType); // Log para verificar el tipo de usuario
+    console.log('userId:', userId); // Log para verificar el ID del usuario
+  
+    // Comparar valores y asegurarse de que sean correctos
+    this.puedeCambiarEstado = userType === 'Almacén' && userId === 3;
+    console.log('puedeCambiarEstado:', this.puedeCambiarEstado); // Log para verificar puedeCambiarEstado
+  
+    // Obtener los estados desde el servicio
+    this.obtenerEstados();
+  }
+  
+
+  obtenerEstados(): void {
+    this.prestamoService.getEstados().subscribe(
+      (estados: Estado[]) => {
+        this.estados = estados;
+        console.log('estados:', this.estados); // Log para verificar los estados
+      },
+      (error: any) => {
+        console.error('Error al obtener los estados', error);
+      }
+    );
   }
 
   obtenerPrestamoDetalles(prestamoId: number): void {
@@ -69,14 +101,14 @@ export class PrestamoDetalleModalComponent implements OnInit {
             ele_nombre: item.nombre || '',
             ele_cantidad_total: Number(item.ele_cantidad_total),
             ele_cantidad_actual: Number(item.ele_cantidad_actual),
-            ubi_ele_id: item.ubi_ele_id, // Asegúrate de incluir esta propiedad
-            ubi_nombre: item.ubi_nombre || '', // Asegúrate de incluir esta propiedad
-            pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado), // Cantidad prestada
-            editing: false // Inicialmente, la edición está deshabilitada
+            ubi_ele_id: item.ubi_ele_id,
+            ubi_nombre: item.ubi_nombre || '',
+            pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado),
+            editing: false
           }));
 
           this.originalItems = this.prestamo.elementos.map(item => ({ ...item }));
-          this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
+          this.prestamo.estado = response.estadoPrestamo || 'Desconocido'; // Asegura que estadoPrestamo tenga un valor por defecto
           console.log('Estado del préstamo asignado:', this.prestamo.estado);
         } else {
           console.error('Datos de respuesta no válidos:', response);
@@ -88,8 +120,25 @@ export class PrestamoDetalleModalComponent implements OnInit {
     );
   }
 
+  cambiarEstado(nuevoEstado: string): void {
+    if (this.prestamo.idPrestamo !== undefined) {
+      this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, nuevoEstado).subscribe(
+        (response) => {
+          console.log('Estado del préstamo actualizado:', response);
+          this.prestamo.estado = nuevoEstado;
+        },
+        (error: any) => {
+          console.error('Error al actualizar el estado del préstamo', error);
+        }
+      );
+    } else {
+      console.error('ID del préstamo no definido.');
+    }
+  }
+  
+
   enableEditing(item: EditableElemento): void {
-    item.editing = true; // Habilitar la edición
+    item.editing = true;
   }
 
   cancelEditing(item: EditableElemento): void {
@@ -100,7 +149,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       } else {
         console.error('Elemento no encontrado en originalItems para cancelar edición.');
       }
-      item.editing = false; // Deshabilitar la edición
+      item.editing = false;
     }
   }
 
@@ -108,14 +157,12 @@ export class PrestamoDetalleModalComponent implements OnInit {
     if (item.editing) {
       item.editing = false;
 
-      // Verificar que el ID del préstamo esté definido
       const pre_id = this.prestamo.idPrestamo;
       if (pre_id === undefined) {
         console.error('ID del préstamo no definido.');
         return;
       }
 
-      // Buscar el elemento original para comparar cantidades
       const originalItem = this.originalItems.find(
         (originalItem) => originalItem.ele_id === item.ele_id
       );
@@ -125,60 +172,52 @@ export class PrestamoDetalleModalComponent implements OnInit {
         return;
       }
 
-      const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado); // Cantidad original prestada
-      const cantidadActual = Number(item.pre_ele_cantidad_prestado); // Nueva cantidad prestada
-      const diferencia = cantidadActual - cantidadOriginal; // Diferencia entre la nueva cantidad y la original
+      const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado);
+      const cantidadActual = Number(item.pre_ele_cantidad_prestado);
+      const diferencia = cantidadActual - cantidadOriginal;
 
-      // Actualizar cantidad en PrestamosElementos
       const updatePrestamoElemento = {
-        pre_id: pre_id, // Usar la variable temporal pre_id
+        pre_id: pre_id,
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
 
-      // Actualizar stock
       const updateStock = {
         ele_id: item.ele_id,
-        ele_cantidad_actual: -diferencia, // Ajustar el stock según la diferencia
-        ele_cantidad_total: 0 // No cambia el total
+        ele_cantidad_actual: -diferencia,
+        ele_cantidad_total: 0
       };
 
-      // Llamadas a servicios para actualizar
       this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
         () => {
           console.log('Cantidad en PrestamosElementos actualizada');
-
-          // Si la actualización en PrestamosElementos fue exitosa, actualizar el stock
           this.elementoService.actualizarStock(updateStock).subscribe(
             () => {
               console.log('Stock actualizado');
-              // Aquí podrías agregar lógica adicional, como actualizar la vista o mostrar un mensaje de éxito
             },
-            (error) => {
+            (error: any) => {
               console.error('Error actualizando stock', error);
-
-              // Revertir la actualización en PrestamosElementos si falla la actualización del stock
               const revertUpdatePrestamoElemento = {
-                pre_id: pre_id, // Usar la variable temporal pre_id
+                pre_id: pre_id,
                 ele_id: item.ele_id,
                 pre_ele_cantidad_prestado: cantidadOriginal
               };
 
               this.prestamoService.updatePrestamoElemento(revertUpdatePrestamoElemento).subscribe(
                 () => console.log('Revertida la actualización en PrestamosElementos'),
-                (revertError) => console.error('Error al revertir la actualización en PrestamosElementos', revertError)
+                (revertError: any) => console.error('Error al revertir la actualización en PrestamosElementos', revertError)
               );
             }
           );
         },
-        (error) => console.error('Error actualizando PrestamosElementos', error)
+        (error: any) => console.error('Error actualizando PrestamosElementos', error)
       );
     }
   }
 
   getEstadoClass(estado: string | undefined): string {
     if (!estado) {
-      return 'estado-desconocido'; // Clase por defecto si el estado es undefined
+      return 'estado-desconocido';
     }
 
     switch (estado) {
@@ -193,7 +232,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       case 'Cancelado':
         return 'estado-cancelado';
       default:
-        return 'estado-desconocido'; // Clase por defecto para estados desconocidos
+        return 'estado-desconocido';
     }
   }
 

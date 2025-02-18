@@ -320,6 +320,33 @@ const actualizarCantidadElemento = async (req, res) => {
   }
 };
 
+// Actualizar el estado de un préstamo
+const actualizarEstadoPrestamo = async (req, res) => {
+  const { id } = req.params;
+  const { est_nombre } = req.body;
+
+  if (!id || !est_nombre) {
+    return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios: id o est_nombre.' });
+  }
+
+  try {
+    // Obtener el est_id correspondiente al est_nombre
+    const [estadoResult] = await db.execute(`SELECT est_id FROM Estados WHERE est_nombre = ?`, [est_nombre]);
+    
+    if (estadoResult.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
+    }
+
+    const est_id = estadoResult[0].est_id;
+
+    await Prestamo.actualizarEstado(id, est_id);
+    res.json({ respuesta: true, mensaje: 'Estado del préstamo actualizado con éxito' });
+  } catch (err) {
+    console.error('Error en actualizarEstadoPrestamo:', err);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el estado del préstamo', error: err.message });
+  }
+};
+
 module.exports = {
   crearPrestamo,
   actualizarPrestamo,
@@ -329,4 +356,5 @@ module.exports = {
   obtenerPrestamosPorCedula,
   obtenerElementoPrestamos,
   actualizarCantidadElemento,
+  actualizarEstadoPrestamo,
 };

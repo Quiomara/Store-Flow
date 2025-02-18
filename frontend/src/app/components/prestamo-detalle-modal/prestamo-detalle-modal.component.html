@@ -1,7 +1,20 @@
 <h2 mat-dialog-title class="modal-title">Detalles del Préstamo</h2>
 <div mat-dialog-content class="scrollable-content">
   <p><strong>ID del Préstamo:</strong> {{ prestamo.idPrestamo }}</p>
-  <p><strong>Estado: </strong> <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span></p>
+
+  <!-- Filtro de Estado (solo visible para usuario con rol "Almacén" y id 3) -->
+  <div *ngIf="puedeCambiarEstado" class="estado-filtro">
+    <label for="estado">Estado:</label>
+    <select id="estado" [(ngModel)]="prestamo.estado" (change)="cambiarEstado(prestamo.estado || 'Desconocido')">
+      <option value="">Seleccione un estado</option>
+      <option *ngFor="let estado of estados" [value]="estado.est_nombre">
+        {{ estado.est_nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Mostrar el estado del préstamo para otros usuarios -->
+  <p *ngIf="!puedeCambiarEstado"><strong>Estado: </strong> <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span></p>
 
   <div class="user-table-container">
     <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
@@ -46,6 +59,3 @@
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cerrar</button>
 </div>
-
-
-

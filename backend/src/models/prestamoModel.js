@@ -9,7 +9,15 @@ const Prestamo = {
     console.log('Resultado de la inserción:', result); // Log del resultado de la inserción
     return { insertId: result.insertId };
   },
-  
+
+   // Actualizar el estado de un préstamo
+  actualizarEstado: async (pre_id, est_id) => {
+    const query = `UPDATE Prestamos SET est_id = ? WHERE pre_id = ?`;
+    const values = [est_id, pre_id];
+    const [result] = await db.execute(query, values);
+    return result;
+  },
+
   // Actualizar un préstamo
   actualizar: async (data) => {
     const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;

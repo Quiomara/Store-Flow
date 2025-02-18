@@ -106,6 +106,10 @@ export class PrestamoService {
     return this.request('PUT', `${this.prestamosUrl}/update`, data);
   }
 
+  actualizarEstadoPrestamo(idPrestamo: number, nuevoEstado: string): Observable<any> {
+    return this.request('PUT', `${this.prestamosUrl}/actualizar-estado/${idPrestamo}`, { estado: nuevoEstado });
+  }
+
   getPrestamosUrl(): string {
     return this.prestamosUrl;
   }
