@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -13,7 +13,7 @@ import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
 import { User } from '../../../models/user.model';
-import { ChangeDetectorRef } from '@angular/core';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-warehouse-history',
@@ -63,6 +63,14 @@ export class WarehouseHistoryComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
+
+    // Suscripción a cambios en el formulario para filtrado dinámico
+    this.searchForm.valueChanges
+      .pipe(
+        debounceTime(300), // Espera 300 ms después de cada cambio
+        distinctUntilChanged() // Solo emite si el valor cambió
+      )
+      .subscribe(() => this.buscar());
   }
 
   async loadInitialData(): Promise<void> {
@@ -74,38 +82,48 @@ export class WarehouseHistoryComponent implements OnInit {
     try {
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
       console.log('Datos recibidos del backend:', prestamos);
-
+  
       if (prestamos && Array.isArray(prestamos)) {
-        // Mapea los datos de los préstamos
-        this.prestamos = prestamos.map((item: any) => ({
-          idPrestamo: item.pre_id,
-          cedulaSolicitante: item.usr_cedula,
-          solicitante: item.usr_nombre, // Usamos el nombre del instructor directamente
-          fechaHora: this.formatearFecha(item.pre_inicio),
-          fecha: this.formatearFecha(item.pre_inicio), // Asignamos la misma fecha que fechaHora
-          fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '',
-          estado: item.est_nombre,
-          elementos: item.elementos || [],
-          instructorNombre: item.usr_nombre // Usamos el nombre del instructor directamente
-        }));
-
+        // Mapea y ordena los préstamos
+        this.prestamos = prestamos
+          .map((item: any) => ({
+            idPrestamo: item.pre_id,
+            cedulaSolicitante: item.usr_cedula,
+            solicitante: item.usr_nombre,
+            fechaHora: this.formatearFecha(item.pre_inicio),
+            fecha: this.formatearFecha(item.pre_inicio),
+            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
+            estado: item.est_nombre,
+            elementos: item.elementos || [],
+            instructorNombre: item.usr_nombre
+          }))
+          .sort((a, b) => {
+            // Orden personalizado por estado
+            const ordenEstados = ['Creado', 'En proceso', 'Préstamo', 'Entregado', 'Cancelado'];
+            const diferenciaEstados = ordenEstados.indexOf(a.estado) - ordenEstados.indexOf(b.estado);
+  
+            // Si los estados son iguales, ordenar por ID descendente (más reciente primero)
+            if (diferenciaEstados === 0) {
+              return b.idPrestamo - a.idPrestamo;
+            }
+  
+            return diferenciaEstados;
+          });
+  
         // Actualiza el DataSource
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
         this.buscar();
       } else {
         console.warn('La respuesta del backend no es un array.');
-        this.snackBar.open('No se encontraron préstamos.', 'Cerrar', {
-          duration: 5000
-        });
+        this.snackBar.open('No se encontraron préstamos.', 'Cerrar', { duration: 5000 });
       }
     } catch (error) {
       console.error('Error al obtener el historial de préstamos', error);
-      this.snackBar.open('Ocurrió un error al obtener el historial de préstamos. Por favor, intenta nuevamente más tarde.', 'Cerrar', {
-        duration: 5000
-      });
+      this.snackBar.open('Ocurrió un error al obtener el historial. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
     }
   }
+  
 
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
@@ -124,31 +142,31 @@ export class WarehouseHistoryComponent implements OnInit {
   buscar(): void {
     const { searchId, searchEstado, searchFecha, searchInstructor } = this.searchForm.value;
     let filteredData = this.prestamos;
-  
+
     if (searchId) {
       filteredData = filteredData.filter(
         prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
       );
     }
-  
+
     if (searchEstado && searchEstado.trim() !== '') {
       filteredData = filteredData.filter(
         prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
       );
     }
-  
+
     if (searchFecha) {
       filteredData = filteredData.filter(
         prestamo => prestamo.fechaHora && prestamo.fechaHora.split('T')[0] === searchFecha
       );
     }
-  
+
     if (searchInstructor && searchInstructor.trim() !== '') {
       filteredData = filteredData.filter(
         prestamo => prestamo.instructorNombre && prestamo.instructorNombre.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
     }
-  
+
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
@@ -209,7 +227,9 @@ export class WarehouseHistoryComponent implements OnInit {
       case 'préstamo': return 'estado-prestamo';
       case 'entregado': return 'estado-entregado';
       case 'cancelado': return 'estado-cancelado';
+      case 'pendiente': return 'estado-pendiente'; // Añadir esta línea para el estado Pendiente
       default: return 'estado-default';
     }
   }
+  
 }

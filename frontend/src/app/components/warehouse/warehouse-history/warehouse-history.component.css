@@ -126,18 +126,18 @@
     }
   }
 
-  /* Añadir estos estilos en el CSS */
-.estado-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.estado-creado { background-color: #ffd740; color: black; }
-.estado-proceso { background-color: #64b5f6; color: white; }
-.estado-prestamo { background-color: #81c784; color: white; }
-.estado-entregado { background-color: #4caf50; color: white; }
-.estado-cancelado { background-color: #ef5350; color: white; }
-.estado-default { background-color: #9e9e9e; color: white; }
+  .estado-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .estado-creado { background-color: #ffd740; color: black; }
+  .estado-proceso { background-color: #64b5f6; color: white; }
+  .estado-prestamo { background-color: #81c784; color: white; }
+  .estado-entregado { background-color: #4caf50; color: white; }
+  .estado-cancelado { background-color: #ef5350; color: white; }
+  .estado-default { background-color: #9e9e9e; color: white; }
+  .estado-pendiente { background-color: #9e9e9e; color: white; } /* Añadir esta línea para el estado Pendiente */
   
