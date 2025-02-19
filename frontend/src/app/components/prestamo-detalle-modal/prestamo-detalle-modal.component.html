@@ -3,18 +3,24 @@
   <p><strong>ID del Préstamo:</strong> {{ prestamo.idPrestamo }}</p>
 
   <!-- Filtro de Estado (solo visible para usuario con rol "Almacén" y id 3) -->
+  <!-- Sección del estado -->
   <div *ngIf="puedeCambiarEstado" class="estado-filtro">
     <label for="estado">Estado:</label>
-    <select id="estado" [(ngModel)]="prestamo.estado" (change)="cambiarEstado(prestamo.estado || 'Desconocido')">
-      <option value="">Seleccione un estado</option>
-      <option *ngFor="let estado of estados" [value]="estado.est_nombre">
+    <select id="estado" [(ngModel)]="estadoSeleccionadoId" (change)="cambiarEstado()">
+      <option [value]="null" disabled hidden>
+        {{ prestamo.estado || 'Seleccione un estado' }}
+      </option>
+      <option *ngFor="let estado of estados" [value]="estado.est_id">
         {{ estado.est_nombre }}
       </option>
     </select>
   </div>
 
   <!-- Mostrar el estado del préstamo para otros usuarios -->
-  <p *ngIf="!puedeCambiarEstado"><strong>Estado: </strong> <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span></p>
+  <p *ngIf="!puedeCambiarEstado">
+    <strong>Estado: </strong>
+    <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span>
+  </p>
 
   <div class="user-table-container">
     <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
@@ -31,7 +37,8 @@
         <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad</th>
         <td mat-cell *matCellDef="let item" class="cantidad-cell">
           <span *ngIf="!item.editing">{{ item.pre_ele_cantidad_prestado }}</span>
-          <input *ngIf="item.editing" type="number" [(ngModel)]="item.pre_ele_cantidad_prestado" class="cantidad-input" />
+          <input *ngIf="item.editing" type="number" [(ngModel)]="item.pre_ele_cantidad_prestado"
+            class="cantidad-input" />
         </td>
       </ng-container>
 

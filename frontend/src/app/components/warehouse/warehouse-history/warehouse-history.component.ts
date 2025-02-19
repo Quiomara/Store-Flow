@@ -84,7 +84,9 @@ export class WarehouseHistoryComponent implements OnInit {
       console.log('Datos recibidos del backend:', prestamos);
   
       if (prestamos && Array.isArray(prestamos)) {
-        // Mapea y ordena los préstamos
+        // Definir orden prioritario de estados
+        const ordenEstados = ['Creado', 'En proceso', 'En préstamo', 'Entregado', 'Cancelado'];
+        
         this.prestamos = prestamos
           .map((item: any) => ({
             idPrestamo: item.pre_id,
@@ -98,16 +100,21 @@ export class WarehouseHistoryComponent implements OnInit {
             instructorNombre: item.usr_nombre
           }))
           .sort((a, b) => {
-            // Orden personalizado por estado
-            const ordenEstados = ['Creado', 'En proceso', 'Préstamo', 'Entregado', 'Cancelado'];
-            const diferenciaEstados = ordenEstados.indexOf(a.estado) - ordenEstados.indexOf(b.estado);
+            // Obtener índices de los estados en el orden definido
+            const indiceA = ordenEstados.indexOf(a.estado);
+            const indiceB = ordenEstados.indexOf(b.estado);
   
-            // Si los estados son iguales, ordenar por ID descendente (más reciente primero)
-            if (diferenciaEstados === 0) {
-              return b.idPrestamo - a.idPrestamo;
+            // Manejar estados no definidos (los colocamos al final)
+            const valorA = indiceA === -1 ? Infinity : indiceA;
+            const valorB = indiceB === -1 ? Infinity : indiceB;
+  
+            // Primero ordenar por estado
+            if (valorA !== valorB) {
+              return valorA - valorB;
             }
-  
-            return diferenciaEstados;
+            
+            // Si mismo estado: ordenar por ID descendente (más reciente primero)
+            return b.idPrestamo - a.idPrestamo;
           });
   
         // Actualiza el DataSource
@@ -200,12 +207,19 @@ export class WarehouseHistoryComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { prestamo }
+      data: { prestamo },
+      disableClose: true // Evita que el usuario cierre haciendo clic fuera
     });
-
-    dialogRef.afterClosed().subscribe(() => {
-      console.log('El modal se cerró');
-      this.getHistory();
+  
+    dialogRef.afterClosed().subscribe((updated: boolean) => {
+      if (updated) {
+        this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
+        this.getHistory().then(() => {
+          this.snackBar.open('Datos actualizados', '', { duration: 2000 });
+        }).catch(error => {
+          this.snackBar.open('Error al actualizar', '', { duration: 2000 });
+        });
+      }
     });
   }
 

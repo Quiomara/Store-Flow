@@ -106,8 +106,13 @@ export class PrestamoService {
     return this.request('PUT', `${this.prestamosUrl}/update`, data);
   }
 
-  actualizarEstadoPrestamo(idPrestamo: number, nuevoEstado: string): Observable<any> {
-    return this.request('PUT', `${this.prestamosUrl}/actualizar-estado/${idPrestamo}`, { estado: nuevoEstado });
+  // Método para actualizar estado (sin modificar getAuthHeaders)
+  actualizarEstadoPrestamo(idPrestamo: number, est_id: number): Observable<any> {
+    return this.http.put(
+      `${this.prestamosUrl}/${idPrestamo}/actualizar-estado`,
+      { est_id },
+      { headers: this.getHeaders() } // ✔️ Usar el nombre correcto del método
+    );
   }
 
   getPrestamosUrl(): string {

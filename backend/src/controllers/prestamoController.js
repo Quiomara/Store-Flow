@@ -322,30 +322,55 @@ const actualizarCantidadElemento = async (req, res) => {
 
 // Actualizar el estado de un préstamo
 const actualizarEstadoPrestamo = async (req, res) => {
-  const { id } = req.params;
-  const { est_nombre } = req.body;
+  const { pre_id } = req.params;
+  const { est_id } = req.body;
 
-  if (!id || !est_nombre) {
-    return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios: id o est_nombre.' });
+  if (!pre_id || !est_id) {
+    return res.status(400).json({ 
+      respuesta: false, 
+      mensaje: "Faltan campos: pre_id o est_id" 
+    });
   }
 
   try {
-    // Obtener el est_id correspondiente al est_nombre
-    const [estadoResult] = await db.execute(`SELECT est_id FROM Estados WHERE est_nombre = ?`, [est_nombre]);
-    
-    if (estadoResult.length === 0) {
-      return res.status(404).json({ respuesta: false, mensaje: 'Estado no encontrado.' });
+    // Validar que el estado existe
+    const [estado] = await db.execute("SELECT est_id FROM estados WHERE est_id = ?", [est_id]);
+    if (estado.length === 0) {
+      return res.status(404).json({ 
+        respuesta: false, 
+        mensaje: "Estado no válido" 
+      });
     }
 
-    const est_id = estadoResult[0].est_id;
+    // Actualizar el préstamo
+    const [result] = await db.execute(
+      "UPDATE prestamos SET est_id = ? WHERE pre_id = ?", 
+      [est_id, pre_id] // Asegúrate de que el orden sea correcto: est_id primero, pre_id después
+    );
 
-    await Prestamo.actualizarEstado(id, est_id);
-    res.json({ respuesta: true, mensaje: 'Estado del préstamo actualizado con éxito' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        respuesta: false, 
+        mensaje: "Préstamo no encontrado" 
+      });
+    }
+
+    res.json({ 
+      respuesta: true, 
+      mensaje: "Estado actualizado correctamente",
+      nuevo_estado: estado[0].est_nombre 
+    });
+
   } catch (err) {
-    console.error('Error en actualizarEstadoPrestamo:', err);
-    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el estado del préstamo', error: err.message });
+    console.error("Error en la base de datos:", err);
+    res.status(500).json({ 
+      respuesta: false, 
+      mensaje: "Error interno del servidor",
+      error: err.message 
+    });
   }
 };
+
 
 module.exports = {
   crearPrestamo,
