@@ -23,7 +23,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   // Método para iniciar sesión
   login(email: string, password: string): Observable<any> {
@@ -96,10 +96,10 @@ export class AuthService {
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, {
-      token,
-      newPassword
-    }).pipe(
+    return this.http.post(
+      `${this.apiUrl}/reset-password`, // Corrige la URL aquí
+      { token, newPassword }
+    ).pipe(
       catchError(this.handleError)
     );
   }
