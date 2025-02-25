@@ -2,13 +2,18 @@
 <div mat-dialog-content class="scrollable-content">
   <p><strong>ID del Préstamo:</strong> {{ prestamo.idPrestamo }}</p>
 
-  <!-- Filtro de Estado (solo visible para usuario con rol "Almacén" y id 3) -->
-  <!-- Sección del estado -->
-  <div *ngIf="puedeCambiarEstado" class="estado-filtro">
-    <label for="estado">Estado:</label>
+  <!-- Mostrar el estado actual del préstamo -->
+  <p>
+    <strong>Estado: </strong>
+    <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span>
+  </p>
+
+  <!-- Filtro de Estado (solo visible si el estado es "En proceso") -->
+  <div *ngIf="prestamo.estado === 'En proceso' && puedeCambiarEstado" class="estado-filtro">
+    <label for="estado">Cambiar Estado:</label>
     <select id="estado" [(ngModel)]="estadoSeleccionadoId" (change)="cambiarEstado()">
       <option [value]="null" disabled hidden>
-        {{ prestamo.estado || 'Seleccione un estado' }}
+        Seleccione un estado
       </option>
       <option *ngFor="let estado of estados" [value]="estado.est_id">
         {{ estado.est_nombre }}
@@ -16,11 +21,12 @@
     </select>
   </div>
 
-  <!-- Mostrar el estado del préstamo para otros usuarios -->
-  <p *ngIf="!puedeCambiarEstado">
-    <strong>Estado: </strong>
-    <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span>
-  </p>
+  <!-- Botón "Entregado" (solo visible si el estado es "En préstamo") -->
+  <div *ngIf="prestamo.estado === 'En préstamo' && puedeCambiarEstado" class="button-container">
+    <button mat-raised-button color="primary" (click)="cambiarAEntregado()">
+      Entregado
+    </button>
+  </div>
 
   <div class="user-table-container">
     <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
@@ -65,4 +71,6 @@
 </div>
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cerrar</button>
+  <!-- Botón de Aprobar (solo visible si el estado es "Creado") -->
+  <button *ngIf="prestamo.estado === 'Creado' && puedeCambiarEstado" mat-button (click)="aprobarSolicitud()">Aprobar</button>
 </div>

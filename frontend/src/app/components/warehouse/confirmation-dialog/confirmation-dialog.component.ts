@@ -2,7 +2,6 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-import { Elemento } from '../../../models/elemento.model'; // Asegúrate de importar la interfaz
 
 @Component({
   selector: 'app-confirmation-dialog',
@@ -16,22 +15,32 @@ import { Elemento } from '../../../models/elemento.model'; // Asegúrate de impo
   ],
 })
 export class ConfirmationDialogComponent {
-  elemento: Elemento;
+  titulo: string;
+  mensaje: string;
+  textoBotonConfirmar: string;
+  textoBotonCancelar: string;
 
   constructor(
     public dialogRef: MatDialogRef<ConfirmationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { elemento: Elemento } // Recibe el objeto completo
+    @Inject(MAT_DIALOG_DATA) public data: {
+      titulo: string,
+      mensaje: string,
+      textoBotonConfirmar: string,
+      textoBotonCancelar: string
+    }
   ) {
-    this.elemento = data.elemento; // Asigna el objeto a una propiedad
+    this.titulo = data.titulo;
+    this.mensaje = data.mensaje;
+    this.textoBotonConfirmar = data.textoBotonConfirmar;
+    this.textoBotonCancelar = data.textoBotonCancelar;
   }
 
   onConfirm(): void {
-    console.log('Elemento confirmado para eliminar (objeto completo):', this.elemento);
-    console.log('ID del elemento confirmado para eliminar:', this.elemento.ele_id);
-    this.dialogRef.close(this.elemento); // Retorna el objeto completo
+    this.dialogRef.close(true); // Retorna `true` si el usuario confirma
   }
 
   onCancel(): void {
-    this.dialogRef.close(null);
+    this.dialogRef.close(false); // Retorna `false` si el usuario cancela
   }
+  
 }

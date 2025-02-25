@@ -85,7 +85,7 @@ export class InstructorHistoryComponent implements OnInit {
           console.log('Datos recibidos del backend:', data);
           this.prestamos = data.map((item: any) => ({
             idPrestamo: item.pre_id,
-            fechaHora: this.formatearFecha(item.pre_inicio),
+            fechaInicio: this.formatearFecha(item.pre_inicio),
             fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '',
             estado: item.est_nombre,
             items: [],
@@ -142,10 +142,10 @@ export class InstructorHistoryComponent implements OnInit {
 
     if (searchFecha) {
       filteredData = filteredData.filter(
-        prestamo => prestamo.fechaHora && prestamo.fechaHora.split('T')[0] === searchFecha
+        prestamo => prestamo.fechaInicio && prestamo.fechaInicio.toISOString().split('T')[0] === searchFecha
       );
     }
-
+    
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }

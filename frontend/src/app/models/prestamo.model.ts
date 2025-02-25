@@ -5,7 +5,7 @@ export interface Prestamo {
   idPrestamo?: number;
   cedulaSolicitante: number;
   solicitante?: string;
-  fechaHora?: string;
+  fechaInicio: Date;
   elementos: Elemento[]; // Ahora TypeScript reconocerá el tipo
   fecha: string;
   estado?: string;

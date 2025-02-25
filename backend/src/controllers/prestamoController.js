@@ -11,7 +11,6 @@ const manejarError = (res, mensaje, err) => {
 };
 
 // Crear un nuevo préstamo
-// Crear un nuevo préstamo
 const crearPrestamo = async (req, res) => {
   const startTime = Date.now();
 
@@ -97,7 +96,7 @@ const actualizarPrestamo = async (req, res) => {
       return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado." });
     }
 
-    const { est_id, usr_cedula } = results[0];
+    const { est_id, usr_cedula, pre_inicio } = results[0]; // Obtener la fecha de inicio original
 
     // Verificar permisos del usuario
     if (userRole === 2 && userCedula !== usr_cedula) {
@@ -118,23 +117,21 @@ const actualizarPrestamo = async (req, res) => {
     // Preparar los datos para la actualización
     const updateData = {
       pre_id: data.pre_id,
-      pre_inicio: results[0].pre_inicio, // No se actualiza la fecha de inicio
       pre_fin: userRole === 3 ? data.pre_fin : results[0].pre_fin, // Solo almacén puede actualizar la fecha fin
       usr_cedula: data.usr_cedula,
       est_id: userRole === 3 ? data.est_id : est_id, // Solo almacén puede actualizar el estado
-      pre_actualizacion: new Date(),
+      pre_actualizacion: new Date(), // Fecha de actualización
     };
 
     // Actualizar el préstamo
     await Prestamo.actualizar(updateData);
 
-    // Actualizar la cantidad de elementos en la tabla Elementos (si se proporciona)
-    if (data.ele_id && data.ele_cantidad) {
-      await Prestamo.actualizarCantidadElemento(data.ele_id, data.ele_cantidad);
-      res.json({ respuesta: true, mensaje: "¡Préstamo y cantidad de elementos actualizados con éxito!" });
-    } else {
-      res.json({ respuesta: true, mensaje: "¡Préstamo actualizado con éxito!" });
-    }
+    // Devolver la fecha de inicio original en la respuesta
+    res.json({
+      respuesta: true,
+      mensaje: "¡Préstamo actualizado con éxito!",
+      pre_inicio: pre_inicio, // Devolver la fecha de inicio original
+    });
   } catch (err) {
     console.error('Error al actualizar el préstamo:', err);
     res.status(500).json({ respuesta: false, mensaje: "Error al actualizar el préstamo." });

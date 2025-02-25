@@ -1,16 +1,16 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 const Prestamo = {
   crear: async (data) => {
-    console.log('Intentando insertar en la base de datos:', data); // Log de los datos a insertar
+    console.log("Intentando insertar en la base de datos:", data); // Log de los datos a insertar
     const query = `INSERT INTO Prestamos (pre_inicio, usr_cedula, est_id) VALUES (?, ?, ?)`;
     const values = [data.pre_inicio, data.usr_cedula, data.est_id];
     const [result] = await db.execute(query, values);
-    console.log('Resultado de la inserción:', result); // Log del resultado de la inserción
+    console.log("Resultado de la inserción:", result); // Log del resultado de la inserción
     return { insertId: result.insertId };
   },
 
-   // Actualizar el estado de un préstamo
+  // Actualizar el estado de un préstamo
   actualizarEstado: async (pre_id, est_id) => {
     const query = `UPDATE Prestamos SET est_id = ? WHERE pre_id = ?`;
     const values = [est_id, pre_id];
@@ -21,7 +21,13 @@ const Prestamo = {
   // Actualizar un préstamo
   actualizar: async (data) => {
     const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;
-    const values = [data.pre_fin, data.usr_cedula, data.est_id, data.pre_actualizacion, data.pre_id];
+    const values = [
+      data.pre_fin,
+      data.usr_cedula,
+      data.est_id,
+      data.pre_actualizacion,
+      data.pre_id,
+    ];
     const [result] = await db.execute(query, values);
     return result;
   },
@@ -70,8 +76,10 @@ const Prestamo = {
     `;
     const [elementos] = await db.execute(elementosQuery);
 
-    const prestamosConElementos = prestamos.map(prestamo => {
-      const elementosPrestamo = elementos.filter(elemento => elemento.pre_id === prestamo.pre_id);
+    const prestamosConElementos = prestamos.map((prestamo) => {
+      const elementosPrestamo = elementos.filter(
+        (elemento) => elemento.pre_id === prestamo.pre_id
+      );
       prestamo.elementos = elementosPrestamo;
       return prestamo;
     });
@@ -141,9 +149,17 @@ const Prestamo = {
   },
 
   // Actualizar la cantidad prestada de un elemento en un préstamo
-  actualizarCantidadElemento: async (pre_id, ele_id, pre_ele_cantidad_prestado) => {
+  actualizarCantidadElemento: async (
+    pre_id,
+    ele_id,
+    pre_ele_cantidad_prestado
+  ) => {
     const query = `UPDATE PrestamosElementos SET pre_ele_cantidad_prestado = ? WHERE pre_id = ? AND ele_id = ?`;
-    const [result] = await db.execute(query, [pre_ele_cantidad_prestado, pre_id, ele_id]);
+    const [result] = await db.execute(query, [
+      pre_ele_cantidad_prestado,
+      pre_id,
+      ele_id,
+    ]);
     return result;
   },
 };

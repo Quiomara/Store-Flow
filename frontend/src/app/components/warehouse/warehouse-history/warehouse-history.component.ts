@@ -87,18 +87,18 @@ export class WarehouseHistoryComponent implements OnInit {
         // Definir orden prioritario de estados
         const ordenEstados = ['Creado', 'En proceso', 'En préstamo', 'Entregado', 'Cancelado'];
         
-        this.prestamos = prestamos
-          .map((item: any) => ({
-            idPrestamo: item.pre_id,
-            cedulaSolicitante: item.usr_cedula,
-            solicitante: item.usr_nombre,
-            fechaHora: this.formatearFecha(item.pre_inicio),
-            fecha: this.formatearFecha(item.pre_inicio),
-            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
-            estado: item.est_nombre,
-            elementos: item.elementos || [],
-            instructorNombre: item.usr_nombre
-          }))
+        this.prestamos = prestamos.map((item: any) => ({
+          idPrestamo: item.pre_id,
+          cedulaSolicitante: item.usr_cedula,
+          solicitante: item.usr_nombre,
+          fechaHora: this.formatearFecha(item.pre_inicio),
+          fecha: this.formatearFecha(item.pre_inicio),
+          fechaInicio: item.pre_inicio, // Asegurarte de incluir fechaInicio
+          fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
+          estado: item.est_nombre,
+          elementos: item.elementos || [],
+          instructorNombre: item.usr_nombre
+        }))
           .sort((a, b) => {
             // Obtener índices de los estados en el orden definido
             const indiceA = ordenEstados.indexOf(a.estado);
@@ -164,9 +164,10 @@ export class WarehouseHistoryComponent implements OnInit {
 
     if (searchFecha) {
       filteredData = filteredData.filter(
-        prestamo => prestamo.fechaHora && prestamo.fechaHora.split('T')[0] === searchFecha
+        prestamo => prestamo.fechaInicio && prestamo.fechaInicio.toISOString().split('T')[0] === searchFecha
       );
     }
+    
 
     if (searchInstructor && searchInstructor.trim() !== '') {
       filteredData = filteredData.filter(
@@ -207,7 +208,9 @@ export class WarehouseHistoryComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { prestamo },
+      data: { 
+        prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } // Pasar la fecha de inicio
+      },
       disableClose: true // Evita que el usuario cierre haciendo clic fuera
     });
   
@@ -222,6 +225,7 @@ export class WarehouseHistoryComponent implements OnInit {
       }
     });
   }
+  
 
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
