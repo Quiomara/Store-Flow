@@ -99,6 +99,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe({
       next: (response) => {
         console.log('Respuesta del backend:', response); // Verificar la respuesta completa
+  
         if (response?.data) {
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
@@ -111,22 +112,21 @@ export class PrestamoDetalleModalComponent implements OnInit {
             editing: false
           }));
           this.originalItems = [...this.prestamo.elementos];
+  
+          // Asignar estado del préstamo si existe, de lo contrario, usar 'Desconocido'
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
-
+  
           // Verificar y asignar la fecha de inicio correctamente
-          const fechaInicio = response.fechaInicio || 'Fecha no válida';
-          if (fechaInicio !== 'Fecha no válida' && fechaInicio !== null) {
-            const parsedDate = new Date(fechaInicio);
-            if (!isNaN(parsedDate.getTime())) {
-              this.prestamo.fechaInicio = parsedDate;
-              this.originalFechaInicio = this.prestamo.fechaInicio;
-            } else {
-              console.error('Fecha no válida:', fechaInicio);
-            }
+          const fechaInicio = response.fechaInicio; 
+          if (fechaInicio && !isNaN(Date.parse(fechaInicio))) {
+            this.prestamo.fechaInicio = new Date(fechaInicio);
           } else {
-            console.error('Fecha no válida: null');
+            console.warn('Fecha de inicio inválida o nula, asignando fecha actual');
+            this.prestamo.fechaInicio = new Date(); // Evita que sea null
           }
-
+  
+          this.originalFechaInicio = this.prestamo.fechaInicio;
+  
           this.setEstadoInicial();
           this.cdr.detectChanges();
         }
@@ -134,6 +134,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       error: (error) => console.error('Error al obtener detalles', error)
     });
   }
+  
 
   cambiarEstado(): void {
     const nuevoEstado = this.estados.find(e => e.est_id === this.estadoSeleccionadoId);
