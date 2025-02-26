@@ -9,16 +9,10 @@
   margin-bottom: 20px;
 }
 
-.btn-primary {
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background-color: #666;
+.user-table-container {
+  max-height: 570px;
+  overflow-y: auto;
+  position: relative;
 }
 
 .table {
@@ -51,17 +45,25 @@
   background-color: #f1f1f1;
 }
 
+.btn-primary:hover {
+  background-color: #666;
+}
+
+.btn-primary {
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 .no-results {
   margin-top: 20px;
   text-align: center;
   color: #888888;
 }
 
-.user-table-container {
-  max-height: 570px;
-  overflow-y: auto;
-  position: relative;
-}
+
 
 .mat-mdc-header-cell,
 .mat-cell {

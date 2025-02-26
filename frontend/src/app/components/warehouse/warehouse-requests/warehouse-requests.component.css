@@ -11,18 +11,8 @@
 }
 
 .user-table-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   max-height: 570px;
-  overflow-y: scroll;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 0;
-  margin: 0;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -39,6 +29,7 @@
   vertical-align: middle;
   word-wrap: break-word; /* Para evitar que el contenido se sobresalga */
   padding: 8px; /* Asegura que el contenido tenga espacio suficiente */
+  border-bottom: 1px solid #ddd;
 }
 
 .table th {
@@ -48,7 +39,7 @@
   font-weight: bold;
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 2;
 }
 
 .table tr:hover {
