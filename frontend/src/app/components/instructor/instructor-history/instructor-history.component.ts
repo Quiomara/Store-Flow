@@ -57,7 +57,7 @@ export class InstructorHistoryComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
-    this.searchForm.valueChanges.subscribe(() => this.buscar()); // Suscribirse a cambios en el formulario
+    this.searchForm.valueChanges.subscribe(() => this.buscar());
   }
 
   async loadInitialData(): Promise<void> {

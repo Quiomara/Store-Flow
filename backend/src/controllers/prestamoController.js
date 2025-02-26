@@ -203,22 +203,13 @@ const obtenerPrestamoPorId = async (req, res) => {
   const pre_id = req.params.pre_id;
 
   try {
-    // Obtener el préstamo
-    const prestamo = await Prestamo.obtenerPorId(pre_id); // Cambiado a `obtenerPorId`
-
-    // Verificar si el préstamo existe
+    const prestamo = await Prestamo.obtenerPorId(pre_id);
     if (!prestamo) {
       return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado.' });
     }
 
-    // Obtener los elementos asociados al préstamo
     const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
-
-    // Crear un nuevo objeto con los datos del préstamo y los elementos
-    const respuesta = {
-      ...prestamo, // `prestamo` es un objeto, no un array
-      elementos: elementos,
-    };
+    const respuesta = { ...prestamo, elementos };
 
     res.json({ respuesta: true, mensaje: 'Préstamo obtenido con éxito.', data: respuesta });
   } catch (err) {

@@ -90,20 +90,6 @@ mat-icon:hover {
   color: #0056b3;
 }
 
-select.form-control {
-  appearance: none;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-select.form-control:focus {
-  outline: none;
-}
-
 @media (max-width: 768px) {
   .instructor-history-container {
     padding: 10px;

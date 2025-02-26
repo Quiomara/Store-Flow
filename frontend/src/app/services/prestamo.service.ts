@@ -22,10 +22,9 @@ export class PrestamoService {
     const token = this.authService.getToken();
     if (!token) {
       console.warn('Token de autenticación no disponible, redirigiendo al login.');
-      this.authService.clearToken(); // Limpiar cualquier token presente
-      return new HttpHeaders(); // Devolver encabezados vacíos para evitar lanzar excepciones
+      this.authService.clearToken();
+      return new HttpHeaders();
     }
-    console.log('Usando token en PrestamoService:', token); // Log para verificar el token
     return new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -43,7 +42,7 @@ export class PrestamoService {
     } else {
       errorMessage = `Error ${error.status}: ${error.error?.message || error.statusText}`;
     }
-    console.error('Error en PrestamoService:', errorMessage, '\nDetalles:', error);
+    console.error('Error en PrestamoService:', errorMessage, error);
     return throwError(() => new Error(errorMessage));
   }
 
@@ -56,17 +55,18 @@ export class PrestamoService {
   }
 
   createPrestamo(prestamo: Prestamo): Observable<any> {
-    return this.request('POST', `${this.prestamosUrl}/crear`, prestamo);
+    return this.http.post(`${this.prestamosUrl}/crear`, prestamo, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
+
   getPrestamos(): Observable<Prestamo[]> {
-    return this.request<{respuesta: boolean, mensaje: string, data: Prestamo[]}>('GET', this.prestamosUrl).pipe(
-      map(response => {
-        console.log('Respuesta recibida en getPrestamos:', response);
-        return response.data ? response.data : [];
-      })
-    );
-  }  
+    return this.http.get<{ respuesta: boolean; mensaje: string; data: Prestamo[] }>(this.prestamosUrl, { headers: this.getHeaders() })
+      .pipe(
+        map(response => response.data || []),
+        catchError(this.handleError)
+      );
+  }
   
   updateStock(item: { ele_id: number; ele_cantidad_actual: number }): Observable<any> {
     return this.request('PUT', `${this.stockUrl}/actualizar-stock`, item);
