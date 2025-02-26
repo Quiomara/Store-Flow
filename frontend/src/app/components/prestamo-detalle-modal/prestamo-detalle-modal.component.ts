@@ -30,18 +30,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   ]
 })
 export class PrestamoDetalleModalComponent implements OnInit {
-  prestamo: Prestamo = {
-    idPrestamo: 0,
-    cedulaSolicitante: 0,
-    solicitante: '',
-    fechaInicio: new Date(), // Inicializar con fecha actual por defecto
-    elementos: [],
-    fecha: '',
-    estado: 'Desconocido',
-    fechaEntrega: '',
-    instructorNombre: ''
-  };
-  originalFechaInicio: Date | undefined = undefined;
+  prestamo: Prestamo;
+  originalFechaInicio: Date | undefined;
   displayedColumns: string[] = ['nombre', 'cantidad', 'acciones'];
   originalItems: EditableElemento[] = [];
   puedeCambiarEstado = false;
@@ -61,12 +51,22 @@ export class PrestamoDetalleModalComponent implements OnInit {
   ) {
     if (data.prestamo) {
       this.prestamo = data.prestamo;
+      this.originalFechaInicio = new Date(data.prestamo.fechaInicio); // Almacenar la fecha de inicio original
     } else {
-      // Inicializar prestamo solo si es un nuevo prestamo
-      this.prestamo = { ...this.prestamo, fechaInicio: new Date() };
+      this.prestamo = {
+        idPrestamo: 0,
+        cedulaSolicitante: 0,
+        solicitante: '',
+        fechaInicio: new Date(), // Inicializar con fecha actual por defecto solo si es nuevo préstamo
+        elementos: [],
+        fecha: '',
+        estado: 'Desconocido',
+        fechaEntrega: '',
+        instructorNombre: ''
+      };
+      this.originalFechaInicio = this.prestamo.fechaInicio; // Almacenar la fecha de inicio original
     }
   }
-  
 
   ngOnInit(): void {
     if (this.prestamo.idPrestamo !== undefined) {
@@ -98,6 +98,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
   obtenerPrestamoDetalles(prestamoId: number): void {
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe({
       next: (response) => {
+        console.log('Respuesta del backend:', response); // Verificar la respuesta completa
         if (response?.data) {
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
@@ -111,10 +112,21 @@ export class PrestamoDetalleModalComponent implements OnInit {
           }));
           this.originalItems = [...this.prestamo.elementos];
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
-          // Asignar la fecha de inicio recibida del backend y formatearla
-          const fechaInicio = response.fechaInicio ? response.fechaInicio : ''; // Manejar undefined
-          this.prestamo.fechaInicio = new Date(this.formatearFecha(fechaInicio));
-          this.originalFechaInicio = this.prestamo.fechaInicio; // Guardar la fecha de inicio original
+
+          // Verificar y asignar la fecha de inicio correctamente
+          const fechaInicio = response.fechaInicio || 'Fecha no válida';
+          if (fechaInicio !== 'Fecha no válida' && fechaInicio !== null) {
+            const parsedDate = new Date(fechaInicio);
+            if (!isNaN(parsedDate.getTime())) {
+              this.prestamo.fechaInicio = parsedDate;
+              this.originalFechaInicio = this.prestamo.fechaInicio;
+            } else {
+              console.error('Fecha no válida:', fechaInicio);
+            }
+          } else {
+            console.error('Fecha no válida: null');
+          }
+
           this.setEstadoInicial();
           this.cdr.detectChanges();
         }
@@ -122,8 +134,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       error: (error) => console.error('Error al obtener detalles', error)
     });
   }
-  
-  
+
   cambiarEstado(): void {
     const nuevoEstado = this.estados.find(e => e.est_id === this.estadoSeleccionadoId);
     if (nuevoEstado) {
@@ -137,7 +148,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
           textoBotonCancelar: 'Cancelar'
         }
       });
-  
+
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           console.log('Antes de actualizar estado, fechaInicio:', this.prestamo.fechaInicio);
@@ -149,7 +160,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
               if (response.respuesta) {
                 this.prestamo.estado = nuevoEstado.est_nombre;
                 this.dataUpdated = true;
-                console.log('Después de actualizar estado, fechaInicio:', this.prestamo.fechaInicio);
                 this.cdr.detectChanges(); // Forzar la detección de cambios
                 this.snackBar.open(`Estado actualizado a "${nuevoEstado.est_nombre}"`, 'Cerrar', { duration: 3000 });
               }
@@ -161,10 +171,11 @@ export class PrestamoDetalleModalComponent implements OnInit {
           });
         }
       });
+    } else {
+      console.error('No se encontró el nuevo estado seleccionado.');
     }
   }
-  
-  
+
   private actualizarEstado(nuevoEstado: Estado): void {
     this.prestamoService.actualizarEstadoPrestamo(
       this.prestamo.idPrestamo!,
@@ -194,17 +205,40 @@ export class PrestamoDetalleModalComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.cambiarEstadoAEnProceso();
+        const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
+        if (estadoEnProceso) {
+          // Guardar la fecha de inicio original antes de actualizar el estado
+          const fechaInicioOriginal = this.prestamo.fechaInicio;
+  
+          this.prestamoService.actualizarEstadoPrestamo(
+            this.prestamo.idPrestamo!,
+            estadoEnProceso.est_id
+          ).subscribe({
+            next: (response) => {
+              if (response.respuesta) {
+                // Restaurar la fecha de inicio original después de actualizar el estado
+                this.prestamo.fechaInicio = fechaInicioOriginal;
+                this.prestamo.estado = 'En proceso';
+                this.dataUpdated = true;
+                this.cdr.detectChanges();
+                this.snackBar.open('Solicitud aprobada correctamente', 'Cerrar', { duration: 3000 });
+              }
+            },
+            error: (error) => {
+              console.error('Error al aprobar la solicitud', error);
+              this.snackBar.open('Error al aprobar la solicitud', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
       }
     });
   }
-  
+
   cambiarEstadoAEnProceso(): void {
     if (!this.prestamo.idPrestamo) {
       console.error('ID del préstamo no definido.');
       return;
-    }
-  
+    }  
     const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
     if (estadoEnProceso) {
       this.prestamoService.actualizarEstadoPrestamo(
@@ -213,8 +247,9 @@ export class PrestamoDetalleModalComponent implements OnInit {
       ).subscribe({
         next: (response) => {
           if (response.respuesta) {
-            // Solo actualiza el estado, no la fechaInicio
             this.prestamo.estado = 'En proceso';
+            // Actualizar la fecha de última actualización
+            this.prestamo.pre_actualizacion = new Date();
             this.dataUpdated = true;
             this.cdr.detectChanges();
           }
@@ -233,8 +268,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
         textoBotonConfirmar: 'Sí',
         textoBotonCancelar: 'No'
       }
-    });
-  
+    });  
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const estadoEntregado = this.estados.find(e => e.est_nombre === 'Entregado');
@@ -245,7 +279,11 @@ export class PrestamoDetalleModalComponent implements OnInit {
           ).subscribe({
             next: (response) => {
               if (response.respuesta) {
+                // Actualizar la fecha de entrega con la fecha actual
+                this.prestamo.fechaEntrega = new Date().toISOString().split('T')[0];
                 this.prestamo.estado = 'Entregado';
+                // Actualizar la fecha de última actualización
+                this.prestamo.pre_actualizacion = new Date();
                 this.dataUpdated = true;
                 this.cdr.detectChanges();
                 this.snackBar.open('Estado actualizado a "Entregado"', 'Cerrar', { duration: 3000 });
@@ -260,7 +298,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
     });
   }
-
+  
   private getMensajeConfirmacion(estado: string): string {
     switch (estado) {
       case 'En proceso':
@@ -300,38 +338,42 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
       const originalItem = this.originalItems.find(original => original.ele_id === item.ele_id);
       if (!originalItem) return;
+
       const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado);
       const cantidadActual = Number(item.pre_ele_cantidad_prestado);
       const diferencia = cantidadActual - cantidadOriginal;
+
       const updatePrestamoElemento = {
         pre_id: pre_id,
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
+
       const updateStock = {
         ele_id: item.ele_id,
         ele_cantidad_actual: -diferencia,
         ele_cantidad_total: 0
       };
-      this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe(
-        () => {
-          this.elementoService.actualizarStock(updateStock).subscribe(
-            () => {
+
+      this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe({
+        next: () => {
+          this.elementoService.actualizarStock(updateStock).subscribe({
+            next: () => {
               this.dataUpdated = true;
               this.cdr.detectChanges();
+              this.snackBar.open('Cambios guardados correctamente', 'Cerrar', { duration: 3000 });
             },
-            (error: any) => {
+            error: (error) => {
               console.error('Error actualizando stock', error);
-              this.prestamoService.updatePrestamoElemento({
-                pre_id: pre_id,
-                ele_id: item.ele_id,
-                pre_ele_cantidad_prestado: cantidadOriginal
-              }).subscribe();
+              this.snackBar.open('Error al actualizar el stock', 'Cerrar', { duration: 3000 });
             }
-          );
+          });
         },
-        (error: any) => console.error('Error actualizando PrestamosElementos', error)
-      );
+        error: (error) => {
+          console.error('Error actualizando PrestamosElementos', error);
+          this.snackBar.open('Error al guardar los cambios', 'Cerrar', { duration: 3000 });
+        }
+      });
     }
   }
 
@@ -354,19 +396,17 @@ export class PrestamoDetalleModalComponent implements OnInit {
   }
 
   formatearFecha(fecha: string | undefined): string {
-    if (!fecha) { // Comprobar si la fecha es undefined
+    if (!fecha) {
       console.error('Fecha no válida: undefined');
-      return ''; // Devolver una cadena vacía o un valor predeterminado adecuado
+      return 'Fecha no válida';
     }
     const date = new Date(fecha);
-    if (isNaN(date.getTime())) { // Comprobar si la fecha no es válida
+    if (isNaN(date.getTime())) {
       console.error('Fecha no válida:', fecha);
-      return ''; // Devolver una cadena vacía o un valor predeterminado adecuado
+      return 'Fecha no válida';
     }
-    return date.toISOString(); // Puedes ajustar el formato según sea necesario
+    return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
   }
-  
-  
 
   close(): void {
     this.dialogRef.close(this.dataUpdated);

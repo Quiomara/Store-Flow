@@ -339,10 +339,10 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
-    // Actualizar el préstamo
+    // Actualizar SOLO el estado del préstamo
     const [result] = await db.execute(
       "UPDATE prestamos SET est_id = ? WHERE pre_id = ?", 
-      [est_id, pre_id] // Asegúrate de que el orden sea correcto: est_id primero, pre_id después
+      [est_id, pre_id]
     );
 
     if (result.affectedRows === 0) {
@@ -352,10 +352,14 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
+    // Obtener la fecha de inicio original para devolverla en la respuesta
+    const [prestamo] = await db.execute("SELECT pre_inicio FROM prestamos WHERE pre_id = ?", [pre_id]);
+
     res.json({ 
       respuesta: true, 
       mensaje: "Estado actualizado correctamente",
-      nuevo_estado: estado[0].est_nombre 
+      nuevo_estado: estado[0].est_nombre,
+      pre_inicio: prestamo[0].pre_inicio // Devolver la fecha original
     });
 
   } catch (err) {

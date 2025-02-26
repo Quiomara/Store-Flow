@@ -51,17 +51,17 @@ const Prestamo = {
   obtenerTodos: async () => {
     const query = `
       SELECT 
-        p.pre_id, 
-        p.pre_inicio, 
-        p.pre_fin, 
-        u.usr_cedula, 
-        CONCAT(u.usr_primer_nombre, ' ', u.usr_segundo_nombre, ' ', u.usr_primer_apellido, ' ', u.usr_segundo_apellido) AS usr_nombre, 
-        e.est_nombre,
-        p.pre_actualizacion
-      FROM Prestamos p
-      JOIN Usuarios u ON p.usr_cedula = u.usr_cedula
-      JOIN Estados e ON p.est_id = e.est_id
-      ORDER BY p.pre_inicio DESC;
+  p.pre_id, 
+  DATE_FORMAT(p.pre_inicio, '%Y-%m-%dT%H:%i:%sZ') AS pre_inicio, -- Agrega 'Z' al final
+  p.pre_fin, 
+  u.usr_cedula, 
+  CONCAT(u.usr_primer_nombre, ' ', u.usr_segundo_nombre, ' ', u.usr_primer_apellido, ' ', u.usr_segundo_apellido) AS usr_nombre, 
+  e.est_nombre,
+  p.pre_actualizacion
+FROM Prestamos p
+JOIN Usuarios u ON p.usr_cedula = u.usr_cedula
+JOIN Estados e ON p.est_id = e.est_id
+ORDER BY p.pre_inicio DESC;
     `;
     const [prestamos] = await db.execute(query);
 

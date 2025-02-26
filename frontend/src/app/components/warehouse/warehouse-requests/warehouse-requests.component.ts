@@ -64,10 +64,11 @@ export class WarehouseRequestsComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
 
+    // Suscripción a cambios en el formulario para filtrado dinámico
     this.searchForm.valueChanges
       .pipe(
-        debounceTime(300),
-        distinctUntilChanged()
+        debounceTime(300), // Espera 300 ms después de cada cambio
+        distinctUntilChanged() // Solo emite si el valor cambió
       )
       .subscribe(() => this.buscar());
   }
@@ -83,32 +84,42 @@ export class WarehouseRequestsComponent implements OnInit {
       console.log('Datos recibidos del backend:', prestamos);
   
       if (prestamos && Array.isArray(prestamos)) {
-        this.prestamos = prestamos
-          .map((item: any) => {
-            console.log('Fecha inicio recibida del backend:', item.pre_inicio); // Verificar la fecha
-            const fechaInicio = item.pre_inicio ? item.pre_inicio : 'Fecha no válida'; // Manejar undefined
-            return {
-              idPrestamo: item.pre_id,
-              cedulaSolicitante: item.usr_cedula,
-              solicitante: item.usr_nombre,
-              fechaInicio: fechaInicio, // Usar la fecha de inicio original sin formatear
-              fecha: this.formatearFecha(fechaInicio), // Formatear fecha sin hora
-              fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
-              estado: item.est_nombre,
-              elementos: item.elementos || [],
-              instructorNombre: item.usr_nombre
-            };
-          })
+        // Definir orden prioritario de estados
+        const ordenEstados = ['Creado', 'En proceso', 'En préstamo', 'Entregado', 'Cancelado'];
+        
+        this.prestamos = prestamos.map((item: any) => ({
+          idPrestamo: item.pre_id,
+          cedulaSolicitante: item.usr_cedula,
+          solicitante: item.usr_nombre,
+          fechaHora: this.formatearFecha(item.pre_inicio),
+          fecha: this.formatearFecha(item.pre_inicio),
+          fechaInicio: item.pre_inicio, // Asegurarte de incluir fechaInicio
+          fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
+          estado: item.est_nombre,
+          elementos: item.elementos || [],
+          instructorNombre: item.usr_nombre
+        }))
           .sort((a, b) => {
-            // Ordenar por fecha de más reciente a más antigua
-            const fechaA = new Date(a.fechaInicio).getTime();
-            const fechaB = new Date(b.fechaInicio).getTime();
-            return fechaB - fechaA; // Orden descendente (más reciente primero)
+            // Obtener índices de los estados en el orden definido
+            const indiceA = ordenEstados.indexOf(a.estado);
+            const indiceB = ordenEstados.indexOf(b.estado);
+  
+            // Manejar estados no definidos (los colocamos al final)
+            const valorA = indiceA === -1 ? Infinity : indiceA;
+            const valorB = indiceB === -1 ? Infinity : indiceB;
+  
+            // Primero ordenar por estado
+            if (valorA !== valorB) {
+              return valorA - valorB;
+            }
+            
+            // Si mismo estado: ordenar por ID descendente (más reciente primero)
+            return b.idPrestamo - a.idPrestamo;
           });
   
+        // Actualiza el DataSource
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
-        console.log('Préstamos procesados:', this.prestamos); // Verificar los préstamos procesados
         this.buscar();
       } else {
         console.warn('La respuesta del backend no es un array.');
@@ -143,7 +154,7 @@ export class WarehouseRequestsComponent implements OnInit {
       filteredData = filteredData.filter(
         prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
       );
-    }
+    }  
 
     if (searchEstado && searchEstado.trim() !== '') {
       filteredData = filteredData.filter(
@@ -153,15 +164,15 @@ export class WarehouseRequestsComponent implements OnInit {
 
     if (searchFecha) {
       filteredData = filteredData.filter(
-        prestamo => prestamo.fechaInicio && prestamo.fechaInicio === searchFecha
+        prestamo => prestamo.fecha && prestamo.fecha === searchFecha
       );
-    }
-
-    if (searchInstructor && searchInstructor.trim() !== '') {
+    }    
+    
+    if (searchInstructor) {
       filteredData = filteredData.filter(
         prestamo => prestamo.instructorNombre && prestamo.instructorNombre.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
-    }
+    }    
 
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
@@ -196,10 +207,12 @@ export class WarehouseRequestsComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { prestamo },
-      disableClose: true
+      data: { 
+        prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } // Pasar la fecha de inicio
+      },
+      disableClose: true // Evita que el usuario cierre haciendo clic fuera
     });
-
+  
     dialogRef.afterClosed().subscribe((updated: boolean) => {
       if (updated) {
         this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
@@ -211,7 +224,7 @@ export class WarehouseRequestsComponent implements OnInit {
       }
     });
   }
-
+  
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
@@ -230,7 +243,7 @@ export class WarehouseRequestsComponent implements OnInit {
       case 'préstamo': return 'estado-prestamo';
       case 'entregado': return 'estado-entregado';
       case 'cancelado': return 'estado-cancelado';
-      case 'pendiente': return 'estado-pendiente';
+      case 'pendiente': return 'estado-pendiente'; // Añadir esta línea para el estado Pendiente
       default: return 'estado-default';
     }
   }
