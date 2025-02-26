@@ -100,14 +100,8 @@ select.form-control {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-select.form-control:hover {
-  border-color: #007bff;
-}
-
 select.form-control:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 @media (max-width: 768px) {

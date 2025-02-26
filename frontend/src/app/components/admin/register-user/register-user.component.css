@@ -74,14 +74,10 @@ select option:checked {
 /* Nuevo estilo para mantener la misma gama de colores */
 input:focus {
   outline: none;
-  border-color: #666;
-  box-shadow: 0 0 5px #666;
 }
 
 .form-control:focus {
   outline: none; 
-  border-color: #666; 
-  box-shadow: 0 0 5px #666; 
 }
 
 
