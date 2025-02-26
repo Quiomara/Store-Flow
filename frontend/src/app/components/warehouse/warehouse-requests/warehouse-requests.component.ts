@@ -12,7 +12,6 @@ import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
-import { User } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -40,7 +39,8 @@ export class WarehouseRequestsComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns: string[] = ['idPrestamo', 'instructorNombre', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
+  // Se elimina la columna 'fechaEntrega' ya que no se mostrará en la tabla
+  displayedColumns: string[] = ['idPrestamo', 'instructorNombre', 'fechaHora', 'estado', 'acciones'];
 
   constructor(
     private fb: FormBuilder,
@@ -57,18 +57,16 @@ export class WarehouseRequestsComponent implements OnInit {
       searchFecha: [''],
       searchInstructor: ['']
     });
-
     this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
 
-    // Suscripción a cambios en el formulario para filtrado dinámico
     this.searchForm.valueChanges
       .pipe(
-        debounceTime(300), // Espera 300 ms después de cada cambio
-        distinctUntilChanged() // Solo emite si el valor cambió
+        debounceTime(300),
+        distinctUntilChanged()
       )
       .subscribe(() => this.buscar());
   }
@@ -81,48 +79,42 @@ export class WarehouseRequestsComponent implements OnInit {
   async getHistory(): Promise<void> {
     try {
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
-      console.log('Datos recibidos del backend:', prestamos);
   
       if (prestamos && Array.isArray(prestamos)) {
-        // Definir orden prioritario de estados
-        const ordenEstados = ['Creado', 'En proceso', 'En préstamo', 'Entregado', 'Cancelado'];
-        
-        this.prestamos = prestamos.map((item: any) => ({
-          idPrestamo: item.pre_id,
-          cedulaSolicitante: item.usr_cedula,
-          solicitante: item.usr_nombre,
-          fechaHora: this.formatearFecha(item.pre_inicio),
-          fecha: this.formatearFecha(item.pre_inicio),
-          fechaInicio: item.pre_inicio, // Asegurarte de incluir fechaInicio
-          fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
-          estado: item.est_nombre,
-          elementos: item.elementos || [],
-          instructorNombre: item.usr_nombre
-        }))
-          .sort((a, b) => {
-            // Obtener índices de los estados en el orden definido
-            const indiceA = ordenEstados.indexOf(a.estado);
-            const indiceB = ordenEstados.indexOf(b.estado);
+        // Solo se tendrán en cuenta los estados: Creado, En proceso y En préstamo.
+        const ordenEstados = ['creado', 'en proceso', 'en préstamo'];
   
-            // Manejar estados no definidos (los colocamos al final)
+        this.prestamos = prestamos
+          .map((item: any) => ({
+            idPrestamo: item.pre_id,
+            cedulaSolicitante: item.usr_cedula,
+            instructorNombre: item.usr_nombre,
+            fechaHora: this.formatearFecha(item.pre_inicio),
+            fechaInicio: item.pre_inicio,
+            estado: item.est_nombre,
+            elementos: item.elementos || []
+          }))
+          // Se filtran los préstamos con estado 'Entregado' o 'Cancelado'
+          .filter(prestamo => {
+            const estado = prestamo.estado.toLowerCase();
+            return estado !== 'entregado' && estado !== 'cancelado';
+          })
+          .sort((a, b) => {
+            const indiceA = ordenEstados.indexOf(a.estado.toLowerCase());
+            const indiceB = ordenEstados.indexOf(b.estado.toLowerCase());
             const valorA = indiceA === -1 ? Infinity : indiceA;
             const valorB = indiceB === -1 ? Infinity : indiceB;
   
-            // Primero ordenar por estado
             if (valorA !== valorB) {
               return valorA - valorB;
             }
-            
-            // Si mismo estado: ordenar por ID descendente (más reciente primero)
             return b.idPrestamo - a.idPrestamo;
           });
   
-        // Actualiza el DataSource
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
         this.buscar();
       } else {
-        console.warn('La respuesta del backend no es un array.');
         this.snackBar.open('No se encontraron préstamos.', 'Cerrar', { duration: 5000 });
       }
     } catch (error) {
@@ -131,17 +123,12 @@ export class WarehouseRequestsComponent implements OnInit {
     }
   }
   
-
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
-      (data: Estado[]) => {
-        this.estados = data;
-      },
+      (data: Estado[]) => this.estados = data,
       (error: any) => {
         console.error('Error al obtener los estados', error);
-        this.snackBar.open('Ocurrió un error al obtener los estados. Por favor, intenta nuevamente más tarde.', 'Cerrar', {
-          duration: 5000
-        });
+        this.snackBar.open('Ocurrió un error al obtener los estados. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
       }
     );
   }
@@ -149,31 +136,31 @@ export class WarehouseRequestsComponent implements OnInit {
   buscar(): void {
     const { searchId, searchEstado, searchFecha, searchInstructor } = this.searchForm.value;
     let filteredData = this.prestamos;
-
+  
     if (searchId) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
-      );
-    }  
-
-    if (searchEstado && searchEstado.trim() !== '') {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.idPrestamo?.toString().includes(searchId)
       );
     }
-
+  
+    if (searchEstado && searchEstado.trim() !== '') {
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.estado?.toLowerCase().includes(searchEstado.trim().toLowerCase())
+      );
+    }
+  
     if (searchFecha) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.fecha && prestamo.fecha === searchFecha
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.fechaInicio === searchFecha
       );
-    }    
-    
+    }
+  
     if (searchInstructor) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.instructorNombre && prestamo.instructorNombre.toLowerCase().includes(searchInstructor.trim().toLowerCase())
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.instructorNombre?.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
-    }    
-
+    }
+  
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
@@ -190,12 +177,6 @@ export class WarehouseRequestsComponent implements OnInit {
         case 'préstamo':
           this.mensajeNoPrestamos = 'No hay préstamos en curso.';
           break;
-        case 'entregado':
-          this.mensajeNoPrestamos = 'No hay préstamos entregados.';
-          break;
-        case 'cancelado':
-          this.mensajeNoPrestamos = 'No hay préstamos cancelados.';
-          break;
         default:
           this.mensajeNoPrestamos = 'No se encontraron préstamos.';
       }
@@ -207,10 +188,8 @@ export class WarehouseRequestsComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { 
-        prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } // Pasar la fecha de inicio
-      },
-      disableClose: true // Evita que el usuario cierre haciendo clic fuera
+      data: { prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } },
+      disableClose: true
     });
   
     dialogRef.afterClosed().subscribe((updated: boolean) => {
@@ -228,22 +207,20 @@ export class WarehouseRequestsComponent implements OnInit {
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
-
+  
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const estadoSeleccionado = selectElement.value;
     this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
     this.buscar();
   }
-
+  
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
       case 'creado': return 'estado-creado';
       case 'en proceso': return 'estado-proceso';
       case 'préstamo': return 'estado-prestamo';
-      case 'entregado': return 'estado-entregado';
-      case 'cancelado': return 'estado-cancelado';
-      case 'pendiente': return 'estado-pendiente'; // Añadir esta línea para el estado Pendiente
+      case 'pendiente': return 'estado-pendiente';
       default: return 'estado-default';
     }
   }

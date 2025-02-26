@@ -6,8 +6,7 @@
     <input type="date" formControlName="searchFecha" placeholder="Fecha" class="form-control mr-2" />
 
     <!-- Menú desplegable para los estados -->
-    <select id="estado-select" formControlName="searchEstado" class="form-control mr-2"
-      (change)="seleccionarEstado($event)">
+    <select id="estado-select" formControlName="searchEstado" class="form-control mr-2" (change)="seleccionarEstado($event)">
       <option value="">Todos los estados</option>
       <option *ngFor="let estado of estados" [value]="estado.est_nombre">
         {{ estado.est_nombre }}
@@ -15,48 +14,27 @@
     </select>
 
     <!-- Campo de búsqueda por nombre del instructor -->
-    <input type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor"
-      class="form-control mr-2" />
+    <input type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor" class="form-control mr-2" />
   </form>
 
   <div class="user-table-container">
     <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table">
       <!-- Columna: ID del Préstamo -->
       <ng-container matColumnDef="idPrestamo">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">
-          ID del Préstamo
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="header-cell">ID del Préstamo</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.idPrestamo }}</td>
       </ng-container>
 
-      <!-- Columna: Fecha inicio -->
+      <!-- Columna: Fecha Inicio -->
       <ng-container matColumnDef="fechaHora">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">
-          Fecha Inicio
-        </th>
-        <td mat-cell *matCellDef="let prestamo">
-          {{ prestamo.fechaInicio | date: 'MMM dd yyyy, HH:mm:ss' : 'UTC' }} <!-- Fecha y hora formateadas en UTC -->
-        </td>
-      </ng-container>
-
-      <!-- Columna: Fecha fin -->
-      <ng-container matColumnDef="fechaEntrega">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Fin</th>
-        <td mat-cell *matCellDef="let prestamo">
-          <span class="estado-badge" [ngClass]="getEstadoClass(prestamo.fechaEntrega)">
-            {{ prestamo.fechaEntrega === "Pendiente" ? "Pendiente" : (prestamo.fechaEntrega | date : "MMM dd yyyy, HH:mm:ss" : 'UTC') }} <!-- Fecha formateada en UTC -->
-          </span>
-        </td>
+        <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Inicio</th>
+        <td mat-cell *matCellDef="let prestamo">{{ prestamo.fechaHora }}</td>
       </ng-container>
 
       <!-- Columna: Instructor -->
       <ng-container matColumnDef="instructorNombre">
-        <th mat-header-cell *matHeaderCellDef class="header-cell">
-          Instructor
-        </th>
-        <td mat-cell *matCellDef="let prestamo">
-          {{ prestamo.instructorNombre }}
-        </td>
+        <th mat-header-cell *matHeaderCellDef class="header-cell">Instructor</th>
+        <td mat-cell *matCellDef="let prestamo">{{ prestamo.instructorNombre }}</td>
       </ng-container>
 
       <!-- Columna: Estado -->
@@ -69,11 +47,9 @@
         </td>
       </ng-container>
 
-      <!-- Columna: Detalles (icono de ojito) -->
+      <!-- Columna: Detalles -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">
-          Detalles
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">Detalles</th>
         <td mat-cell *matCellDef="let prestamo">
           <button mat-icon-button (click)="verDetalles(prestamo)" class="icon-btn">
             <mat-icon>visibility</mat-icon>
@@ -93,7 +69,6 @@
   </div>
 
   <!-- Paginador -->
-  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
-    aria-label="Seleccionar página">
+  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Seleccionar página">
   </mat-paginator>
 </div>
