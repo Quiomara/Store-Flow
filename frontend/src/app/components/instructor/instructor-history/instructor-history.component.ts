@@ -11,6 +11,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
+import { ConfirmationDialogComponent } from '../../warehouse/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-instructor-history',
@@ -198,4 +199,36 @@ export class InstructorHistoryComponent implements OnInit {
     this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
     this.buscar();
   }
+
+  cancelarPrestamo(prestamo: any): void {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Cancelar Préstamo',
+        message: `¿Estás seguro de que deseas cancelar el préstamo ${prestamo.idPrestamo}?`
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.prestamoService.cancelarPrestamo(prestamo.idPrestamo).subscribe(
+          () => {
+            prestamo.estado = 'Cancelado';
+            this.snackBar.open(`Préstamo ${prestamo.idPrestamo} cancelado exitosamente.`, 'Cerrar', {
+              duration: 3000
+            });
+            this.getHistory(); // Refrescar la tabla después de cancelar
+          },
+          error => {
+            console.error('Error al cancelar el préstamo:', error);
+            this.snackBar.open('Ocurrió un error al cancelar el préstamo. Inténtalo de nuevo.', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        );
+      }
+    });
+  }
+
+  
 }

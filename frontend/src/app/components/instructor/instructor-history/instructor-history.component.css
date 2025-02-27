@@ -105,3 +105,14 @@ mat-icon:hover {
     max-height: 400px;
   }
 }
+
+.cancel-btn mat-icon {
+  color: #e53935; /* Rojo vibrante */
+  transition: color 0.3s ease;
+}
+
+.cancel-btn:hover mat-icon {
+  color: #b71c1c; /* Rojo más oscuro al pasar el mouse */
+}
+
+

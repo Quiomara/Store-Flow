@@ -116,4 +116,9 @@ export class PrestamoService {
   getPrestamosUrl(): string {
     return this.prestamosUrl;
   }
+
+  cancelarPrestamo(idPrestamo: number): Observable<any> {
+    return this.http.put(`${this.prestamosUrl}/prestamos/${idPrestamo}/cancelar`, {});
+  }
+  
 }
