@@ -37,23 +37,46 @@ const prestamoSchema = Joi.object({
 
 // Crear un nuevo préstamo con manejo de transacciones
 const crearPrestamo = async (req, res) => {
+  const { usr_cedula, est_id, elementos } = req.body;
+  let connection;
+
+  if (!usr_cedula || !est_id || !Array.isArray(elementos) || elementos.length === 0) {
+    return res.status(400).json({ success: false, message: "Datos inválidos o sin elementos." });
+  }
+
   try {
-      const { usr_cedula, est_id } = req.body;
+    connection = await db.getConnection();
+    await connection.beginTransaction();
 
-      if (!usr_cedula || !est_id) {
-          return res.status(400).json({ success: false, message: "Datos inválidos" });
-      }
+    // Insertar préstamo y obtener su ID
+    const [prestamoResult] = await connection.execute(
+      `INSERT INTO Prestamos (usr_cedula, est_id) VALUES (?, ?)`,
+      [usr_cedula, est_id]
+    );
 
-      const prestamoId = await Prestamo.crear(usr_cedula, est_id);
+    const prestamoId = prestamoResult.insertId;
+    if (!prestamoId) throw new Error("No se pudo obtener el ID del préstamo.");
 
-      return res.status(201).json({
-          success: true,
-          message: "Préstamo creado exitosamente",
-          prestamoId
-      });
+    console.log("✅ Préstamo creado con ID:", prestamoId);
+
+    // Insertar los elementos asociados al préstamo en paralelo
+    await Promise.all(elementos.map(item =>
+      connection.execute(
+        `INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado) VALUES (?, ?, ?)`,
+        [prestamoId, item.ele_id, item.pre_ele_cantidad_prestado]
+      )
+    ));
+
+    await connection.commit(); // Confirmar transacción
+    res.status(201).json({ success: true, message: "Préstamo creado exitosamente", prestamoId });
 
   } catch (error) {
-      return res.status(500).json({ success: false, message: "Error en el servidor", error: error.message });
+    if (connection) await connection.rollback(); // Revertir si algo falló
+    console.error("❌ Error al crear el préstamo:", error.message);
+    res.status(500).json({ success: false, message: "Error en el servidor", error: error.message });
+
+  } finally {
+    if (connection) connection.release();
   }
 };
 
@@ -116,31 +139,48 @@ const actualizarPrestamo = async (req, res) => {
 
 // Eliminar Préstamo con control de stock
 const eliminarPrestamo = async (req, res) => {
+  
+  console.log("🔍 Parámetros recibidos:", req.params); // 👀 Depuración
   const { pre_id } = req.params;
-  let transaccion;
+  
+  if (!pre_id) {
+      return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
+  }
+
+  let connection;
+
   try {
-    transaccion = await iniciarTransaccion();
-    const resultados = await Prestamo.obtenerEstadoYUsuarioPorId(pre_id, transaccion);
-    if (!resultados.length) return manejarError(res, "Préstamo no encontrado");
+      connection = await db.getConnection();
+      await connection.beginTransaction();
 
-    const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id, transaccion);
-    for (const elemento of elementos) {
-      const elementoDb = await Elemento.obtenerPorId(elemento.ele_id, transaccion);
-      const nuevaCantidad = elementoDb.ele_cantidad_actual + elemento.pre_ele_cantidad_prestado;
-      await Elemento.actualizarStock(elemento.ele_id, nuevaCantidad, transaccion);
-    }
+      // 1️⃣ Eliminar primero los elementos asociados al préstamo
+      await connection.execute(
+          `DELETE FROM PrestamosElementos WHERE pre_id = ?`,
+          [pre_id]
+      );
 
-    await PrestamoElemento.eliminarPorPrestamoId(pre_id, transaccion);
-    await Prestamo.eliminar(pre_id, transaccion);
+      // 2️⃣ Eliminar el préstamo en sí
+      const [result] = await connection.execute(
+          `DELETE FROM Prestamos WHERE pre_id = ?`,
+          [pre_id]
+      );
 
-    await confirmarTransaccion(transaccion);
-    res.json({ respuesta: true, mensaje: "¡Préstamo eliminado con éxito!" });
+      if (result.affectedRows === 0) {
+          throw new Error("No se encontró el préstamo o ya fue eliminado.");
+      }
+
+      await connection.commit();
+      res.json({ success: true, message: "Préstamo eliminado correctamente" });
+
   } catch (error) {
-    if (transaccion) await revertirTransaccion(transaccion);
-    manejarError(res, "Error al eliminar el préstamo", error);
+      if (connection) await connection.rollback();
+      console.error("❌ Error al eliminar el préstamo:", error.message);
+      res.status(500).json({ success: false, message: "Error al eliminar el préstamo", error: error.message });
+
+  } finally {
+      if (connection) connection.release();
   }
 };
-
 
 // Obtener todos los préstamos
 const obtenerTodosPrestamos = async (req, res) => {
@@ -325,6 +365,45 @@ const actualizarEstadoPrestamo = async (req, res) => {
   }
 };
 
+const cancelarPrestamo = async (req, res) => {
+  console.log("🔍 Parámetros recibidos para cancelar:", req.params);
+
+  const pre_id = Number(req.params.pre_id); // Asegurar que es un número
+
+  if (!pre_id) {
+      return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
+  }
+
+  try {
+      // 1️⃣ Verificar si el préstamo existe y su estado
+      const [rows] = await pool.query("SELECT estado FROM prestamos WHERE pre_id = ?", [pre_id]);
+
+      if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "No se encontró el préstamo" });
+      }
+
+      const estadoActual = rows[0].estado;
+
+      // 2️⃣ Validar si el estado es "Creado"
+      if (estadoActual !== "Creado") {
+          return res.status(400).json({ success: false, message: "Solo se pueden cancelar préstamos en estado 'Creado'" });
+      }
+
+      // 3️⃣ Actualizar el estado a "Cancelado"
+      const [result] = await pool.query("UPDATE prestamos SET estado = 'Cancelado' WHERE pre_id = ?", [pre_id]);
+
+      if (result.affectedRows === 0) {
+          return res.status(500).json({ success: false, message: "No se pudo cancelar el préstamo" });
+      }
+
+      return res.status(200).json({ success: true, message: "Préstamo cancelado correctamente" });
+
+  } catch (error) {
+      console.error("❌ Error al cancelar el préstamo:", error);
+      return res.status(500).json({ success: false, message: "Error al cancelar el préstamo", error: error.message });
+  }
+};
+
 
 module.exports = {
   crearPrestamo,
@@ -336,4 +415,5 @@ module.exports = {
   obtenerElementoPrestamos,
   actualizarCantidadElemento,
   actualizarEstadoPrestamo,
+  cancelarPrestamo,
 };

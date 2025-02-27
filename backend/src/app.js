@@ -19,6 +19,7 @@ console.log('Configurando middlewares...');
 // Configurar el tamaño máximo permitido para el cuerpo de la solicitud
 app.use(bodyParser.json({ limit: '25mb' }));
 app.use(bodyParser.urlencoded({ limit: '25mb', extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 

@@ -1,17 +1,44 @@
 const db = require("../config/db");
 
 const Prestamo = {
-    crear: async (usr_cedula, est_id) => {
-        const query = "INSERT INTO prestamos (usr_cedula, est_id) VALUES (?, ?)";
-        const values = [usr_cedula, est_id];
-        try {
-            const [result] = await db.execute(query, values);
-            return result.insertId; // Devuelve el ID del préstamo creado
-        } catch (error) {
-            throw error;
-        }
-    },
-    
+  crear: async (usr_cedula, est_id, elementos) => {
+      const connection = await db.getConnection();
+      try {
+          await connection.beginTransaction(); // Inicia transacción
+
+          // Insertar el préstamo en la tabla "prestamos"
+          const queryPrestamo = "INSERT INTO prestamos (usr_cedula, est_id) VALUES (?, ?)";
+          const [result] = await connection.execute(queryPrestamo, [usr_cedula, est_id]);
+          const prestamoId = result.insertId;
+
+          if (!prestamoId) {
+              throw new Error("No se pudo obtener el ID del préstamo.");
+          }
+
+          console.log("✅ Préstamo creado con ID:", prestamoId);
+
+          // Insertar los elementos en la tabla "PrestamosElementos"
+          const queryElementos = `
+              INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado)
+              VALUES (?, ?, ?)
+          `;
+
+          for (const elemento of elementos) {
+              const { ele_id, pre_ele_cantidad_prestado } = elemento;
+              await connection.execute(queryElementos, [prestamoId, ele_id, pre_ele_cantidad_prestado]);
+          }
+
+          await connection.commit(); // Confirmar transacción
+          connection.release();
+
+          return prestamoId;
+      } catch (error) {
+          await connection.rollback(); // Revertir cambios en caso de error
+          console.error("❌ Error al crear el préstamo:", error.message);
+          throw error;
+      }
+  },
+
   // Actualizar el estado de un préstamo
   actualizarEstado: async (pre_id, est_id) => {
     const query = `UPDATE Prestamos SET est_id = ? WHERE pre_id = ?`;
