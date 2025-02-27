@@ -31,7 +31,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class PrestamoDetalleModalComponent implements OnInit {
   prestamo: Prestamo;
-  originalFechaInicio: Date | undefined;
   displayedColumns: string[] = ['nombre', 'cantidad', 'acciones'];
   originalItems: EditableElemento[] = [];
   puedeCambiarEstado = false;
@@ -47,24 +46,21 @@ export class PrestamoDetalleModalComponent implements OnInit {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar // Inyectar MatSnackBar
+    private snackBar: MatSnackBar
   ) {
     if (data.prestamo) {
       this.prestamo = data.prestamo;
-      this.originalFechaInicio = new Date(data.prestamo.fechaInicio); // Almacenar la fecha de inicio original
     } else {
       this.prestamo = {
         idPrestamo: 0,
         cedulaSolicitante: 0,
         solicitante: '',
-        fechaInicio: new Date(), // Inicializar con fecha actual por defecto solo si es nuevo préstamo
         elementos: [],
         fecha: '',
         estado: 'Desconocido',
         fechaEntrega: '',
         instructorNombre: ''
       };
-      this.originalFechaInicio = this.prestamo.fechaInicio; // Almacenar la fecha de inicio original
     }
   }
 
@@ -98,8 +94,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
   obtenerPrestamoDetalles(prestamoId: number): void {
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe({
       next: (response) => {
-        console.log('Respuesta del backend:', response); // Verificar la respuesta completa
-  
         if (response?.data) {
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
@@ -112,21 +106,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
             editing: false
           }));
           this.originalItems = [...this.prestamo.elementos];
-  
-          // Asignar estado del préstamo si existe, de lo contrario, usar 'Desconocido'
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
-  
-          // Verificar y asignar la fecha de inicio correctamente
-          const fechaInicio = response.fechaInicio; 
-          if (fechaInicio && !isNaN(Date.parse(fechaInicio))) {
-            this.prestamo.fechaInicio = new Date(fechaInicio);
-          } else {
-            console.warn('Fecha de inicio inválida o nula, asignando fecha actual');
-            this.prestamo.fechaInicio = new Date(); // Evita que sea null
-          }
-  
-          this.originalFechaInicio = this.prestamo.fechaInicio;
-  
           this.setEstadoInicial();
           this.cdr.detectChanges();
         }
@@ -139,7 +119,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
   cambiarEstado(): void {
     const nuevoEstado = this.estados.find(e => e.est_id === this.estadoSeleccionadoId);
     if (nuevoEstado) {
-      const mensaje = this.getMensajeConfirmacion(nuevoEstado.est_nombre);
+      const mensaje = `¿Seguro que deseas cambiar el estado a "${nuevoEstado.est_nombre}"?`;
       const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
         width: '350px',
         data: {
@@ -152,7 +132,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          console.log('Antes de actualizar estado, fechaInicio:', this.prestamo.fechaInicio);
           this.prestamoService.actualizarEstadoPrestamo(
             this.prestamo.idPrestamo!,
             nuevoEstado.est_id
@@ -161,7 +140,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
               if (response.respuesta) {
                 this.prestamo.estado = nuevoEstado.est_nombre;
                 this.dataUpdated = true;
-                this.cdr.detectChanges(); // Forzar la detección de cambios
+                this.cdr.detectChanges();
                 this.snackBar.open(`Estado actualizado a "${nuevoEstado.est_nombre}"`, 'Cerrar', { duration: 3000 });
               }
             },
@@ -172,8 +151,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
           });
         }
       });
-    } else {
-      console.error('No se encontró el nuevo estado seleccionado.');
     }
   }
 

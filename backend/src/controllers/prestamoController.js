@@ -368,42 +368,20 @@ const actualizarEstadoPrestamo = async (req, res) => {
 const cancelarPrestamo = async (req, res) => {
   console.log("🔍 Parámetros recibidos para cancelar:", req.params);
 
-  const pre_id = Number(req.params.pre_id); // Asegurar que es un número
+  const pre_id = Number(req.params.pre_id);
 
   if (!pre_id) {
       return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
   try {
-      // 1️⃣ Verificar si el préstamo existe y su estado
-      const [rows] = await pool.query("SELECT estado FROM prestamos WHERE pre_id = ?", [pre_id]);
-
-      if (rows.length === 0) {
-          return res.status(404).json({ success: false, message: "No se encontró el préstamo" });
-      }
-
-      const estadoActual = rows[0].estado;
-
-      // 2️⃣ Validar si el estado es "Creado"
-      if (estadoActual !== "Creado") {
-          return res.status(400).json({ success: false, message: "Solo se pueden cancelar préstamos en estado 'Creado'" });
-      }
-
-      // 3️⃣ Actualizar el estado a "Cancelado"
-      const [result] = await pool.query("UPDATE prestamos SET estado = 'Cancelado' WHERE pre_id = ?", [pre_id]);
-
-      if (result.affectedRows === 0) {
-          return res.status(500).json({ success: false, message: "No se pudo cancelar el préstamo" });
-      }
-
-      return res.status(200).json({ success: true, message: "Préstamo cancelado correctamente" });
-
+      const resultado = await PrestamoModel.cancelarPrestamo(pre_id);
+      return res.status(200).json(resultado);
   } catch (error) {
       console.error("❌ Error al cancelar el préstamo:", error);
-      return res.status(500).json({ success: false, message: "Error al cancelar el préstamo", error: error.message });
+      return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 module.exports = {
   crearPrestamo,

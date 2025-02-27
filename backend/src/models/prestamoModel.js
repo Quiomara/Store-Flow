@@ -191,6 +191,45 @@ ORDER BY p.pre_inicio DESC;
     ]);
     return result;
   },
+
+  cancelarPrestamo: async (pre_id) => {
+    const connection = await db.getConnection();
+    try {
+        // 1️⃣ Verificar si el préstamo existe y su estado
+        const [rows] = await connection.query(
+            "SELECT estado FROM prestamos WHERE pre_id = ?",
+            [pre_id]
+        );
+
+        if (rows.length === 0) {
+            throw new Error("No se encontró el préstamo");
+        }
+
+        const estadoActual = rows[0].estado;
+
+        // 2️⃣ Validar si el estado es "Creado"
+        if (estadoActual !== "Creado") {
+            throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
+        }
+
+        // 3️⃣ Actualizar el estado a "Cancelado"
+        const [result] = await connection.query(
+            "UPDATE prestamos SET estado = 'Cancelado' WHERE pre_id = ?",
+            [pre_id]
+        );
+
+        if (result.affectedRows === 0) {
+            throw new Error("No se pudo cancelar el préstamo");
+        }
+
+        return { success: true, message: "Préstamo cancelado correctamente" };
+    } catch (error) {
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
 };
 
 module.exports = Prestamo;

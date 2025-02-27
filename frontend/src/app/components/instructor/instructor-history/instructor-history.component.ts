@@ -141,11 +141,11 @@ export class InstructorHistoryComponent implements OnInit {
     }
 
     if (searchFecha) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.fechaInicio && prestamo.fechaInicio.toISOString().split('T')[0] === searchFecha
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.fechaInicio === searchFecha
       );
     }
-    
+   
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }

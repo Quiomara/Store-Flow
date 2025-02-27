@@ -7,7 +7,7 @@
     
     <!-- Menú desplegable para los estados -->
     <select formControlName="searchEstado" class="form-control mr-2" (change)="seleccionarEstado($event)">
-      <option value="">Seleccione un estado</option>
+      <option value="">Todos los estados</option>
       <option *ngFor="let estado of estados" [value]="estado.est_nombre">
         {{ estado.est_nombre }}
       </option>
