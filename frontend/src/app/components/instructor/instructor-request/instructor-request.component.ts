@@ -193,8 +193,9 @@ export class InstructorRequestComponent implements OnInit {
   
     this.http.post(`${apiUrl}/crear`, prestamo, { headers }).subscribe(
       (response: any) => {
-        console.log('Solicitud enviada con éxito', response);
-        this.mostrarModalExito(response.id);
+        console.log('Respuesta completa del backend:', response); // 📌 Verifica la respuesta
+    
+        this.mostrarModalExito(response.prestamoId); // ✅ Ahora usa el nombre correcto
         this.limpiarFormulario();
       },
       (error: any) => {
@@ -202,6 +203,7 @@ export class InstructorRequestComponent implements OnInit {
         alert('Error al enviar la solicitud. Por favor, inténtalo de nuevo.');
       }
     );
+    
   }
 
   mostrarModalExito(idPrestamo: number): void {

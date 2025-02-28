@@ -30,7 +30,7 @@ import { ConfirmationDialogComponent } from '../../warehouse/confirmation-dialog
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
-  token: string | null = null;  // 🔹 Declara la propiedad aquí
+  token: string | null = null;
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
   filteredPrestamos: MatTableDataSource<Prestamo>;
@@ -57,19 +57,19 @@ export class InstructorHistoryComponent implements OnInit {
     this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.loadInitialData();
+  ngOnInit(): void {
+    this.loadInitialData();
     this.searchForm.valueChanges.subscribe(() => this.buscar());
   }
 
-  async loadInitialData(): Promise<void> {
-    const token = await this.authService.getToken();
-    const cedula = await this.authService.getCedula();
+  loadInitialData(): void {
+    const token = this.authService.getToken();
+    const cedula = this.authService.getCedula();
     console.log('Token:', token);
     console.log('Cédula:', cedula);
 
     if (token && cedula) {
-      await this.getHistory();
+      this.getHistory();
       this.getEstados();
     } else {
       console.error('Token o cédula no disponibles');
@@ -79,8 +79,8 @@ export class InstructorHistoryComponent implements OnInit {
     }
   }
 
-  async getHistory(): Promise<void> {
-    const cedula = await this.authService.getCedula();
+  getHistory(): void {
+    const cedula = this.authService.getCedula();
     if (cedula) {
       this.prestamoService.getPrestamosPorCedula(cedula).subscribe(
         (data: any) => {
@@ -210,24 +210,28 @@ export class InstructorHistoryComponent implements OnInit {
   
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
-      data: { mensaje: '¿Estás seguro de que deseas cancelar este préstamo?' }
+      data: {
+        titulo: 'Confirmar Cancelación',
+        mensaje: '¿Estás seguro de que deseas cancelar este préstamo?',
+        textoBotonCancelar: 'Cancelar',
+        textoBotonConfirmar: 'Confirmar'
+      }
     });
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        const fechaActual = new Date().toISOString().split('T')[0]; // Genera la fecha actual en formato YYYY-MM-DD
   
-        // Asegurarte de que el ID es válido con el operador '!'
         this.prestamoService.actualizarEstadoPrestamo(prestamo.idPrestamo!, {
           estado: 5, // ID del estado "Cancelado"
-          fechaEntrega: fechaActual
+          fechaEntrega: fechaActual // Se agrega la fecha de entrega como se espera en el servicio
         }).subscribe(
-          () => {
-            prestamo.estado = 'Cancelado'; // Actualiza en frontend
-            prestamo.fechaEntrega = fechaActual;
-  
+          (response: any) => {
+            // Se actualiza el estado en el frontend
+            prestamo.estado = 'Cancelado'; // O response.nuevo_estado si el backend lo devuelve
+            prestamo.fechaEntrega = response.pre_fin; // Se actualiza con la fecha real del backend si la devuelve
             this.snackBar.open('Préstamo cancelado con éxito.', 'Cerrar', { duration: 3000 });
-            this.getHistory(); // Recargar lista de préstamos
+            this.getHistory();
           },
           (error) => {
             console.error('Error al cancelar el préstamo:', error);
@@ -238,9 +242,9 @@ export class InstructorHistoryComponent implements OnInit {
     });
   }
   
-  getToken(): void {
-    this.token = this.authService.getToken(); // ✅ Directo, sin subscribe
-  
+  // ✅ Mueve esta función fuera de `cancelarPrestamo`
+  actualizarToken(): void {
+    this.token = this.authService.getToken();
     if (this.token) {
       console.log('Token recuperado:', this.token);
     } else {
@@ -248,4 +252,4 @@ export class InstructorHistoryComponent implements OnInit {
     }
   }
   
-}
+}  

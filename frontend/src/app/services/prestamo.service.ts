@@ -55,10 +55,10 @@ export class PrestamoService {
   }
 
   createPrestamo(prestamo: Prestamo): Observable<any> {
-    return this.http.post(`${this.prestamosUrl}/crear`, prestamo, { headers: this.getHeaders() })
+    return this.http.post(`${this.prestamosUrl}/crear`, prestamo)
       .pipe(catchError(this.handleError));
   }
-
+  
 
   getPrestamos(): Observable<Prestamo[]> {
     return this.http.get<{ respuesta: boolean; mensaje: string; data: Prestamo[] }>(this.prestamosUrl, { headers: this.getHeaders() })

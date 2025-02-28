@@ -49,11 +49,12 @@
             <mat-icon>visibility</mat-icon>
           </button>
 
-          <!-- Botón para cancelar préstamo -->
-          <button mat-icon-button (click)="cancelarPrestamo(prestamo)" class="icon-btn cancel-btn"
-            [disabled]="prestamo.estado === 'Cancelado'">
+          <!-- Botón para cancelar préstamo, visible solo si el estado NO es 'Entregado' ni 'Cancelado' -->
+          <button *ngIf="prestamo.estado !== 'Entregado' && prestamo.estado !== 'Cancelado'" mat-icon-button
+            (click)="cancelarPrestamo(prestamo)" class="icon-btn cancel-btn">
             <mat-icon>cancel</mat-icon>
           </button>
+
 
         </td>
       </ng-container>

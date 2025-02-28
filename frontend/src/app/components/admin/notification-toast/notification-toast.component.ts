@@ -13,8 +13,11 @@ export class NotificationToastComponent {
   @Input() isVisible: boolean = false;
 
   closeToast() {
-    this.isVisible = false;
+    if (this.isVisible) {
+      this.isVisible = false;
+    }
   }
+  
 }
 
 

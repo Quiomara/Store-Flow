@@ -2,56 +2,65 @@ const db = require("../config/db");
 
 const Prestamo = {
   crear: async (usr_cedula, est_id, elementos) => {
-      const connection = await db.getConnection();
-      try {
-          await connection.beginTransaction(); // Inicia transacción
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction(); // Inicia transacción
 
-          // Insertar el préstamo en la tabla "prestamos"
-          const queryPrestamo = "INSERT INTO prestamos (usr_cedula, est_id) VALUES (?, ?)";
-          const [result] = await connection.execute(queryPrestamo, [usr_cedula, est_id]);
-          const prestamoId = result.insertId;
+      // Insertar el préstamo en la tabla "prestamos"
+      const queryPrestamo =
+        "INSERT INTO prestamos (usr_cedula, est_id) VALUES (?, ?)";
+      const [result] = await connection.execute(queryPrestamo, [
+        usr_cedula,
+        est_id,
+      ]);
+      const prestamoId = result.insertId;
 
-          if (!prestamoId) {
-              throw new Error("No se pudo obtener el ID del préstamo.");
-          }
+      if (!prestamoId) {
+        throw new Error("No se pudo obtener el ID del préstamo.");
+      }
 
-          console.log("✅ Préstamo creado con ID:", prestamoId);
+      console.log("✅ Préstamo creado con ID:", prestamoId);
 
-          // Insertar los elementos en la tabla "PrestamosElementos"
-          const queryElementos = `
+      // Insertar los elementos en la tabla "PrestamosElementos"
+      const queryElementos = `
               INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado)
               VALUES (?, ?, ?)
           `;
 
-          for (const elemento of elementos) {
-              const { ele_id, pre_ele_cantidad_prestado } = elemento;
-              await connection.execute(queryElementos, [prestamoId, ele_id, pre_ele_cantidad_prestado]);
-          }
-
-          await connection.commit(); // Confirmar transacción
-          connection.release();
-
-          return prestamoId;
-      } catch (error) {
-          await connection.rollback(); // Revertir cambios en caso de error
-          console.error("❌ Error al crear el préstamo:", error.message);
-          throw error;
+      for (const elemento of elementos) {
+        const { ele_id, pre_ele_cantidad_prestado } = elemento;
+        await connection.execute(queryElementos, [
+          prestamoId,
+          ele_id,
+          pre_ele_cantidad_prestado,
+        ]);
       }
+
+      await connection.commit(); // Confirmar transacción
+      connection.release();
+
+      return prestamoId;
+    } catch (error) {
+      await connection.rollback(); // Revertir cambios en caso de error
+      console.error("❌ Error al crear el préstamo:", error.message);
+      throw error;
+    }
   },
 
   // Actualizar el estado de un préstamo
   actualizarEstado: async (pre_id, est_id) => {
     let pre_fin = null;
-    if (est_id == 4 || est_id == 5) { // 4 = Entregado, 5 = Cancelado
+    if (est_id == 4 || est_id == 5) {
+      // 4 = Entregado, 5 = Cancelado
       pre_fin = new Date().toISOString().slice(0, 19).replace("T", " ");
     }
-    
+
     const query = `UPDATE Prestamos SET est_id = ?, pre_fin = COALESCE(?, pre_fin) WHERE pre_id = ?`;
     const values = [est_id, pre_fin, pre_id];
-  
+
     const [result] = await db.execute(query, values);
     return result;
-  }, 
+  },
 
   // Actualizar un préstamo
   actualizar: async (data) => {
@@ -201,45 +210,43 @@ ORDER BY p.pre_inicio DESC;
   cancelarPrestamo: async (pre_id) => {
     const connection = await db.getConnection();
     try {
-        // 1️⃣ Verificar si el préstamo existe y su estado
-        const [rows] = await connection.query(
-            "SELECT est_id FROM prestamos WHERE pre_id = ?",
-            [pre_id]
-        );
+      // 1️⃣ Verificar si el préstamo existe y su estado
+      const [rows] = await connection.query(
+        "SELECT est_id FROM prestamos WHERE pre_id = ?",
+        [pre_id]
+      );
 
-        if (rows.length === 0) {
-            throw new Error("No se encontró el préstamo");
-        }
+      if (rows.length === 0) {
+        throw new Error("No se encontró el préstamo");
+      }
 
-        const estadoActual = rows[0].est_id;
+      const estadoActual = rows[0].est_id;
 
-        // 2️⃣ Validar si el estado es "Creado"
-        const ESTADO_CREADO = 1;  // Asegúrate de que este sea el ID correcto en tu BD
-        const ESTADO_CANCELADO = 5; // ID del estado "Cancelado"
+      // 2️⃣ Validar si el estado es "Creado"
+      const ESTADO_CREADO = 1; // Asegúrate de que este sea el ID correcto en tu BD
+      const ESTADO_CANCELADO = 5; // ID del estado "Cancelado"
 
-        if (estadoActual !== ESTADO_CREADO) {
-            throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
-        }
+      if (estadoActual !== ESTADO_CREADO) {
+        throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
+      }
 
-        // 3️⃣ Actualizar el estado a "Cancelado"
-        const [result] = await connection.query(
-            "UPDATE prestamos SET est_id = ? WHERE pre_id = ?",
-            [ESTADO_CANCELADO, pre_id]
-        );
+      // 3️⃣ Actualizar el estado a "Cancelado"
+      const [result] = await connection.query(
+        "UPDATE prestamos SET est_id = ? WHERE pre_id = ?",
+        [ESTADO_CANCELADO, pre_id]
+      );
 
-        if (result.affectedRows === 0) {
-            throw new Error("No se pudo cancelar el préstamo");
-        }
+      if (result.affectedRows === 0) {
+        throw new Error("No se pudo cancelar el préstamo");
+      }
 
-        return { success: true, message: "Préstamo cancelado correctamente" };
+      return { success: true, message: "Préstamo cancelado correctamente" };
     } catch (error) {
-        throw error;
+      throw error;
     } finally {
-        connection.release();
+      connection.release();
     }
-}
-
-
+  },
 };
 
 module.exports = Prestamo;
