@@ -26,9 +26,9 @@ interface TipoUsuario {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/api'; 
+  private apiUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
@@ -48,10 +48,11 @@ export class UserService {
 
   // Método para obtener todos los tipos de usuario
   getTiposUsuario(): Observable<TipoUsuario[]> {
-    return this.http.get<ApiResponse<TipoUsuario>>(`${this.apiUrl}/tipos-usuario`, { headers: this.getHeaders() })
+    return this.http.get<ApiResponse<TipoUsuario>>(`${this.apiUrl}/tipos-usuario`)
       .pipe(
         map(response => response.data)
       );
+
   }
 
   // Método para obtener centro por ID
@@ -72,7 +73,7 @@ export class UserService {
         })
       );
   }
-  
+
   private mapUser(user: UserBackend, centros: Centro[]): User {
     const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || user.cen_nombre || 'N/A';
     const tipoUsuario = user.tip_usr_nombre || 'N/A'; // Asigna el nombre del tipo de usuario
@@ -94,7 +95,7 @@ export class UserService {
       tip_usr_nombre: user.tip_usr_nombre // Añadir el campo opcional
     };
   }
-  
+
 
   // Método para buscar usuarios
   searchUsers(query: string): Observable<User[]> {

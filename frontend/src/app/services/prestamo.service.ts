@@ -16,7 +16,7 @@ export class PrestamoService {
   private readonly estadosUrl = `${this.baseUrl}/estados`;
   private readonly stockUrl = `${this.baseUrl}/stock`;
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
@@ -67,7 +67,7 @@ export class PrestamoService {
         catchError(this.handleError)
       );
   }
-  
+
   updateStock(item: { ele_id: number; ele_cantidad_actual: number }): Observable<any> {
     return this.request('PUT', `${this.stockUrl}/actualizar-stock`, item);
   }
@@ -106,12 +106,19 @@ export class PrestamoService {
     return this.request('PUT', `${this.prestamosUrl}/update`, data);
   }
 
-  // Método para actualizar estado (sin modificar getAuthHeaders)
-  actualizarEstadoPrestamo(idPrestamo: number, est_id: number): Observable<any> {
+  // Método para actualizar estado y fecha de entrega
+  actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: string }): Observable<any> {
     const url = `${this.prestamosUrl}/${idPrestamo}/actualizar-estado`;
-    const body = { est_id }; // Solo enviamos el ID del estado
+
+    // Ahora sí enviamos los datos correctos
+    const body = {
+      est_id: data.estado,         // Enviar el estado correctamente
+      fechaEntrega: data.fechaEntrega // Enviar la fecha de entrega correctamente
+    };
+
     return this.request('PUT', url, body);
   }
+
 
   getPrestamosUrl(): string {
     return this.prestamosUrl;
@@ -119,16 +126,16 @@ export class PrestamoService {
 
   cancelarPrestamo(idPrestamo: number): Observable<any> {
     const token = this.authService.getToken(); // Obtén el token
-  
+
     if (!token) {
       console.error('No hay token disponible');
       return throwError(() => new Error('No hay token disponible'));
     }
-  
+
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}` // Envía el token en el encabezado
     });
-  
+
     return this.http.put(`${this.prestamosUrl}/cancelar/${idPrestamo}`, {}, { headers })
       .pipe(
         catchError((error) => {
@@ -137,6 +144,6 @@ export class PrestamoService {
         })
       );
   }
-  
-  
+
+
 }

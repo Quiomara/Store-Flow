@@ -1,22 +1,20 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-// Función para normalizar texto (elimina tildes y pasa a minúsculas)
 const normalizeText = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-// Middleware de autenticación y autorización
 const auth = (requiredRoles = []) => {
   return async (req, res, next) => {
     console.log('🔑 Iniciando autenticación y autorización...');
 
-    // Verificar si se proporcionó el token en el encabezado
+    // Verificar si el token está en los headers
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ Acceso denegado. Token no proporcionado.');
       return res.status(401).json({ respuesta: false, mensaje: 'Acceso denegado. Token no proporcionado.' });
     }
 
-    // Extraer el token del encabezado
+    // Extraer el token
     const token = authHeader.replace('Bearer ', '');
     if (!token) {
       console.error('❌ Acceso denegado. Token vacío.');
@@ -24,44 +22,59 @@ const auth = (requiredRoles = []) => {
     }
 
     try {
-      // Verificar y decodificar el token
+      // 🔍 Decodificar sin verificar para depuración
+      console.log('📜 Decodificando token...');
+      const decodedRaw = jwt.decode(token, { complete: true });
+      console.log('🧐 Token decodificado sin verificar:', decodedRaw);
+
+      // ✅ Verificar el token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-      console.log('✅ Token decodificado:', decoded);
+      console.log('✅ Token validado:', decoded);
 
-      // Verificar el rol del usuario en la base de datos
+      if (!decoded.tip_usr_id) {
+        console.error('❌ Error: El token no contiene tip_usr_id.');
+        return res.status(403).json({ respuesta: false, mensaje: 'Token inválido: falta tip_usr_id.' });
+      }
+
+      // 🔍 Consultar en la base de datos
+      console.log('🔍 Buscando usuario en la base de datos...');
       const query = `SELECT tip_usr_id, tip_usr_nombre FROM TipoUsuarios WHERE tip_usr_id = ?`;
       const [results] = await db.query(query, [req.user.tip_usr_id]);
-      console.log('🔍 Resultados de la consulta a la BD:', results);
 
-      // Si no se encuentra el usuario en la base de datos
+      console.log('📊 Resultados de la consulta a la BD:', results, 'Tipo:', typeof results);
+
+      if (!Array.isArray(results)) {
+        console.error('❌ Error: La consulta no devolvió un array.');
+        return res.status(500).json({ respuesta: false, mensaje: 'Error al consultar la base de datos.' });
+      }
+
       if (results.length === 0) {
-        console.error('❌ Acceso denegado. Usuario no válido.');
+        console.error('❌ Usuario no encontrado en la base de datos.');
         return res.status(403).json({ respuesta: false, mensaje: 'Acceso denegado. Usuario no válido.' });
       }
 
-      // Normalizar nombres antes de comparar
+      // 📝 Normalización del rol
       const userType = normalizeText(results[0].tip_usr_nombre.trim());
-      const userId = results[0].tip_usr_id;
+      console.log(`👤 Rol del usuario antes de normalizar: '${results[0].tip_usr_nombre}'`);
+      console.log(`🎭 Rol del usuario normalizado: '${userType}'`);
+
       const normalizedRoles = requiredRoles.map(r => normalizeText(r.trim()));
 
-      console.log(`👤 Tipo de usuario: '${userType}' (ID: ${userId})`);
-      console.log(`🔹 Roles requeridos para esta acción: ${normalizedRoles.join(', ')}`);
+      console.log(`🔹 Roles requeridos: ${normalizedRoles.join(', ')}`);
 
-      // Verificar si el rol del usuario está en la lista de roles requeridos
       if (normalizedRoles.length > 0 && !normalizedRoles.includes(userType)) {
-        console.error(`🚫 Acceso denegado. Usuario '${userType}' (ID: ${userId}) no tiene permisos.`);
-        return res.status(403).json({ 
-          respuesta: false, 
+        console.error(`🚫 Usuario '${userType}' no tiene permisos.`);
+        return res.status(403).json({
+          respuesta: false,
           mensaje: `Acceso denegado. Permisos insuficientes para el rol de ${userType}.`
         });
       }
 
-      // Si todo está bien, continuar con la siguiente función middleware
       console.log('✅ Autenticación y autorización completadas correctamente.');
       next();
     } catch (error) {
-      console.error('❌ Error en el middleware de autenticación:', error.stack);
+      console.error('❌ Error en autenticación:', error);
 
       if (error.name === 'JsonWebTokenError') {
         return res.status(400).json({ respuesta: false, mensaje: 'Token no válido.' });

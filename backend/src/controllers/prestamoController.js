@@ -324,7 +324,7 @@ const actualizarEstadoPrestamo = async (req, res) => {
 
   try {
     // Validar que el estado existe
-    const [estado] = await db.execute("SELECT est_id FROM estados WHERE est_id = ?", [est_id]);
+    const [estado] = await db.execute("SELECT est_nombre FROM estados WHERE est_id = ?", [est_id]);
     if (estado.length === 0) {
       return res.status(404).json({ 
         respuesta: false, 
@@ -332,11 +332,15 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
-    // Actualizar SOLO el estado del préstamo
-    const [result] = await db.execute(
-      "UPDATE prestamos SET est_id = ? WHERE pre_id = ?", 
-      [est_id, pre_id]
-    );
+    // Si el estado es "Entregado (4)" o "Cancelado (5)", actualizar pre_fin con la fecha actual
+    let query = "UPDATE prestamos SET est_id = ? WHERE pre_id = ?";
+    let values = [est_id, pre_id];
+
+    if (est_id == 4 || est_id == 5) {
+      query = "UPDATE prestamos SET est_id = ?, pre_fin = NOW() WHERE pre_id = ?";
+    }
+
+    const [result] = await db.execute(query, values);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ 
@@ -345,14 +349,15 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
-    // Obtener la fecha de inicio original para devolverla en la respuesta
-    const [prestamo] = await db.execute("SELECT pre_inicio FROM prestamos WHERE pre_id = ?", [pre_id]);
+    // Obtener los datos actualizados del préstamo
+    const [prestamo] = await db.execute("SELECT pre_inicio, pre_fin FROM prestamos WHERE pre_id = ?", [pre_id]);
 
     res.json({ 
       respuesta: true, 
       mensaje: "Estado actualizado correctamente",
       nuevo_estado: estado[0].est_nombre,
-      pre_inicio: prestamo[0].pre_inicio // Devolver la fecha original
+      pre_inicio: prestamo[0].pre_inicio, // No cambia
+      pre_fin: prestamo[0].pre_fin // Solo cambia si el estado es 4 o 5
     });
 
   } catch (err) {
@@ -364,6 +369,7 @@ const actualizarEstadoPrestamo = async (req, res) => {
     });
   }
 };
+
 
 const cancelarPrestamo = async (req, res) => {
   console.log("🔍 Parámetros recibidos para cancelar:", req.params);

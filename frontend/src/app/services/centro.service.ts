@@ -14,24 +14,17 @@ export class CentroService {
 
   // Método para obtener todos los centros de formación
   getCentros(): Observable<any> {
-    const token = this.authService.getToken(); // Usar AuthService para obtener el token
-    if (!token) {
-      console.error('Token no válido');
-      return throwError(() => new Error('Token no válido'));
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': 'Bearer ' + token
-    });
-
-    return this.http.get(this.apiUrl, { headers }).pipe(
+    // El interceptor se encargará de añadir el header de autorización
+    return this.http.get(this.apiUrl).pipe(
       catchError(this.handleError)
     );
   }
+  
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Error desconocido';
-    if (error.error instanceof ErrorEvent) {
+    // Verificamos que ErrorEvent esté definido
+    if (typeof ErrorEvent !== 'undefined' && error.error instanceof ErrorEvent) {
       errorMessage = `Error del cliente: ${error.error.message}`;
     } else {
       errorMessage = `Error ${error.status}: ${error.error?.message || error.statusText}`;
@@ -39,4 +32,5 @@ export class CentroService {
     console.error('Error en CentroService:', errorMessage, '\nDetalles:', error);
     return throwError(() => new Error(errorMessage));
   }
+  
 }

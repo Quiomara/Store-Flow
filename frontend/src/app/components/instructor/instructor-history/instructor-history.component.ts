@@ -30,6 +30,7 @@ import { ConfirmationDialogComponent } from '../../warehouse/confirmation-dialog
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
+  token: string | null = null;  // 🔹 Declara la propiedad aquí
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
   filteredPrestamos: MatTableDataSource<Prestamo>;
@@ -200,40 +201,51 @@ export class InstructorHistoryComponent implements OnInit {
     this.buscar();
   }
 
-  cancelarPrestamo(prestamo: any): void {
-    console.log('Abriendo diálogo de confirmación para:', prestamo);
+  cancelarPrestamo(prestamo: Prestamo): void {
+    if (!prestamo.idPrestamo) {
+      console.error('El préstamo no tiene un ID válido.');
+      this.snackBar.open('Error: préstamo inválido.', 'Cerrar', { duration: 3000 });
+      return;
+    }
   
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '400px',
-      data: {
-        titulo: 'Cancelar Préstamo',
-        mensaje: `¿Estás seguro de que deseas cancelar el préstamo ${prestamo.idPrestamo}?`,
-        textoBotonConfirmar: 'Sí, cancelar',
-        textoBotonCancelar: 'No'
-      }
+      width: '350px',
+      data: { mensaje: '¿Estás seguro de que deseas cancelar este préstamo?' }
     });
   
-    dialogRef.afterClosed().subscribe(async (result) => {
-      console.log('Diálogo cerrado con resultado:', result);
-      if (!result) return; // Si el usuario cancela, no hacemos nada
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
   
-      try {
-        await this.prestamoService.cancelarPrestamo(prestamo.idPrestamo).toPromise();
-        prestamo.estado = 'Cancelado';
-        this.snackBar.open(`Préstamo ${prestamo.idPrestamo} cancelado exitosamente.`, 'Cerrar', {
-          duration: 3000
-        });
-        this.getHistory();
-      } catch (error) {
-        console.error('Error al cancelar el préstamo:', error);
-        this.snackBar.open('Ocurrió un error al cancelar el préstamo. Inténtalo de nuevo.', 'Cerrar', {
-          duration: 3000
-        });
+        // Asegurarte de que el ID es válido con el operador '!'
+        this.prestamoService.actualizarEstadoPrestamo(prestamo.idPrestamo!, {
+          estado: 5, // ID del estado "Cancelado"
+          fechaEntrega: fechaActual
+        }).subscribe(
+          () => {
+            prestamo.estado = 'Cancelado'; // Actualiza en frontend
+            prestamo.fechaEntrega = fechaActual;
+  
+            this.snackBar.open('Préstamo cancelado con éxito.', 'Cerrar', { duration: 3000 });
+            this.getHistory(); // Recargar lista de préstamos
+          },
+          (error) => {
+            console.error('Error al cancelar el préstamo:', error);
+            this.snackBar.open('Error al cancelar el préstamo.', 'Cerrar', { duration: 3000 });
+          }
+        );
       }
     });
   }
   
+  getToken(): void {
+    this.token = this.authService.getToken(); // ✅ Directo, sin subscribe
   
-
+    if (this.token) {
+      console.log('Token recuperado:', this.token);
+    } else {
+      console.log('Token no disponible');
+    }
+  }
   
 }

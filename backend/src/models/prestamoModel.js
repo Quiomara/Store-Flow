@@ -41,11 +41,17 @@ const Prestamo = {
 
   // Actualizar el estado de un préstamo
   actualizarEstado: async (pre_id, est_id) => {
-    const query = `UPDATE Prestamos SET est_id = ? WHERE pre_id = ?`;
-    const values = [est_id, pre_id];
+    let pre_fin = null;
+    if (est_id == 4 || est_id == 5) { // 4 = Entregado, 5 = Cancelado
+      pre_fin = new Date().toISOString().slice(0, 19).replace("T", " ");
+    }
+    
+    const query = `UPDATE Prestamos SET est_id = ?, pre_fin = COALESCE(?, pre_fin) WHERE pre_id = ?`;
+    const values = [est_id, pre_fin, pre_id];
+  
     const [result] = await db.execute(query, values);
     return result;
-  },
+  }, 
 
   // Actualizar un préstamo
   actualizar: async (data) => {

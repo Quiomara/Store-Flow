@@ -51,10 +51,15 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    const token = localStorage.getItem(this.TOKEN_KEY); // Misma clave aquí
-    console.log(`Token recuperado: ${token}`); // Confirmar recuperación
+    // Solo accede a localStorage si estamos en el navegador
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    console.log(`Token recuperado: ${token}`);
     return token;
   }
+  
 
   clearToken(): void {
     localStorage.removeItem(this.TOKEN_KEY);

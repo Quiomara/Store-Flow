@@ -11,9 +11,9 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
   standalone: true,
   imports: [CommonModule, FormsModule, NotificationToastComponent],
   templateUrl: './register-user.component.html',
-  styleUrls: ['./register-user.component.css'],
-  providers: [UserService, CentroService] // Añade el servicio de centros
+  styleUrls: ['./register-user.component.css']
 })
+
 export class RegisterUserComponent implements OnInit {
   @ViewChild(NotificationToastComponent) notificationToast!: NotificationToastComponent;
 
@@ -40,7 +40,7 @@ export class RegisterUserComponent implements OnInit {
   constructor(
     private userService: UserService,
     private centroService: CentroService // Inyecta el servicio de centros
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.obtenerCentrosFormacion(); // Llama al método para obtener los centros
@@ -51,20 +51,14 @@ export class RegisterUserComponent implements OnInit {
   obtenerCentrosFormacion(): void {
     this.centroService.getCentros().subscribe(
       (response: any) => {
-        this.centros = response.data; // Ajusta esto según el formato de la respuesta
-        console.log('Centros de formación obtenidos:', this.centros);
+        if (response?.data && Array.isArray(response.data)) {
+          this.centros = response.data;
+        } else {
+          console.error('Formato inesperado en la respuesta de centros:', response);
+        }
       },
       (error) => {
         console.error('Error al obtener centros de formación', error);
-        if (error.error) {
-          console.error('Detalles del error:', error.error);
-        }
-        if (error.message) {
-          console.error('Mensaje del error:', error.message);
-        }
-        if (error.status) {
-          console.error('Código de estado del error:', error.status);
-        }
       }
     );
   }
@@ -154,8 +148,8 @@ export class RegisterUserComponent implements OnInit {
           this.notificationToast.isVisible = false;
         }, 3000);
 
-        // Reiniciar el formulario
-        this.user = {
+        // Reiniciar el formulario de manera más eficiente
+        this.user = Object.assign({}, {
           cedula: 0,
           primerNombre: '',
           segundoNombre: '',
@@ -168,12 +162,14 @@ export class RegisterUserComponent implements OnInit {
           telefono: '',
           contrasena: '',
           confirmarContrasena: ''
-        };
+        });
         this.errores = {};
+
       },
       (error) => {
         console.error('Error al registrar usuario', error);
-        const mensaje = error.error.mensaje;
+        const mensaje = error.error?.mensaje || '';
+
         if (mensaje.includes('cédula')) {
           this.errores.cedula = 'Esta cédula ya está registrada';
         }
@@ -184,6 +180,7 @@ export class RegisterUserComponent implements OnInit {
           this.errores.telefono = 'Este teléfono ya está registrado';
         }
       }
+
     );
   }
 }

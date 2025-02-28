@@ -19,6 +19,10 @@ import { PrestamoDetalleModalComponent } from './components/prestamo-detalle-mod
 import { RegisterElementComponent } from './components/warehouse/register-element/register-element.component';
 import { InventoryComponent } from './components/warehouse/inventory/inventory.component';
 
+// Importar el AuthGuard (asegúrate de que la ruta sea la correcta)
+import { AuthGuard } from './guards/auth.guard';
+
+
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
@@ -26,6 +30,7 @@ export const routes: Routes = [
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,
+    canActivate: [AuthGuard], // Rutas protegidas
     children: [
       { path: 'register-user', component: RegisterUserComponent },
       { path: 'search-user', component: SearchUserComponent },
@@ -35,6 +40,7 @@ export const routes: Routes = [
   {
     path: 'instructor-dashboard',
     component: InstructorDashboardComponent,
+    canActivate: [AuthGuard],
     children: [
       { path: 'new-request', component: InstructorRequestComponent },
       { path: 'loan-history', component: InstructorHistoryComponent },
@@ -44,6 +50,7 @@ export const routes: Routes = [
   {
     path: 'warehouse-dashboard',
     component: WarehouseDashboardComponent,
+    canActivate: [AuthGuard],
     children: [
       { path: 'loan-requests', component: WarehouseRequestsComponent },
       { path: 'register-element', component: RegisterElementComponent },
@@ -52,7 +59,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'loan-requests', pathMatch: 'full' }
     ]
   },
-  { path: 'prestamo-detalle-modal', component: PrestamoDetalleModalComponent },
+  // Si este componente también requiere autenticación, agrega canActivate
+  { path: 'prestamo-detalle-modal', component: PrestamoDetalleModalComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 
