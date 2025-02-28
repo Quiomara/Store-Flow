@@ -1,21 +1,26 @@
-// auth.interceptor.service.ts
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler } from '@angular/common/http';
 import { AuthService } from './auth.service';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('authToken');
-  console.log('Interceptor - Clave usada:', 'authToken', 'Valor:', token);
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(private authService: AuthService) {}
 
-  if (token) {
-    console.log('Adjuntando token a la solicitud:', req.url);
-    const clonedReq = req.clone({
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const token = this.authService.getToken();
+    console.log('🛑 Interceptor activado');
+    console.log('🔑 Token obtenido:', token); // <-- Depuración
+
+    if (!token) {
+      console.warn('🚨 No se encontró un token. La petición seguirá sin autenticación.');
+      return next.handle(req);
+    }
+
+    const authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
-    return next(clonedReq);
-  } else {
-    console.warn('No se encontró token para la solicitud:', req.url);
-  }
 
-  return next(req);
-};
+    console.log('✅ Token agregado a la solicitud:', authReq);
+    return next.handle(authReq);
+  }
+}

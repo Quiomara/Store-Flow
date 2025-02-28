@@ -201,34 +201,39 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   cancelarPrestamo(prestamo: any): void {
+    console.log('Abriendo diálogo de confirmación para:', prestamo);
+  
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
       data: {
-        title: 'Cancelar Préstamo',
-        message: `¿Estás seguro de que deseas cancelar el préstamo ${prestamo.idPrestamo}?`
+        titulo: 'Cancelar Préstamo',
+        mensaje: `¿Estás seguro de que deseas cancelar el préstamo ${prestamo.idPrestamo}?`,
+        textoBotonConfirmar: 'Sí, cancelar',
+        textoBotonCancelar: 'No'
       }
     });
   
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.prestamoService.cancelarPrestamo(prestamo.idPrestamo).subscribe(
-          () => {
-            prestamo.estado = 'Cancelado';
-            this.snackBar.open(`Préstamo ${prestamo.idPrestamo} cancelado exitosamente.`, 'Cerrar', {
-              duration: 3000
-            });
-            this.getHistory(); // Refrescar la tabla después de cancelar
-          },
-          error => {
-            console.error('Error al cancelar el préstamo:', error);
-            this.snackBar.open('Ocurrió un error al cancelar el préstamo. Inténtalo de nuevo.', 'Cerrar', {
-              duration: 3000
-            });
-          }
-        );
+    dialogRef.afterClosed().subscribe(async (result) => {
+      console.log('Diálogo cerrado con resultado:', result);
+      if (!result) return; // Si el usuario cancela, no hacemos nada
+  
+      try {
+        await this.prestamoService.cancelarPrestamo(prestamo.idPrestamo).toPromise();
+        prestamo.estado = 'Cancelado';
+        this.snackBar.open(`Préstamo ${prestamo.idPrestamo} cancelado exitosamente.`, 'Cerrar', {
+          duration: 3000
+        });
+        this.getHistory();
+      } catch (error) {
+        console.error('Error al cancelar el préstamo:', error);
+        this.snackBar.open('Ocurrió un error al cancelar el préstamo. Inténtalo de nuevo.', 'Cerrar', {
+          duration: 3000
+        });
       }
     });
   }
+  
+  
 
   
 }

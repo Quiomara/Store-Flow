@@ -375,7 +375,7 @@ const cancelarPrestamo = async (req, res) => {
   }
 
   try {
-      const resultado = await PrestamoModel.cancelarPrestamo(pre_id);
+      const resultado = await Prestamo.cancelarPrestamo(pre_id);
       return res.status(200).json(resultado);
   } catch (error) {
       console.error("❌ Error al cancelar el préstamo:", error);

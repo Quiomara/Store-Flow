@@ -29,12 +29,13 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
       map((response) => {
+        console.log('Respuesta del servidor:', response); // <-- Agregado
         if (response && response.token) {
-          this.setToken(response.token); // Almacenar el token
+          this.setToken(response.token); 
           if (response.userType) {
-            this.setUserType(response.userType); // Almacenar el tipo de usuario
+            this.setUserType(response.userType);
           }
-          console.log('Token almacenado correctamente:', response.token); // Confirmar almacenamiento
+          console.log('Token almacenado correctamente:', response.token);
           return response;
         }
         throw new Error('Inicio de sesión fallido');
@@ -42,6 +43,7 @@ export class AuthService {
       catchError(this.handleLoginError)
     );
   }
+  
 
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token); // Usar la clave constante

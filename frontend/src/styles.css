@@ -12,3 +12,8 @@ html, body {
   height: 100%;
 }
 
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: none;
+  }
+}

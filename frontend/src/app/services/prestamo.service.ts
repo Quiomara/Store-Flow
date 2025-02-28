@@ -118,7 +118,25 @@ export class PrestamoService {
   }
 
   cancelarPrestamo(idPrestamo: number): Observable<any> {
-    return this.http.put(`${this.prestamosUrl}/prestamos/${idPrestamo}/cancelar`, {});
+    const token = this.authService.getToken(); // Obtén el token
+  
+    if (!token) {
+      console.error('No hay token disponible');
+      return throwError(() => new Error('No hay token disponible'));
+    }
+  
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}` // Envía el token en el encabezado
+    });
+  
+    return this.http.put(`${this.prestamosUrl}/cancelar/${idPrestamo}`, {}, { headers })
+      .pipe(
+        catchError((error) => {
+          console.error('Error al cancelar préstamo:', error);
+          return throwError(() => new Error('Error al cancelar el préstamo.'));
+        })
+      );
   }
+  
   
 }

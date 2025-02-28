@@ -197,7 +197,7 @@ ORDER BY p.pre_inicio DESC;
     try {
         // 1️⃣ Verificar si el préstamo existe y su estado
         const [rows] = await connection.query(
-            "SELECT estado FROM prestamos WHERE pre_id = ?",
+            "SELECT est_id FROM prestamos WHERE pre_id = ?",
             [pre_id]
         );
 
@@ -205,17 +205,20 @@ ORDER BY p.pre_inicio DESC;
             throw new Error("No se encontró el préstamo");
         }
 
-        const estadoActual = rows[0].estado;
+        const estadoActual = rows[0].est_id;
 
         // 2️⃣ Validar si el estado es "Creado"
-        if (estadoActual !== "Creado") {
+        const ESTADO_CREADO = 1;  // Asegúrate de que este sea el ID correcto en tu BD
+        const ESTADO_CANCELADO = 5; // ID del estado "Cancelado"
+
+        if (estadoActual !== ESTADO_CREADO) {
             throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
         }
 
         // 3️⃣ Actualizar el estado a "Cancelado"
         const [result] = await connection.query(
-            "UPDATE prestamos SET estado = 'Cancelado' WHERE pre_id = ?",
-            [pre_id]
+            "UPDATE prestamos SET est_id = ? WHERE pre_id = ?",
+            [ESTADO_CANCELADO, pre_id]
         );
 
         if (result.affectedRows === 0) {
@@ -229,6 +232,7 @@ ORDER BY p.pre_inicio DESC;
         connection.release();
     }
 }
+
 
 };
 
