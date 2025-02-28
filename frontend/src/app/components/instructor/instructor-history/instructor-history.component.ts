@@ -224,14 +224,16 @@ export class InstructorHistoryComponent implements OnInit {
   
         this.prestamoService.actualizarEstadoPrestamo(prestamo.idPrestamo!, {
           estado: 5, // ID del estado "Cancelado"
-          fechaEntrega: fechaActual // Se agrega la fecha de entrega como se espera en el servicio
+          fechaEntrega: fechaActual
         }).subscribe(
           (response: any) => {
-            // Se actualiza el estado en el frontend
-            prestamo.estado = 'Cancelado'; // O response.nuevo_estado si el backend lo devuelve
-            prestamo.fechaEntrega = response.pre_fin; // Se actualiza con la fecha real del backend si la devuelve
+            this.prestamos = this.prestamos.map(p =>
+              p.idPrestamo === prestamo.idPrestamo
+                ? { ...p, estado: 'Cancelado', fechaEntrega: response.pre_fin }
+                : p
+            );
+            this.filteredPrestamos.data = this.prestamos;
             this.snackBar.open('Préstamo cancelado con éxito.', 'Cerrar', { duration: 3000 });
-            this.getHistory();
           },
           (error) => {
             console.error('Error al cancelar el préstamo:', error);
@@ -242,7 +244,6 @@ export class InstructorHistoryComponent implements OnInit {
     });
   }
   
-  // ✅ Mueve esta función fuera de `cancelarPrestamo`
   actualizarToken(): void {
     this.token = this.authService.getToken();
     if (this.token) {
@@ -251,5 +252,4 @@ export class InstructorHistoryComponent implements OnInit {
       console.log('Token no disponible');
     }
   }
-  
 }  
