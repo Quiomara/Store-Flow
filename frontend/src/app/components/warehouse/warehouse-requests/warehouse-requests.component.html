@@ -1,24 +1,49 @@
-<div class="warehouse-requests-container">
+<div class="warehouse-requests-container" [@fadeIn]>
   <h1 class="text-center font-weight-bold mb-4">Sistema Integrado de Gestión</h1>
   <h2 class="text-center font-weight-bold mb-4">PRÉSTAMO DE HERRAMIENTAS</h2>
-  <form [formGroup]="searchForm" class="search-form form-inline">
-    <input type="text" formControlName="searchId" placeholder="ID del Préstamo" class="form-control mr-2" />
-    <input type="date" formControlName="searchFecha" placeholder="Fecha" class="form-control mr-2" />
 
-    <!-- Menú desplegable para los estados -->
-    <select id="estado-select" formControlName="searchEstado" class="form-control mr-2" (change)="seleccionarEstado($event)">
-      <option value="">Todos los estados</option>
-      <option *ngFor="let estado of estados" [value]="estado.est_nombre">
-        {{ estado.est_nombre }}
-      </option>
-    </select>
+  <!-- Agrupamos todos los filtros en un solo formulario -->
+  <form [formGroup]="searchForm" class="search-form" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+    <!-- Input ID -->
+    <mat-form-field appearance="fill">
+      <mat-label>ID del Préstamo</mat-label>
+      <input matInput type="text" formControlName="searchId" placeholder="ID del Préstamo">
+    </mat-form-field>
 
-    <!-- Campo de búsqueda por nombre del instructor -->
-    <input type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor" class="form-control mr-2" />
+    <!-- Input Nombre del Instructor -->
+    <mat-form-field appearance="fill">
+      <mat-label>Nombre del Instructor</mat-label>
+      <input matInput type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor">
+    </mat-form-field>
+
+    <!-- Date-picker para la fecha -->
+    <mat-form-field appearance="fill">
+      <mat-label>Fecha</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="searchFecha" placeholder="Fecha">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <!-- Select para el estado -->
+    <mat-form-field appearance="fill">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="searchEstado" (selectionChange)="seleccionarEstado($event)">
+        <mat-option value="">Todos los estados</mat-option>
+        <mat-option *ngFor="let estado of estados" [value]="estado.est_nombre">
+          {{ estado.est_nombre }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
   </form>
 
-  <div class="user-table-container">
-    <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table">
+  <div class="user-table-container" [@fadeIn]>
+    <!-- Spinner de carga -->
+    <div *ngIf="isLoading" class="spinner-container text-center">
+      <mat-spinner></mat-spinner>
+    </div>
+
+    <!-- Tabla de Préstamos -->
+    <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table" *ngIf="!isLoading">
       <!-- Columna: ID del Préstamo -->
       <ng-container matColumnDef="idPrestamo">
         <th mat-header-cell *matHeaderCellDef class="header-cell">ID del Préstamo</th>
@@ -58,17 +83,18 @@
       </ng-container>
 
       <!-- Filas de la tabla -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" sticky></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
 
-    <!-- Mensaje si no hay préstamos -->
-    <div *ngIf="filteredPrestamos.data.length === 0" class="no-results text-center">
+    <!-- Mensaje cuando no hay resultados -->
+    <div *ngIf="filteredPrestamos.data.length === 0 && !isLoading" class="no-results text-center">
       {{ mensajeNoPrestamos }}
     </div>
   </div>
 
   <!-- Paginador -->
-  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Seleccionar página">
+  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
+    aria-label="Seleccionar página">
   </mat-paginator>
 </div>
