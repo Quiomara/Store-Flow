@@ -93,6 +93,16 @@ export class InstructorHistoryComponent implements OnInit {
             items: [],
             cedulaSolicitante: item.usr_cedula
           }));
+          
+          // Ordenar los préstamos por fecha de inicio (de más reciente a más antigua)
+          this.prestamos.sort((a, b) => {
+            const fechaA = a.fechaInicio ? new Date(a.fechaInicio).getTime() : 0;  // Valor por defecto si es undefined
+            const fechaB = b.fechaInicio ? new Date(b.fechaInicio).getTime() : 0;  // Valor por defecto si es undefined
+            
+            return fechaB - fechaA;  // Orden descendente (de más reciente a más viejo)
+          });
+          
+  
           this.filteredPrestamos.data = this.prestamos;
           this.filteredPrestamos.paginator = this.paginator;
           this.buscar();
@@ -111,6 +121,7 @@ export class InstructorHistoryComponent implements OnInit {
       });
     }
   }
+  
 
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
@@ -190,9 +201,18 @@ export class InstructorHistoryComponent implements OnInit {
     });
   }
 
-  formatearFecha(fecha: string): string {
-    return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
+  formatearFecha(fecha: string | Date): string {
+    if (!fecha) return '';  // Si la fecha es undefined o vacía, devuelve un string vacío
+  
+    const fechaObj = new Date(fecha);
+    
+    if (isNaN(fechaObj.getTime())) {  // Verifica si la fecha no es válida
+      return '';  // Devuelve un string vacío si no es una fecha válida
+    }
+  
+    return fechaObj.toLocaleDateString('es-ES');  // Devuelve la fecha en el formato que desees
   }
+  
 
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
@@ -220,18 +240,26 @@ export class InstructorHistoryComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const fechaActual = new Date().toISOString().split('T')[0]; // Genera la fecha actual en formato YYYY-MM-DD
+        const fechaActual = new Date();
   
         this.prestamoService.actualizarEstadoPrestamo(prestamo.idPrestamo!, {
           estado: 5, // ID del estado "Cancelado"
-          fechaEntrega: fechaActual
+          fechaEntrega: fechaActual // Solo se actualiza la fecha de entrega
         }).subscribe(
           (response: any) => {
-            this.prestamos = this.prestamos.map(p =>
-              p.idPrestamo === prestamo.idPrestamo
-                ? { ...p, estado: 'Cancelado', fechaEntrega: response.pre_fin }
-                : p
-            );
+            // No modificamos la fechaInicio
+            this.prestamos = this.prestamos.map(p => {
+              if (p.idPrestamo === prestamo.idPrestamo) {
+                return {
+                  ...p, 
+                  estado: 'Cancelado',
+                  fechaEntrega: response.pre_fin
+                  // No tocamos fechaInicio, simplemente la dejamos intacta
+                };
+              }
+              return p;
+            });
+            
             this.filteredPrestamos.data = this.prestamos;
             this.snackBar.open('Préstamo cancelado con éxito.', 'Cerrar', { duration: 3000 });
           },
@@ -242,7 +270,7 @@ export class InstructorHistoryComponent implements OnInit {
         );
       }
     });
-  }
+  }  
   
   actualizarToken(): void {
     this.token = this.authService.getToken();
@@ -252,4 +280,5 @@ export class InstructorHistoryComponent implements OnInit {
       console.log('Token no disponible');
     }
   }
+  
 }  

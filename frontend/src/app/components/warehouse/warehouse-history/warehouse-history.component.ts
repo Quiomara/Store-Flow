@@ -81,48 +81,34 @@ export class WarehouseHistoryComponent implements OnInit {
   async getHistory(): Promise<void> {
     try {
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
-      console.log('Datos recibidos del backend:', prestamos);
   
       if (prestamos && Array.isArray(prestamos)) {
-        // Definir orden prioritario de estados
-        const ordenEstados = ['Creado', 'En proceso', 'En préstamo', 'Entregado', 'Cancelado'];
-        
-        this.prestamos = prestamos.map((item: any) => ({
-          idPrestamo: item.pre_id,
-          cedulaSolicitante: item.usr_cedula,
-          solicitante: item.usr_nombre,
-          fechaHora: this.formatearFecha(item.pre_inicio),
-          fecha: this.formatearFecha(item.pre_inicio),
-          fechaInicio: item.pre_inicio, // Asegurarte de incluir fechaInicio
-          fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : 'Pendiente',
-          estado: item.est_nombre,
-          elementos: item.elementos || [],
-          instructorNombre: item.usr_nombre
-        }))
+        const ordenEstados = ['creado', 'en proceso', 'en préstamo'];
+  
+        this.prestamos = prestamos
+          .map((item: any) => ({
+            idPrestamo: item.pre_id,
+            cedulaSolicitante: item.usr_cedula,
+            instructorNombre: item.usr_nombre,
+            fechaInicio: new Date(item.pre_inicio), // Convertir a Date
+            fechaEntrega: item.pre_fin ? new Date(item.pre_fin) : null, // Convertir a Date o null
+            estado: item.est_nombre,
+            elementos: item.elementos || []
+          }))
+          .filter(prestamo => {
+            const estado = prestamo.estado.toLowerCase();
+            return ordenEstados.includes(estado);
+          })
           .sort((a, b) => {
-            // Obtener índices de los estados en el orden definido
-            const indiceA = ordenEstados.indexOf(a.estado);
-            const indiceB = ordenEstados.indexOf(b.estado);
-  
-            // Manejar estados no definidos (los colocamos al final)
-            const valorA = indiceA === -1 ? Infinity : indiceA;
-            const valorB = indiceB === -1 ? Infinity : indiceB;
-  
-            // Primero ordenar por estado
-            if (valorA !== valorB) {
-              return valorA - valorB;
-            }
-            
-            // Si mismo estado: ordenar por ID descendente (más reciente primero)
-            return b.idPrestamo - a.idPrestamo;
+            const fechaA = a.fechaInicio.getTime();
+            const fechaB = b.fechaInicio.getTime();
+            return fechaB - fechaA;
           });
   
-        // Actualiza el DataSource
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
         this.buscar();
       } else {
-        console.warn('La respuesta del backend no es un array.');
         this.snackBar.open('No se encontraron préstamos.', 'Cerrar', { duration: 5000 });
       }
     } catch (error) {
@@ -131,7 +117,6 @@ export class WarehouseHistoryComponent implements OnInit {
     }
   }
   
-
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {

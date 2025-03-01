@@ -8,7 +8,7 @@ export interface Prestamo {
   elementos: Elemento[]; // Lista de elementos prestados (obligatoria)
   fecha?: string; // Fecha formateada (opcional, para visualización)
   estado?: string; // Estado del préstamo (opcional)
-  fechaEntrega?: string; // Fecha de entrega (opcional)
+  fechaEntrega: Date | null; // Fecha de entrega (opcional)
   instructorNombre?: string; // Nombre completo del instructor (opcional)
   pre_actualizacion?: Date;
 }

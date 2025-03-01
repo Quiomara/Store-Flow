@@ -107,36 +107,23 @@ export class PrestamoService {
   }
 
   // Método para actualizar estado y fecha de entrega
-  actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: string }): Observable<any> {
+  actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: Date }): Observable<any> {
     const url = `${this.prestamosUrl}/${idPrestamo}/actualizar-estado`;
-
-    // Ahora sí enviamos los datos correctos
+  
     const body = {
       est_id: data.estado,         // Enviar el estado correctamente
-      fechaEntrega: data.fechaEntrega // Enviar la fecha de entrega correctamente
+      fechaEntrega: data.fechaEntrega.toISOString() // Convierte la fecha a string ISO antes de enviarla
     };
-
+  
     return this.request('PUT', url, body);
-  }
-
+  }  
 
   getPrestamosUrl(): string {
     return this.prestamosUrl;
   }
 
   cancelarPrestamo(idPrestamo: number): Observable<any> {
-    const token = this.authService.getToken(); // Obtén el token
-
-    if (!token) {
-      console.error('No hay token disponible');
-      return throwError(() => new Error('No hay token disponible'));
-    }
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}` // Envía el token en el encabezado
-    });
-
-    return this.http.put(`${this.prestamosUrl}/cancelar/${idPrestamo}`, {}, { headers })
+    return this.http.put(`${this.prestamosUrl}/cancelar/${idPrestamo}`, {})
       .pipe(
         catchError((error) => {
           console.error('Error al cancelar préstamo:', error);
@@ -144,6 +131,7 @@ export class PrestamoService {
         })
       );
   }
+  
 
 
 }

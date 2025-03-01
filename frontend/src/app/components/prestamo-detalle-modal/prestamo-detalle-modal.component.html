@@ -12,9 +12,7 @@
   <div *ngIf="prestamo.estado === 'En proceso' && puedeCambiarEstado" class="estado-filtro">
     <label for="estado">Cambiar Estado:</label>
     <select id="estado" [(ngModel)]="estadoSeleccionadoId" (change)="cambiarEstado()">
-      <option [value]="null" disabled hidden>
-        Seleccione un estado
-      </option>
+      <option [value]="null" disabled hidden>Seleccione un estado</option>
       <option *ngFor="let estado of estados" [value]="estado.est_id">
         {{ estado.est_nombre }}
       </option>
@@ -69,8 +67,10 @@
     </table>
   </div>
 </div>
+
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cerrar</button>
+
   <!-- Botón de Aprobar (solo visible si el estado es "Creado") -->
   <button *ngIf="prestamo.estado === 'Creado' && puedeCambiarEstado" mat-button (click)="aprobarSolicitud()">Aprobar</button>
 </div>

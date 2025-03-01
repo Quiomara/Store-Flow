@@ -91,6 +91,8 @@ export class WarehouseRequestsComponent implements OnInit {
             instructorNombre: item.usr_nombre,
             fechaHora: this.formatearFecha(item.pre_inicio),
             fechaInicio: item.pre_inicio,
+            // Aseguramos que la fechaEntrega esté presente
+            fechaEntrega: item.pre_fin ? new Date(item.pre_fin) : null,
             estado: item.est_nombre,
             elementos: item.elementos || []
           }))
@@ -122,6 +124,7 @@ export class WarehouseRequestsComponent implements OnInit {
       this.snackBar.open('Ocurrió un error al obtener el historial. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
     }
   }
+  
   
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
