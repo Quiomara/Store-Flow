@@ -11,7 +11,7 @@
 }
 
 .user-table-container {
-  max-height: 570px;
+  max-height: 450px;
   overflow-y: auto;
   position: relative;
 }
@@ -70,6 +70,13 @@
   background: none;
 }
 
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* o una altura fija si es necesario */
+  width: 100%;
+}
 
 mat-icon {
   color: #007bff;
