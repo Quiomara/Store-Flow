@@ -223,25 +223,25 @@ export class InventoryComponent implements OnInit {
   }
 
   eliminarElemento(elemento: Elemento): void {
-    console.log('Elemento a eliminar:', elemento); // Verifica que el objeto esté completo
+    console.log('Elemento a eliminar:', elemento);
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
-      data: { elemento: elemento } // Pasa el objeto completo
+      data: {
+        titulo: 'Confirmar eliminación',
+        mensaje: `¿Estás seguro de eliminar el elemento "${elemento.ele_nombre}"?`,
+        textoBotonConfirmar: 'Eliminar',
+        textoBotonCancelar: 'Cancelar'
+      }
     });
   
-    dialogRef.afterClosed().subscribe((result: Elemento | null) => {
+    dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) {
-        console.log('ID del elemento para eliminar (recibido del diálogo):', result.ele_id);
-        console.log('Elemento completo recibido del diálogo:', result);
-        if (!result.ele_id) {
-          console.error('ele_id es undefined');
-          return;
-        }
-        this.elementoService.eliminarElemento(result.ele_id).subscribe(
+        console.log('ID del elemento para eliminar:', elemento.ele_id);
+        this.elementoService.eliminarElemento(elemento.ele_id).subscribe(
           (response: any) => {
-            this.inventario = this.inventario.filter(e => e.ele_id !== result.ele_id);
+            this.inventario = this.inventario.filter(e => e.ele_id !== elemento.ele_id);
             this.filteredInventario.data = this.inventario;
-            this.snackBar.open(`Elemento "${result.ele_nombre}" eliminado correctamente`, '', {
+            this.snackBar.open(`Elemento "${elemento.ele_nombre}" eliminado correctamente`, '', {
               duration: 3000,
               horizontalPosition: 'right',
               verticalPosition: 'bottom',
@@ -251,7 +251,7 @@ export class InventoryComponent implements OnInit {
           },
           (error: any) => {
             console.error('Error al eliminar el elemento:', error);
-            this.snackBar.open(`Error al eliminar "${result.ele_nombre}"`, '', {
+            this.snackBar.open(`Error al eliminar "${elemento.ele_nombre}"`, '', {
               duration: 3000,
               horizontalPosition: 'right',
               verticalPosition: 'bottom',
@@ -263,11 +263,9 @@ export class InventoryComponent implements OnInit {
           }
         );
       } else {
-        console.log('Eliminación cancelada. El diálogo de confirmación cerró sin confirmar.');
+        console.log('Eliminación cancelada. El diálogo se cerró sin confirmar.');
       }
     });
   }
-  
-  
 
 }

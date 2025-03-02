@@ -12,7 +12,6 @@ import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
-import { User } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -40,6 +39,7 @@ export class WarehouseHistoryComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  // Incluimos la columna 'fechaEntrega' para mostrar la fecha de entrega en el historial.
   displayedColumns: string[] = ['idPrestamo', 'instructorNombre', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
 
   constructor(
@@ -57,18 +57,16 @@ export class WarehouseHistoryComponent implements OnInit {
       searchFecha: [''],
       searchInstructor: ['']
     });
-
     this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
 
-    // Suscripción a cambios en el formulario para filtrado dinámico
     this.searchForm.valueChanges
       .pipe(
-        debounceTime(300), // Espera 300 ms después de cada cambio
-        distinctUntilChanged() // Solo emite si el valor cambió
+        debounceTime(300),
+        distinctUntilChanged()
       )
       .subscribe(() => this.buscar());
   }
@@ -83,27 +81,25 @@ export class WarehouseHistoryComponent implements OnInit {
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
   
       if (prestamos && Array.isArray(prestamos)) {
-        const ordenEstados = ['creado', 'en proceso', 'en préstamo'];
-  
         this.prestamos = prestamos
           .map((item: any) => ({
             idPrestamo: item.pre_id,
             cedulaSolicitante: item.usr_cedula,
             instructorNombre: item.usr_nombre,
-            fechaInicio: new Date(item.pre_inicio), // Convertir a Date
-            fechaEntrega: item.pre_fin ? new Date(item.pre_fin) : null, // Convertir a Date o null
+            fechaHora: this.formatearFecha(item.pre_inicio),
+            // Conservamos la fecha original para poder ordenarla y filtrar si es necesario.
+            fechaInicio: item.pre_inicio,
+            // Aseguramos que la fechaEntrega se mapee como un objeto Date, si existe.
+            fechaEntrega: item.pre_fin ? new Date(item.pre_fin) : null,
             estado: item.est_nombre,
             elementos: item.elementos || []
           }))
-          .filter(prestamo => {
-            const estado = prestamo.estado.toLowerCase();
-            return ordenEstados.includes(estado);
-          })
-          .sort((a, b) => {
-            const fechaA = a.fechaInicio.getTime();
-            const fechaB = b.fechaInicio.getTime();
-            return fechaB - fechaA;
-          });
+          // En un historial es probable que quieras ver TODOS los préstamos, incluidos los entregados o cancelados.
+          // .filter(prestamo => {
+          //   const estado = prestamo.estado.toLowerCase();
+          //   return estado !== 'entregado' && estado !== 'cancelado';
+          // })
+          .sort((a, b) => new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime());
   
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
@@ -120,13 +116,12 @@ export class WarehouseHistoryComponent implements OnInit {
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {
+        // Para el historial, mostramos todos los estados.
         this.estados = data;
       },
       (error: any) => {
         console.error('Error al obtener los estados', error);
-        this.snackBar.open('Ocurrió un error al obtener los estados. Por favor, intenta nuevamente más tarde.', 'Cerrar', {
-          duration: 5000
-        });
+        this.snackBar.open('Ocurrió un error al obtener los estados. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
       }
     );
   }
@@ -134,32 +129,31 @@ export class WarehouseHistoryComponent implements OnInit {
   buscar(): void {
     const { searchId, searchEstado, searchFecha, searchInstructor } = this.searchForm.value;
     let filteredData = this.prestamos;
-
+  
     if (searchId) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.idPrestamo?.toString().includes(searchId)
       );
     }
-
+  
     if (searchEstado && searchEstado.trim() !== '') {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.estado?.toLowerCase().includes(searchEstado.trim().toLowerCase())
       );
     }
-
+  
     if (searchFecha) {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.fechaInicio && prestamo.fechaInicio.toISOString().split('T')[0] === searchFecha
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.fechaInicio === searchFecha
       );
     }
-    
-
-    if (searchInstructor && searchInstructor.trim() !== '') {
-      filteredData = filteredData.filter(
-        prestamo => prestamo.instructorNombre && prestamo.instructorNombre.toLowerCase().includes(searchInstructor.trim().toLowerCase())
+  
+    if (searchInstructor) {
+      filteredData = filteredData.filter(prestamo =>
+        prestamo.instructorNombre?.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
     }
-
+  
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
@@ -176,12 +170,6 @@ export class WarehouseHistoryComponent implements OnInit {
         case 'préstamo':
           this.mensajeNoPrestamos = 'No hay préstamos en curso.';
           break;
-        case 'entregado':
-          this.mensajeNoPrestamos = 'No hay préstamos entregados.';
-          break;
-        case 'cancelado':
-          this.mensajeNoPrestamos = 'No hay préstamos cancelados.';
-          break;
         default:
           this.mensajeNoPrestamos = 'No se encontraron préstamos.';
       }
@@ -193,10 +181,8 @@ export class WarehouseHistoryComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { 
-        prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } // Pasar la fecha de inicio
-      },
-      disableClose: true // Evita que el usuario cierre haciendo clic fuera
+      data: { prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } },
+      disableClose: true
     });
   
     dialogRef.afterClosed().subscribe((updated: boolean) => {
@@ -211,28 +197,24 @@ export class WarehouseHistoryComponent implements OnInit {
     });
   }
   
-
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
-
+  
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const estadoSeleccionado = selectElement.value;
     this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
     this.buscar();
   }
-
+  
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
       case 'creado': return 'estado-creado';
       case 'en proceso': return 'estado-proceso';
       case 'préstamo': return 'estado-prestamo';
-      case 'entregado': return 'estado-entregado';
-      case 'cancelado': return 'estado-cancelado';
-      case 'pendiente': return 'estado-pendiente'; // Añadir esta línea para el estado Pendiente
+      case 'pendiente': return 'estado-pendiente';
       default: return 'estado-default';
     }
   }
-  
 }
