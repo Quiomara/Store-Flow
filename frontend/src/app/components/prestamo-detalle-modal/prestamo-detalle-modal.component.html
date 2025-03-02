@@ -8,24 +8,6 @@
     <span [ngClass]="getEstadoClass(prestamo.estado)">{{ prestamo.estado }}</span>
   </p>
 
-  <!-- Filtro de Estado (solo visible si el estado es "En proceso") -->
-  <div *ngIf="prestamo.estado === 'En proceso' && puedeCambiarEstado" class="estado-filtro">
-    <label for="estado">Cambiar Estado:</label>
-    <select id="estado" [(ngModel)]="estadoSeleccionadoId" (change)="cambiarEstado()">
-      <option [value]="null" disabled hidden>Seleccione un estado</option>
-      <option *ngFor="let estado of estados" [value]="estado.est_id">
-        {{ estado.est_nombre }}
-      </option>
-    </select>
-  </div>
-
-  <!-- Botón "Entregado" (solo visible si el estado es "En préstamo") -->
-  <div *ngIf="prestamo.estado === 'En préstamo' && puedeCambiarEstado" class="button-container">
-    <button mat-raised-button color="primary" (click)="cambiarAEntregado()">
-      Entregado
-    </button>
-  </div>
-
   <div class="user-table-container">
     <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
       <!-- Elemento Column -->
@@ -41,8 +23,7 @@
         <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad</th>
         <td mat-cell *matCellDef="let item" class="cantidad-cell">
           <span *ngIf="!item.editing">{{ item.pre_ele_cantidad_prestado }}</span>
-          <input *ngIf="item.editing" type="number" [(ngModel)]="item.pre_ele_cantidad_prestado"
-            class="cantidad-input" />
+          <input *ngIf="item.editing" type="number" [(ngModel)]="item.pre_ele_cantidad_prestado" class="cantidad-input" />
         </td>
       </ng-container>
 
@@ -70,7 +51,19 @@
 
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cerrar</button>
-
-  <!-- Botón de Aprobar (solo visible si el estado es "Creado") -->
-  <button *ngIf="prestamo.estado === 'Creado' && puedeCambiarEstado" mat-button (click)="aprobarSolicitud()">Aprobar</button>
+  
+  <ng-container *ngIf="puedeCambiarEstado">
+    <!-- Si el préstamo está en Creado, muestra el botón para aprobar -->
+    <button *ngIf="prestamo.estado === 'Creado'" mat-button (click)="aprobarSolicitud()">
+      Aprobar
+    </button>
+    <!-- Si está en En proceso, muestra el botón "Prestado" que, al pulsarlo, cambia el estado a En préstamo -->
+    <button *ngIf="prestamo.estado === 'En proceso'" mat-button (click)="cambiarAEnPrestamo()">
+      Prestado
+    </button>
+    <!-- Si está en En préstamo, se muestra el botón para marcarlo como Entregado -->
+    <button *ngIf="prestamo.estado === 'En préstamo'" mat-button (click)="cambiarAEntregado()">
+      Entregado
+    </button>
+  </ng-container>
 </div>

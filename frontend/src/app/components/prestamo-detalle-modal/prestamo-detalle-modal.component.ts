@@ -126,49 +126,8 @@ export class PrestamoDetalleModalComponent implements OnInit {
     });
   }
   
+  // Eliminamos el método genérico cambiarEstado
 
-  cambiarEstado(): void {
-    if (!this.estadoSeleccionadoId) return;
-    
-    const nuevoEstado = this.estados.find(e => e.est_id === this.estadoSeleccionadoId);
-    if (!nuevoEstado) return;
-  
-    const mensaje = `¿Seguro que deseas cambiar el estado a "${nuevoEstado.est_nombre}"?`;
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '350px',
-      data: {
-        titulo: 'Confirmar cambio de estado',
-        mensaje: mensaje,
-        textoBotonConfirmar: 'Aceptar',
-        textoBotonCancelar: 'Cancelar'
-      }
-    });
-  
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && this.prestamo.idPrestamo) {
-        this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
-          estado: nuevoEstado.est_id,
-          // No actualizar la fecha de inicio, solo la fechaEntrega
-          fechaEntrega: new Date()
-        }).subscribe({
-          next: (response) => {
-            if (response.respuesta) {
-              this.prestamo.estado = nuevoEstado.est_nombre;
-              this.dataUpdated = true;
-              this.cdr.detectChanges();
-              this.snackBar.open(`Estado actualizado a "${nuevoEstado.est_nombre}"`, 'Cerrar', { duration: 3000 });
-            }
-          },
-          error: (error) => {
-            console.error('Error al actualizar el estado', error);
-            this.snackBar.open('Error al actualizar el estado', 'Cerrar', { duration: 3000 });
-          }
-        });
-      }
-    });
-  }
-  
-  
   aprobarSolicitud(): void {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
@@ -206,7 +165,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
     });
   }
 
-
   cambiarEstadoAEnProceso(): void {
     if (!this.prestamo.idPrestamo) {
       console.error('ID del préstamo no definido.');
@@ -219,23 +177,21 @@ export class PrestamoDetalleModalComponent implements OnInit {
       return;
     }
   
-    const fechaEntrega = new Date(); // Mantén la fecha como un objeto Date
+    const fechaEntrega = new Date();
   
     this.prestamoService.actualizarEstadoPrestamo(
       this.prestamo.idPrestamo,
-      { estado: estadoEnProceso.est_id, fechaEntrega: fechaEntrega } // Aquí pasas un objeto Date
+      { estado: estadoEnProceso.est_id, fechaEntrega: fechaEntrega }
     ).subscribe({
       next: (response) => {
         if (response.respuesta) {
           this.prestamo.estado = 'En proceso';
-          // Actualizar la fecha de última actualización
           this.prestamo.pre_actualizacion = new Date();
           this.dataUpdated = true;
           this.cdr.detectChanges();
   
-          // Si necesitas mostrar la fecha en formato día/mes/año en el frontend
-          const fechaFormateada = fechaEntrega.toLocaleDateString('es-CO'); // Formato día/mes/año
-          console.log(fechaFormateada); // Puedes usar esta fecha para mostrarla
+          const fechaFormateada = fechaEntrega.toLocaleDateString('es-CO');
+          console.log(fechaFormateada);
   
           this.snackBar.open('Estado cambiado a "En proceso"', 'Cerrar', { duration: 3000 });
         }
@@ -246,7 +202,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
     });
   }
-
 
   cambiarAEnPrestamo(): void {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -262,7 +217,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => { 
       if (result) {
         const estadoEnPrestamo = this.estados.find(e => e.est_nombre === 'En préstamo');
-        if (estadoEnPrestamo && this.prestamo.idPrestamo !== undefined) { // Verificar que idPrestamo esté definido
+        if (estadoEnPrestamo && this.prestamo.idPrestamo !== undefined) {
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
             estado: estadoEnPrestamo.est_id,
             fechaEntrega: new Date()
@@ -275,6 +230,45 @@ export class PrestamoDetalleModalComponent implements OnInit {
             },
             error: (error) => {
               console.error('Error al cambiar estado a "En préstamo":', error);
+              this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  // Nuevo método para cambiar el estado de "En proceso" a "Prestado"
+  cambiarAPrestado(): void {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        titulo: 'Confirmar préstamo',
+        mensaje: '¿Estás seguro de marcar esta solicitud como "Prestado"?',
+        textoBotonConfirmar: 'Sí',
+        textoBotonCancelar: 'No'
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const estadoPrestado = this.estados.find(e => e.est_nombre === 'Prestado');
+        if (estadoPrestado && this.prestamo.idPrestamo !== undefined) {
+          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
+            estado: estadoPrestado.est_id,
+            fechaEntrega: new Date()
+          }).subscribe({
+            next: (response) => {
+              if (response.respuesta) {
+                this.prestamo.estado = 'Prestado';
+                this.prestamo.pre_actualizacion = new Date();
+                this.dataUpdated = true;
+                this.cdr.detectChanges();
+                this.snackBar.open('Estado actualizado a "Prestado"', 'Cerrar', { duration: 3000 });
+              }
+            },
+            error: (error) => {
+              console.error('Error al cambiar estado a "Prestado":', error);
               this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
             }
           });
@@ -297,19 +291,17 @@ export class PrestamoDetalleModalComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const estadoEntregado = this.estados.find(e => e.est_nombre === 'Entregado');
-        if (estadoEntregado && this.prestamo.idPrestamo !== undefined) { // Verificar que idPrestamo esté definido
-          // Crear un objeto con las propiedades correctas
+        if (estadoEntregado && this.prestamo.idPrestamo !== undefined) {
           const estadoData = {
-            estado: estadoEntregado.est_id,  // El ID del estado "Entregado"
-            fechaEntrega: new Date() // Ahora es un objeto Date, no una cadena
+            estado: estadoEntregado.est_id,
+            fechaEntrega: new Date()
           };
   
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, estadoData)
             .subscribe({
               next: (response) => {
                 if (response.respuesta) {
-                  // Actualizar los campos en el frontend
-                  this.prestamo.fechaEntrega = estadoData.fechaEntrega; // Esto es ahora un objeto Date
+                  this.prestamo.fechaEntrega = estadoData.fechaEntrega;
                   this.prestamo.estado = 'Entregado';
                   this.prestamo.pre_actualizacion = new Date();
                   this.dataUpdated = true;
@@ -327,8 +319,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
     });
   }
   
-  
-
   private getMensajeConfirmacion(estado: string): string {
     switch (estado) {
       case 'En proceso':
@@ -435,7 +425,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       console.error('Fecha no válida:', fecha);
       return 'Fecha no válida';
     }
-    return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    return date.toISOString().split('T')[0];
   }
 
   close(): void {

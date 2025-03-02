@@ -13,30 +13,12 @@ import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectChange } from '@angular/material/select';
-
-// Importamos Angular Animations
-import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-warehouse-requests',
   templateUrl: './warehouse-requests.component.html',
   styleUrls: ['./warehouse-requests.component.css'],
   standalone: true,
-  animations: [
-    trigger('fadeIn', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
-      ])
-    ])
-  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -45,24 +27,15 @@ import { trigger, transition, style, animate } from '@angular/animations';
     MatSnackBarModule,
     MatDialogModule,
     MatIconModule,
-    MatPaginatorModule,
-    // Angular Material adicionales
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatPaginatorModule
   ]
 })
-
 export class WarehouseRequestsComponent implements OnInit {
   searchForm: FormGroup;
   prestamos: Prestamo[] = [];
   filteredPrestamos: MatTableDataSource<Prestamo>;
   estados: Estado[] = [];
   mensajeNoPrestamos: string = 'No se encontraron préstamos.';
-  isLoading: boolean = false; // Flag para mostrar el spinner
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -105,7 +78,6 @@ export class WarehouseRequestsComponent implements OnInit {
 
   async getHistory(): Promise<void> {
     try {
-      this.isLoading = true; // Activa el spinner
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
   
       if (prestamos && Array.isArray(prestamos)) {
@@ -121,12 +93,12 @@ export class WarehouseRequestsComponent implements OnInit {
             estado: item.est_nombre,
             elementos: item.elementos || []
           }))
-          // Filtramos para excluir 'Entregado' y 'Cancelado'
+          // Se filtran los préstamos con estado 'Entregado' o 'Cancelado'
           .filter(prestamo => {
             const estado = prestamo.estado.toLowerCase();
             return estado !== 'entregado' && estado !== 'cancelado';
           })
-          // Ordenamos por fechaInicio de más reciente a más antigua
+          // Se ordena siempre por fechaInicio de más reciente a más antigua
           .sort((a, b) => new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime());
   
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
@@ -138,15 +110,13 @@ export class WarehouseRequestsComponent implements OnInit {
     } catch (error) {
       console.error('Error al obtener el historial de préstamos', error);
       this.snackBar.open('Ocurrió un error al obtener el historial. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
-    } finally {
-      this.isLoading = false; // Desactiva el spinner
     }
   }
   
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {
-        // Excluimos el estado "Cancelado"
+        // Se filtran los estados para excluir "Cancelado"
         this.estados = data.filter(e => e.est_nombre.toLowerCase() !== 'cancelado');
       },
       (error: any) => {
@@ -231,8 +201,9 @@ export class WarehouseRequestsComponent implements OnInit {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
   
-  seleccionarEstado(event: MatSelectChange): void {
-    const estadoSeleccionado = event.value;
+  seleccionarEstado(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const estadoSeleccionado = selectElement.value;
     this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
     this.buscar();
   }
