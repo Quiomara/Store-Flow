@@ -1,5 +1,5 @@
 body {
-  font-family: inherit; /* Utiliza la fuente madre establecida */
+  font-family: inherit;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,68 +16,72 @@ body {
 }
 
 header {
-  padding-top: 1rem; /* Ajustar para bajar el texto "Administrador" */
+  padding-top: 1rem;
 }
 
 .warehouse-label {
   font-size: 1.2rem;
-  color: #333;
-  cursor: pointer; /* Cambiar cursor a pointer para indicar que es clickeable */
+  color:  #39A900;
+  cursor: pointer;
 }
 
 .sidebar {
-  background-color: #e0e0e0; /* Color gris claro para el sidebar */
+  background-color: #e0e0e0;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%; /* Ancho completo en dispositivos móviles */
-  max-width: 150px; /* Ajustar ancho máximo en pantallas más grandes */
+  width: 100%;
+  max-width: 150px; /* Ajusta si quieres la barra más ancha o más angosta */
 }
 
+/* Logo */
 .logo {
-  width: 100%; /* Hacer que el logo abarque todo el ancho de la barra lateral */
+  width: 100%;
   margin-bottom: 20px;
 }
 
+/* Ajustamos el ul para que ocupe el alto completo y centre verticalmente sus elementos */
 .sidebar ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
   width: 100%;
-  margin-top: auto; /* Empuja los botones hacia abajo */
-  margin-bottom: auto; /* Centra los botones verticalmente */
-}
-
-.sidebar ul li {
-  margin-bottom: 10px;
   display: flex;
-  justify-content: center; /* Centrar el botón */
+  flex-direction: column;
+  justify-content: center; /* Centra verticalmente los li */
+  flex: 1; /* Ocupa todo el alto disponible en el sidebar */
 }
 
-.sidebar ul li a {
-  width: 100%; /* Asegura que el botón abarque todo el ancho */
-  padding: 30px; /* Aumentar tamaño del botón */
-  background-color: #b0b0b0; /* Color gris oscuro para los botones */
-  color: black; /* Color del texto */
-  border-radius: 4px;
-  text-decoration: none;
-  text-align: center;
+.sidebar .nav-item {
+  margin-bottom: 10px;
+}
+
+/* Botones del sidebar con tamaño fijo y centrado de contenido */
+.sidebar-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.8rem; /* Disminuir tamaño de la fuente del botón */
-}
-
-.sidebar ul li a i {
-  font-size: 2.5rem; /* Aumentar tamaño del icono */
-  color: black; /* Color del icono */
-  margin-bottom: 5px; /* Espacio entre el icono y el texto */
-  width: 100%; /* Asegura que el icono ocupe todo el ancho del botón */
+  justify-content: center;       /* Centra icono y texto verticalmente */
+  width: 100%;                   /* Ocupa todo el ancho de la barra lateral */
+  height: 100px;                 /* Ajusta la altura deseada */
+  background-color: #b0b0b0;
+  color: black;
+  border-radius: 4px;
+  text-decoration: none;
   text-align: center;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
 }
 
-.sidebar ul li a:hover {
-  background-color: #8f8f8f; /* Hover para los botones */
+.sidebar-btn i {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+  color:  #39A900;
+}
+
+.sidebar-btn:hover {
+  background-color: #8f8f8f;
 }
 
 .content {
@@ -97,7 +101,7 @@ form {
 
 .form-row {
   display: flex;
-  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+  flex-wrap: wrap;
   justify-content: space-between;
   margin-bottom: 15px;
 }

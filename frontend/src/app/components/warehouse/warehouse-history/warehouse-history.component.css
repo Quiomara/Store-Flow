@@ -11,7 +11,7 @@
 }
 
 .user-table-container {
-  max-height: 450px;
+  max-height: 540px;
   overflow-y: auto;
   position: relative;
 }
@@ -112,10 +112,37 @@ mat-icon:hover {
   font-weight: 500;
 }
 
-.estado-creado { background-color: #ffd740; color: black; }
-.estado-proceso { background-color: #64b5f6; color: white; }
-.estado-prestamo { background-color: #81c784; color: white; }
-.estado-entregado { background-color: #4caf50; color: white; }
-.estado-cancelado { background-color: #ef5350; color: white; }
-.estado-default { background-color: #9e9e9e; color: white; }
-.estado-pendiente { background-color: #9e9e9e; color: white; } /* Añadir esta línea para el estado Pendiente */
+.icon-btn mat-icon {
+  color: #39A900;
+}
+
+
+.estado-creado { 
+  background-color: #FFF9C4; /* Amarillo pastel claro */
+  color: black; 
+}
+.estado-proceso { 
+  background-color: #BBDEFB; /* Azul pastel */
+  color: black; 
+}
+.estado-prestamo { 
+  background-color: #C8E6C9; /* Verde pastel */
+  color: black; 
+}
+.estado-entregado { 
+  background-color: #DCEDC8; /* Verde pastel muy suave */
+  color: black; 
+}
+.estado-cancelado { 
+  background-color: #FFCDD2; /* Rojo pastel */
+  color: black; 
+}
+.estado-default { 
+  background-color: #E0E0E0; /* Gris claro */
+  color: black; 
+}
+.estado-pendiente { 
+  background-color: #E0E0E0; /* Gris claro */
+  color: black; 
+}
+
