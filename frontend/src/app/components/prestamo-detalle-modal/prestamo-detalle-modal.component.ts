@@ -37,7 +37,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
   estados: Estado[] = [];
   estadoSeleccionadoId: number | null = null;
   dataUpdated = false;
-  soloDetalle: boolean = false;  // Bandera para modo solo visualización
+  soloDetalle: boolean = false; // Bandera para modo solo detalle
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -71,25 +71,25 @@ export class PrestamoDetalleModalComponent implements OnInit {
   }
 
   private initComponent(): void {
-    // Si estamos en modo solo detalle, forzamos que no se puedan cambiar estados y removemos botones de acción
+    // Si hay un ID de préstamo definido, obtener detalles
+    if (this.prestamo.idPrestamo) {
+      this.obtenerPrestamoDetalles(this.prestamo.idPrestamo);
+    }
+    
+    // Obtener los posibles estados
+    this.obtenerEstados();
+
+    // Configuración según modo:
     if (this.soloDetalle) {
+      // En modo solo detalle no se pueden cambiar estados ni editar
       this.puedeCambiarEstado = false;
       this.displayedColumns = ['nombre', 'cantidad'];
     } else {
       const userType = this.authService.getUserType();
       const userId = this.authService.getUserId();
-      // Definir si el usuario puede cambiar el estado (solo 'Almacén' con id 3)
+      // Solo el usuario 'Almacén' con id 3 puede cambiar estado
       this.puedeCambiarEstado = (userType === 'Almacén' && userId === 3);
-      // Configuración de columnas según el tipo de usuario
       this.displayedColumns = (userType === 'Almacén') ? ['nombre', 'cantidad'] : ['nombre', 'cantidad', 'acciones'];
-    }
-    
-    // Obtener los posibles estados
-    this.obtenerEstados();
-    
-    // Si hay un ID de préstamo definido, obtener detalles
-    if (this.prestamo.idPrestamo) {
-      this.obtenerPrestamoDetalles(this.prestamo.idPrestamo);
     }
   }
   
@@ -134,33 +134,207 @@ export class PrestamoDetalleModalComponent implements OnInit {
     });
   }
   
-  // Métodos para cambiar estado o editar solo se ejecutarán si no estamos en modo soloDetalle
+  // Cada método de cambio de estado verifica si estamos en modo soloDetalle
   aprobarSolicitud(): void {
     if (this.soloDetalle) return;
-    // ... código existente para aprobar solicitud ...
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        titulo: 'Confirmar aprobación',
+        mensaje: '¿Estás seguro de aprobar esta solicitud?',
+        textoBotonConfirmar: 'Sí',
+        textoBotonCancelar: 'No'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
+        if (estadoEnProceso && this.prestamo.idPrestamo) {
+          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
+            estado: estadoEnProceso.est_id,
+            fechaEntrega: new Date()
+          }).subscribe({
+            next: (response) => {
+              if (response.respuesta) {
+                this.prestamo.estado = 'En proceso';
+                this.dataUpdated = true;
+                this.cdr.detectChanges();
+                this.snackBar.open('Solicitud aprobada correctamente', 'Cerrar', { duration: 3000 });
+                this.dialogRef.close(true); // Cierra el modal automáticamente
+              }
+            },
+            error: (error) => {
+              console.error('Error al aprobar la solicitud', error);
+              this.snackBar.open('Error al aprobar la solicitud', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      }
+    });
   }
 
   cambiarEstadoAEnProceso(): void {
     if (this.soloDetalle) return;
-    // ... código existente para cambiar estado a "En proceso" ...
+    if (!this.prestamo.idPrestamo) {
+      console.error('ID del préstamo no definido.');
+      return;
+    }  
+  
+    const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
+    if (!estadoEnProceso) {
+      console.error('No se encontró el estado "En proceso".');
+      return;
+    }
+  
+    const fechaEntrega = new Date();
+  
+    this.prestamoService.actualizarEstadoPrestamo(
+      this.prestamo.idPrestamo,
+      { estado: estadoEnProceso.est_id, fechaEntrega: fechaEntrega }
+    ).subscribe({
+      next: (response) => {
+        if (response.respuesta) {
+          this.prestamo.estado = 'En proceso';
+          this.prestamo.pre_actualizacion = new Date();
+          this.dataUpdated = true;
+          this.cdr.detectChanges();
+  
+          const fechaFormateada = fechaEntrega.toLocaleDateString('es-CO');
+          console.log(fechaFormateada);
+  
+          this.snackBar.open('Estado cambiado a "En proceso"', 'Cerrar', { duration: 3000 });
+          this.dialogRef.close(true); // Cierra el modal
+        }
+      },
+      error: (error) => {
+        console.error('Error al cambiar estado a "En proceso":', error);
+        this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
 
   cambiarAEnPrestamo(): void {
     if (this.soloDetalle) return;
-    // ... código existente para cambiar a "En préstamo" ...
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        titulo: 'Confirmar estado en préstamo',
+        mensaje: '¿Estás seguro de marcar esta solicitud como "En préstamo"?',
+        textoBotonConfirmar: 'Sí',
+        textoBotonCancelar: 'No'
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => { 
+      if (result) {
+        const estadoEnPrestamo = this.estados.find(e => e.est_nombre === 'En préstamo');
+        if (estadoEnPrestamo && this.prestamo.idPrestamo !== undefined) {
+          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
+            estado: estadoEnPrestamo.est_id,
+            fechaEntrega: new Date()
+          }).subscribe({
+            next: (response) => {
+              if (response.respuesta) {
+                this.prestamo.estado = 'En préstamo';
+                this.snackBar.open('Estado actualizado a "En préstamo"', 'Cerrar', { duration: 3000 });
+                this.dialogRef.close(true); // Cierra el modal
+              }
+            },
+            error: (error) => {
+              console.error('Error al cambiar estado a "En préstamo":', error);
+              this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      }
+    });
   }
 
   cambiarAPrestado(): void {
     if (this.soloDetalle) return;
-    // ... código existente para cambiar a "Prestado" ...
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        titulo: 'Confirmar préstamo',
+        mensaje: '¿Estás seguro de marcar esta solicitud como "Prestado"?',
+        textoBotonConfirmar: 'Sí',
+        textoBotonCancelar: 'No'
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const estadoPrestado = this.estados.find(e => e.est_nombre === 'Prestado');
+        if (estadoPrestado && this.prestamo.idPrestamo !== undefined) {
+          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
+            estado: estadoPrestado.est_id,
+            fechaEntrega: new Date()
+          }).subscribe({
+            next: (response) => {
+              if (response.respuesta) {
+                this.prestamo.estado = 'Prestado';
+                this.prestamo.pre_actualizacion = new Date();
+                this.dataUpdated = true;
+                this.cdr.detectChanges();
+                this.snackBar.open('Estado actualizado a "Prestado"', 'Cerrar', { duration: 3000 });
+                this.dialogRef.close(true); // Cierra el modal
+              }
+            },
+            error: (error) => {
+              console.error('Error al cambiar estado a "Prestado":', error);
+              this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
+            }
+          });
+        }
+      }
+    });
   }
   
   cambiarAEntregado(): void {
     if (this.soloDetalle) return;
-    // ... código existente para cambiar a "Entregado" ...
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        titulo: 'Confirmar entrega',
+        mensaje: '¿Estás seguro de marcar esta solicitud como "Entregado"?',
+        textoBotonConfirmar: 'Sí',
+        textoBotonCancelar: 'No'
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const estadoEntregado = this.estados.find(e => e.est_nombre === 'Entregado');
+        if (estadoEntregado && this.prestamo.idPrestamo !== undefined) {
+          const estadoData = {
+            estado: estadoEntregado.est_id,
+            fechaEntrega: new Date()
+          };
+  
+          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, estadoData)
+            .subscribe({
+              next: (response) => {
+                if (response.respuesta) {
+                  this.prestamo.fechaEntrega = estadoData.fechaEntrega;
+                  this.prestamo.estado = 'Entregado';
+                  this.prestamo.pre_actualizacion = new Date();
+                  this.dataUpdated = true;
+                  this.cdr.detectChanges();
+                  this.snackBar.open('Estado actualizado a "Entregado"', 'Cerrar', { duration: 3000 });
+                  this.dialogRef.close(true); // Cierra el modal
+                }
+              },
+              error: (error) => {
+                console.error('Error al actualizar el estado', error);
+                this.snackBar.open('Error al actualizar el estado', 'Cerrar', { duration: 3000 });
+              }
+            });
+        }
+      }
+    });
   }
   
-  // Los métodos de edición también se deshabilitan en modo soloDetalle
   enableEditing(item: EditableElemento): void {
     if (this.soloDetalle) return;
     item.editing = true;
