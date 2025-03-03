@@ -181,7 +181,11 @@ export class WarehouseRequestsComponent implements OnInit {
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio } },
+      data: { 
+        prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio },
+        soloDetalle: false,
+        incluirHistorial: false
+      },
       disableClose: true
     });
   
@@ -197,6 +201,7 @@ export class WarehouseRequestsComponent implements OnInit {
     });
   }
   
+  
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }
@@ -210,11 +215,20 @@ export class WarehouseRequestsComponent implements OnInit {
   
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
-      case 'creado': return 'estado-creado';
-      case 'en proceso': return 'estado-proceso';
-      case 'préstamo': return 'estado-prestamo';
-      case 'pendiente': return 'estado-pendiente';
-      default: return 'estado-default';
+      case 'creado': 
+        return 'estado-creado';
+      case 'en proceso': 
+        return 'estado-proceso';
+      case 'préstamo': 
+        return 'estado-prestamo';
+      case 'pendiente': 
+        return 'estado-pendiente';
+      case 'cancelado': 
+        return 'estado-cancelado';
+      case 'entregado': 
+        return 'estado-entregado';
+      default: 
+        return 'estado-default';
     }
   }
 }

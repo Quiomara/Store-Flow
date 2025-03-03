@@ -310,15 +310,14 @@ const actualizarCantidadElemento = async (req, res) => {
   }
 };
 
-// Actualizar el estado de un préstamo
 const actualizarEstadoPrestamo = async (req, res) => {
   const { pre_id } = req.params;
-  const { est_id } = req.body;
+  const { est_id, usr_cedula } = req.body;
 
-  if (!pre_id || !est_id) {
-    return res.status(400).json({ 
-      respuesta: false, 
-      mensaje: "Faltan campos: pre_id o est_id" 
+  if (!pre_id || !est_id || !usr_cedula) {
+    return res.status(400).json({
+      respuesta: false,
+      mensaje: "Faltan campos: pre_id, est_id o usr_cedula"
     });
   }
 
@@ -326,46 +325,62 @@ const actualizarEstadoPrestamo = async (req, res) => {
     // Validar que el estado existe
     const [estado] = await db.execute("SELECT est_nombre FROM estados WHERE est_id = ?", [est_id]);
     if (estado.length === 0) {
-      return res.status(404).json({ 
-        respuesta: false, 
-        mensaje: "Estado no válido" 
+      return res.status(404).json({
+        respuesta: false,
+        mensaje: "Estado no válido"
       });
     }
 
-    // Si el estado es "Entregado (4)" o "Cancelado (5)", actualizar pre_fin con la fecha actual
-    let query = "UPDATE prestamos SET est_id = ? WHERE pre_id = ?";
-    let values = [est_id, pre_id];
+    // Obtener el préstamo y su historial actual
+    const [prestamo] = await db.execute("SELECT historial_estados FROM prestamos WHERE pre_id = ?", [pre_id]);
+
+    let historial = [];
+    if (prestamo.length > 0 && prestamo[0].historial_estados) {
+      try {
+        historial = JSON.parse(prestamo[0].historial_estados);
+      } catch (error) {
+        console.error("Error al parsear historial_estados:", error);
+        historial = []; // Si hay error, lo inicializamos vacío para evitar fallos
+      }
+    }
+
+    // Agregar la nueva entrada de estado al historial
+    historial.push({
+      estado: estado[0].est_nombre,
+      usuario: usr_cedula,
+      fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
+    });
+
+    // Si el estado es "Entregado (4)" o "Cancelado (5)", también actualizar pre_fin
+    let query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW() WHERE pre_id = ?`;
+    let values = [est_id, JSON.stringify(historial), pre_id];
 
     if (est_id == 4 || est_id == 5) {
-      query = "UPDATE prestamos SET est_id = ?, pre_fin = NOW() WHERE pre_id = ?";
+      query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW(), pre_fin = NOW() WHERE pre_id = ?`;
     }
 
     const [result] = await db.execute(query, values);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        respuesta: false, 
-        mensaje: "Préstamo no encontrado" 
+      return res.status(404).json({
+        respuesta: false,
+        mensaje: "Préstamo no encontrado"
       });
     }
 
-    // Obtener los datos actualizados del préstamo
-    const [prestamo] = await db.execute("SELECT pre_inicio, pre_fin FROM prestamos WHERE pre_id = ?", [pre_id]);
-
-    res.json({ 
-      respuesta: true, 
+    res.json({
+      respuesta: true,
       mensaje: "Estado actualizado correctamente",
       nuevo_estado: estado[0].est_nombre,
-      pre_inicio: prestamo[0].pre_inicio, // No cambia
-      pre_fin: prestamo[0].pre_fin // Solo cambia si el estado es 4 o 5
+      historial_estados: historial
     });
 
   } catch (err) {
     console.error("Error en la base de datos:", err);
-    res.status(500).json({ 
-      respuesta: false, 
+    res.status(500).json({
+      respuesta: false,
       mensaje: "Error interno del servidor",
-      error: err.message 
+      error: err.message
     });
   }
 };

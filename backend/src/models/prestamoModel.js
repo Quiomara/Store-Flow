@@ -47,20 +47,49 @@ const Prestamo = {
     }
   },
 
-  // Actualizar el estado de un préstamo
-  actualizarEstado: async (pre_id, est_id) => {
-    let pre_fin = null;
-    if (est_id == 4 || est_id == 5) {
+// Actualizar estado de un préstamo y agregarlo al historial JSON
+actualizarEstado: async (pre_id, est_id, usr_cedula) => {
+  let pre_fin = null;
+  if (est_id == 4 || est_id == 5) {
       // 4 = Entregado, 5 = Cancelado
       pre_fin = new Date().toISOString().slice(0, 19).replace("T", " ");
-    }
+  }
 
-    const query = `UPDATE Prestamos SET est_id = ?, pre_fin = COALESCE(?, pre_fin) WHERE pre_id = ?`;
-    const values = [est_id, pre_fin, pre_id];
+  const conn = await db.getConnection();
+  try {
+      await conn.beginTransaction();
 
-    const [result] = await db.execute(query, values);
-    return result;
-  },
+      // Obtener historial actual del préstamo
+      const [prestamo] = await conn.execute("SELECT historial_estados FROM prestamos WHERE pre_id = ?", [pre_id]);
+
+      let historial = [];
+      if (prestamo.length > 0 && prestamo[0].historial_estados) {
+          historial = JSON.parse(prestamo[0].historial_estados);
+      }
+
+      // Agregar nueva acción al historial
+      historial.push({
+          estado: est_id,
+          usuario: usr_cedula,
+          fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
+      });
+
+      // Convertir historial a JSON
+      const historialJSON = JSON.stringify(historial);
+
+      // Actualizar el estado del préstamo y guardar historial
+      const queryUpdate = `UPDATE prestamos SET est_id = ?, pre_fin = COALESCE(?, pre_fin), historial_estados = ? WHERE pre_id = ?`;
+      await conn.execute(queryUpdate, [est_id, pre_fin, historialJSON, pre_id]);
+
+      await conn.commit();
+      return { success: true };
+  } catch (error) {
+      await conn.rollback();
+      throw error;
+  } finally {
+      conn.release();
+  }
+},
 
   // Actualizar un préstamo
   actualizar: async (data) => {

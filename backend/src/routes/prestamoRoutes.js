@@ -14,7 +14,11 @@ router.get('/:pre_id/detalles', auth(['Administrador', 'Instructor', 'Almacén']
 
 // Nueva ruta para actualizar la cantidad de elementos en un préstamo
 router.put('/actualizar-cantidad', auth(['Administrador', 'Instructor']), prestamoController.actualizarCantidadElemento);
+
+// ✅ Ruta ajustada para actualizar estado del préstamo y guardar historial
 router.put('/:pre_id/actualizar-estado', auth(['Instructor', 'Almacén']), prestamoController.actualizarEstadoPrestamo);
+
+// Ruta para cancelar préstamo
 router.put('/cancelar/:pre_id', auth(['Instructor']), prestamoController.cancelarPrestamo);
 
 module.exports = router;

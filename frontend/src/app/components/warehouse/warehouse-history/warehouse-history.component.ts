@@ -13,6 +13,8 @@ import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { HistorialAccionesComponent } from './../historial-acciones/historial-acciones.component';
+
 
 @Component({
   selector: 'app-warehouse-history',
@@ -230,5 +232,22 @@ export class WarehouseHistoryComponent implements OnInit {
         return 'estado-default';
     }
   }
+
+  verHistorial(prestamo: Prestamo): void {
+    const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
+      width: '800px',
+      data: {
+        prestamo: prestamo,
+        historialAcciones: prestamo.historialAcciones || [], // Si no hay historial, se envía un array vacío
+        soloDetalle: true
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      // Aquí puedes manejar la lógica después de cerrar el modal, si es necesario.
+    });
+  }
+  
   
 }
+  
