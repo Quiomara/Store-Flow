@@ -20,5 +20,6 @@ router.put('/:pre_id/actualizar-estado', auth(['Instructor', 'Almacén']), prest
 
 // Ruta para cancelar préstamo
 router.put('/cancelar/:pre_id', auth(['Instructor']), prestamoController.cancelarPrestamo);
+router.get('/:pre_id/historial-estado',auth(['Instructor', 'Almacén']),prestamoController.obtenerHistorialEstado);
 
 module.exports = router;

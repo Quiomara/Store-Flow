@@ -47,49 +47,84 @@ const Prestamo = {
     }
   },
 
-// Actualizar estado de un préstamo y agregarlo al historial JSON
-actualizarEstado: async (pre_id, est_id, usr_cedula) => {
-  let pre_fin = null;
-  if (est_id == 4 || est_id == 5) {
-      // 4 = Entregado, 5 = Cancelado
+  // Actualizar estado de un préstamo y agregarlo al historial JSON
+  actualizarEstado: async (pre_id, est_id, usr_cedula) => {
+    let pre_fin = null;
+    // 4 = Entregado, 5 = Cancelado
+    if (est_id == 4 || est_id == 5) {
       pre_fin = new Date().toISOString().slice(0, 19).replace("T", " ");
-  }
+    }
 
-  const conn = await db.getConnection();
-  try {
+    const conn = await db.getConnection();
+    try {
       await conn.beginTransaction();
 
-      // Obtener historial actual del préstamo
-      const [prestamo] = await conn.execute("SELECT historial_estados FROM prestamos WHERE pre_id = ?", [pre_id]);
+      // 1. Obtener el nombre completo del usuario a partir de la cédula
+      const [rowsUser] = await conn.execute(`
+      SELECT 
+        usr_primer_nombre,
+        usr_segundo_nombre,
+        usr_primer_apellido,
+        usr_segundo_apellido
+      FROM usuarios
+      WHERE usr_cedula = ?
+    `, [usr_cedula]);
+
+      // Por defecto, si no se encuentra el usuario, usamos la cédula
+      let nombreCompleto = usr_cedula;
+
+      if (rowsUser.length > 0) {
+        const u = rowsUser[0];
+        // Construimos el nombre completo
+        const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
+        const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
+        nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+      }
+
+      // 2. Obtener historial actual del préstamo
+      const [prestamo] = await conn.execute(
+        "SELECT historial_estados FROM prestamos WHERE pre_id = ?",
+        [pre_id]
+      );
 
       let historial = [];
       if (prestamo.length > 0 && prestamo[0].historial_estados) {
+        try {
           historial = JSON.parse(prestamo[0].historial_estados);
+        } catch (error) {
+          console.error('Error parseando historial_estados:', error);
+          historial = [];
+        }
       }
 
-      // Agregar nueva acción al historial
+      // 3. Agregar nueva acción al historial, guardando el nombre en vez de la cédula
       historial.push({
-          estado: est_id,
-          usuario: usr_cedula,
-          fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
+        estado: est_id,
+        usuario: nombreCompleto,
+        fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
       });
 
-      // Convertir historial a JSON
+      // 4. Convertir historial a JSON y actualizar la tabla
       const historialJSON = JSON.stringify(historial);
-
-      // Actualizar el estado del préstamo y guardar historial
-      const queryUpdate = `UPDATE prestamos SET est_id = ?, pre_fin = COALESCE(?, pre_fin), historial_estados = ? WHERE pre_id = ?`;
+      const queryUpdate = `
+      UPDATE prestamos
+      SET est_id = ?, 
+          pre_fin = COALESCE(?, pre_fin), 
+          historial_estados = ?
+      WHERE pre_id = ?
+    `;
       await conn.execute(queryUpdate, [est_id, pre_fin, historialJSON, pre_id]);
 
       await conn.commit();
       return { success: true };
-  } catch (error) {
+    } catch (error) {
       await conn.rollback();
       throw error;
-  } finally {
+    } finally {
       conn.release();
-  }
-},
+    }
+  },
+
 
   // Actualizar un préstamo
   actualizar: async (data) => {
@@ -160,15 +195,16 @@ ORDER BY p.pre_inicio DESC;
     return prestamosConElementos;
   },
 
-  // Obtener un préstamo por ID
+  // Obtener un préstamo por ID (modelo)
   obtenerPorId: async (pre_id) => {
-    const query = `SELECT p.pre_id, p.est_id, e.est_nombre 
-                   FROM Prestamos p 
-                   JOIN Estados e ON p.est_id = e.est_id 
-                   WHERE p.pre_id = ?`;
+    const query = `SELECT p.pre_id, p.est_id, e.est_nombre, p.historial_estados 
+                 FROM Prestamos p 
+                 JOIN Estados e ON p.est_id = e.est_id 
+                 WHERE p.pre_id = ?`;
     const [results] = await db.execute(query, [pre_id]);
     return results[0];
   },
+
 
   // Obtener préstamos por cédula de usuario
   obtenerPorCedula: async (usr_cedula) => {
@@ -234,6 +270,32 @@ ORDER BY p.pre_inicio DESC;
       ele_id,
     ]);
     return result;
+  },
+
+  // Obtener únicamente el historial_estados de un préstamo
+  obtenerHistorialEstado: async (pre_id) => {
+    const query = `SELECT historial_estados FROM prestamos WHERE pre_id = ?`;
+    const [rows] = await db.execute(query, [pre_id]);
+
+    // Si no se encuentra el préstamo, retornamos null o lanzamos un error
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const historialStr = rows[0].historial_estados;
+    let historial = [];
+
+    if (historialStr) {
+      try {
+        historial = JSON.parse(historialStr);
+      } catch (error) {
+        console.error('Error parseando historial_estados:', error);
+        // Podrías decidir devolver un arreglo vacío en caso de error
+        historial = [];
+      }
+    }
+
+    return historial; // Devuelve un arreglo con objetos { estado, usuario, fecha }, etc.
   },
 
   cancelarPrestamo: async (pre_id) => {

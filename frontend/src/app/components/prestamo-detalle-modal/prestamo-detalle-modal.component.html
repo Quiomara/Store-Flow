@@ -1,7 +1,8 @@
 <h2 mat-dialog-title class="modal-title">Información del Préstamo</h2>
 
 <mat-dialog-content class="scrollable-content">
-  <mat-tab-group [selectedIndex]="0">
+  <!-- Se agrega (selectedTabChange)="onTabChange($event)" -->
+  <mat-tab-group [selectedIndex]="0" (selectedTabChange)="onTabChange($event)">
     <!-- Pestaña de Detalles: Siempre se muestra -->
     <mat-tab label="Detalles">
       <div class="detalles-container">
@@ -17,15 +18,22 @@
               <th mat-header-cell *matHeaderCellDef class="header-cell">Elemento</th>
               <td mat-cell *matCellDef="let item">{{ item.ele_nombre }}</td>
             </ng-container>
+
             <!-- Columna: Cantidad -->
             <ng-container matColumnDef="cantidad">
               <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad</th>
               <td mat-cell *matCellDef="let item" class="cantidad-cell">
                 <span *ngIf="!item.editing">{{ item.pre_ele_cantidad_prestado }}</span>
-                <input *ngIf="item.editing" type="number" [(ngModel)]="item.pre_ele_cantidad_prestado" class="cantidad-input" />
+                <input
+                  *ngIf="item.editing"
+                  type="number"
+                  [(ngModel)]="item.pre_ele_cantidad_prestado"
+                  class="cantidad-input"
+                />
               </td>
             </ng-container>
-            <!-- Columna: Acciones (solo si no es modo soloDetalle) -->
+
+            <!-- Columna: Acciones (sólo si no es modo soloDetalle) -->
             <ng-container *ngIf="!soloDetalle">
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef class="acciones-header">Acciones</th>
@@ -42,6 +50,7 @@
                 </td>
               </ng-container>
             </ng-container>
+
             <!-- Filas de la tabla -->
             <tr mat-header-row *matHeaderRowDef="!soloDetalle ? displayedColumns : ['nombre','cantidad']"></tr>
             <tr mat-row *matRowDef="let row; columns: !soloDetalle ? displayedColumns : ['nombre','cantidad']"></tr>
@@ -54,23 +63,27 @@
     <mat-tab *ngIf="incluirHistorial" label="Historial">
       <div class="historial-container">
         <table mat-table [dataSource]="historialAcciones" class="mat-elevation-z8 table">
-          <!-- Columna: Acción -->
-          <ng-container matColumnDef="accion">
-            <th mat-header-cell *matHeaderCellDef>Acción</th>
-            <td mat-cell *matCellDef="let hist">{{ hist.accion }}</td>
+          <!-- Columna: Estado -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let hist">{{ hist.estado }}</td>
           </ng-container>
+
           <!-- Columna: Usuario -->
           <ng-container matColumnDef="usuario">
             <th mat-header-cell *matHeaderCellDef>Usuario</th>
             <td mat-cell *matCellDef="let hist">{{ hist.usuario }}</td>
           </ng-container>
+
           <!-- Columna: Fecha -->
           <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
             <td mat-cell *matCellDef="let hist">{{ hist.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
           </ng-container>
-          <tr mat-header-row *matHeaderRowDef="['accion','usuario','fecha']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['accion','usuario','fecha']"></tr>
+
+          <!-- Filas de la tabla (cabecera y datos) -->
+          <tr mat-header-row *matHeaderRowDef="['estado','usuario','fecha']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['estado','usuario','fecha']"></tr>
         </table>
       </div>
     </mat-tab>
@@ -79,7 +92,7 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Cerrar</button>
-  <!-- Botones de cambio de estado: se muestran solo si no es modo soloDetalle y el usuario puede cambiar estado -->
+  <!-- Botones de cambio de estado: se muestran solo si no es modo soloDetalle y el usuario tiene permisos -->
   <ng-container *ngIf="!soloDetalle && puedeCambiarEstado">
     <button *ngIf="prestamo.estado === 'Creado'" mat-button (click)="aprobarSolicitud()">Aprobar</button>
     <button *ngIf="prestamo.estado === 'En proceso'" mat-button (click)="cambiarAEnPrestamo()">Prestado</button>

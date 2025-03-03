@@ -203,7 +203,7 @@ const obtenerTodosPrestamos = async (req, res) => {
   }
 };
 
-// Obtener préstamos por ID
+// Obtener préstamo por ID (controller)
 const obtenerPrestamoPorId = async (req, res) => {
   const pre_id = req.params.pre_id;
 
@@ -213,12 +213,27 @@ const obtenerPrestamoPorId = async (req, res) => {
       return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado.' });
     }
 
+    // Si 'historial_estados' es un string, lo convertimos a arreglo
+    if (prestamo.historial_estados) {
+      try {
+        prestamo.historial_estados = JSON.parse(prestamo.historial_estados);
+      } catch (error) {
+        console.error('Error al parsear historial_estados:', error);
+        prestamo.historial_estados = [];
+      }
+    }
+
     const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
-    res.json({ respuesta: true, mensaje: 'Préstamo obtenido con éxito.', data: { ...prestamo, elementos } });
+    res.json({ 
+      respuesta: true, 
+      mensaje: 'Préstamo obtenido con éxito.', 
+      data: { ...prestamo, elementos } 
+    });
   } catch (err) {
     manejarError(res, 'Error al obtener el préstamo', err);
   }
 };
+
 
 // Obtener préstamos por cédula
 const obtenerPrestamosPorCedula = async (req, res) => {
@@ -322,7 +337,7 @@ const actualizarEstadoPrestamo = async (req, res) => {
   }
 
   try {
-    // Validar que el estado existe
+    // 1. Validar que el estado existe
     const [estado] = await db.execute("SELECT est_nombre FROM estados WHERE est_id = ?", [est_id]);
     if (estado.length === 0) {
       return res.status(404).json({
@@ -331,8 +346,31 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
-    // Obtener el préstamo y su historial actual
-    const [prestamo] = await db.execute("SELECT historial_estados FROM prestamos WHERE pre_id = ?", [pre_id]);
+    // 2. Buscar el nombre completo del usuario en la tabla 'usuarios'
+    const [rowsUser] = await db.execute(`
+      SELECT 
+        usr_primer_nombre,
+        usr_segundo_nombre,
+        usr_primer_apellido,
+        usr_segundo_apellido
+      FROM usuarios
+      WHERE usr_cedula = ?
+    `, [usr_cedula]);
+
+    let nombreCompleto = usr_cedula; // Por defecto, la cédula
+    if (rowsUser.length > 0) {
+      const u = rowsUser[0];
+      // Construimos el nombre completo
+      const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
+      const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
+      nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+    }
+
+    // 3. Obtener el préstamo y su historial actual
+    const [prestamo] = await db.execute(
+      "SELECT historial_estados FROM prestamos WHERE pre_id = ?",
+      [pre_id]
+    );
 
     let historial = [];
     if (prestamo.length > 0 && prestamo[0].historial_estados) {
@@ -340,25 +378,31 @@ const actualizarEstadoPrestamo = async (req, res) => {
         historial = JSON.parse(prestamo[0].historial_estados);
       } catch (error) {
         console.error("Error al parsear historial_estados:", error);
-        historial = []; // Si hay error, lo inicializamos vacío para evitar fallos
+        historial = []; 
       }
     }
 
-    // Agregar la nueva entrada de estado al historial
+    // 4. Agregar la nueva entrada de estado al historial, usando el nombre completo
     historial.push({
       estado: estado[0].est_nombre,
-      usuario: usr_cedula,
+      usuario: nombreCompleto,
       fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
     });
 
-    // Si el estado es "Entregado (4)" o "Cancelado (5)", también actualizar pre_fin
-    let query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW() WHERE pre_id = ?`;
+    // 5. Preparar la actualización de la tabla 'prestamos'
+    let query = `UPDATE prestamos 
+                 SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW() 
+                 WHERE pre_id = ?`;
     let values = [est_id, JSON.stringify(historial), pre_id];
 
+    // Si el estado es "Entregado" (4) o "Cancelado" (5), también se actualiza pre_fin
     if (est_id == 4 || est_id == 5) {
-      query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW(), pre_fin = NOW() WHERE pre_id = ?`;
+      query = `UPDATE prestamos 
+               SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW(), pre_fin = NOW() 
+               WHERE pre_id = ?`;
     }
 
+    // 6. Ejecutar la actualización
     const [result] = await db.execute(query, values);
 
     if (result.affectedRows === 0) {
@@ -368,6 +412,7 @@ const actualizarEstadoPrestamo = async (req, res) => {
       });
     }
 
+    // 7. Responder con el nuevo estado y el historial
     res.json({
       respuesta: true,
       mensaje: "Estado actualizado correctamente",
@@ -384,7 +429,6 @@ const actualizarEstadoPrestamo = async (req, res) => {
     });
   }
 };
-
 
 const cancelarPrestamo = async (req, res) => {
   console.log("🔍 Parámetros recibidos para cancelar:", req.params);
@@ -404,6 +448,36 @@ const cancelarPrestamo = async (req, res) => {
   }
 };
 
+// Obtener el historial de un préstamo
+const obtenerHistorialEstado = async (req, res) => {
+  try {
+    const pre_id = req.params.pre_id;
+
+    // Llamamos al modelo para obtener el historial
+    const historial = await Prestamo.obtenerHistorialEstado(pre_id);
+
+    // Si no hay préstamo o no existe el registro, retornamos 404
+    if (!historial) {
+      return res.status(404).json({
+        respuesta: false,
+        mensaje: 'Préstamo no encontrado o sin historial.'
+      });
+    }
+
+    // Devolvemos el historial como arreglo
+    return res.json({
+      respuesta: true,
+      data: historial
+    });
+  } catch (error) {
+    console.error('Error al obtener historial:', error);
+    return res.status(500).json({
+      respuesta: false,
+      mensaje: 'Error al obtener historial'
+    });
+  }
+};
+
 module.exports = {
   crearPrestamo,
   actualizarPrestamo,
@@ -415,4 +489,5 @@ module.exports = {
   actualizarCantidadElemento,
   actualizarEstadoPrestamo,
   cancelarPrestamo,
+  obtenerHistorialEstado,
 };

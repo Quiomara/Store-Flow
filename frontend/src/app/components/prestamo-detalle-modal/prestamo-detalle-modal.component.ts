@@ -15,6 +15,8 @@ import { Estado } from '../../models/estado.model';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../warehouse/confirmation-dialog/confirmation-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+
 
 @Component({
   selector: 'app-prestamo-detalle-modal',
@@ -33,21 +35,21 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class PrestamoDetalleModalComponent implements OnInit {
   prestamo: Prestamo;
-  // Por defecto, se muestran columnas para edición (si se permite) 
+  // Por defecto, se muestran columnas para edición (si se permite)
   displayedColumns: string[] = ['nombre', 'cantidad', 'acciones'];
   originalItems: EditableElemento[] = [];
   puedeCambiarEstado = false;
   estados: Estado[] = [];
   estadoSeleccionadoId: number | null = null;
   dataUpdated = false;
-  
+
   // Flag para modo solo visualización (sin edición o cambio de estado)
   soloDetalle: boolean = false;
   // Flag para incluir la pestaña de historial
   incluirHistorial: boolean = false;
-  
-  // Propiedad para almacenar el historial de acciones (debe llenarse desde servicio o data)
-  historialAcciones: any[] = []; 
+
+  // Propiedad para almacenar el historial de acciones (se muestra en la pestaña Historial)
+  historialAcciones: any[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -69,12 +71,16 @@ export class PrestamoDetalleModalComponent implements OnInit {
       fechaEntrega: '',
       instructorNombre: ''
     };
+
     if (data.soloDetalle !== undefined) {
       this.soloDetalle = data.soloDetalle;
     }
+
     if (data.incluirHistorial !== undefined) {
       this.incluirHistorial = data.incluirHistorial;
     }
+
+    // Si te pasan historialAcciones desde fuera, lo asignas
     if (data.historialAcciones) {
       this.historialAcciones = data.historialAcciones;
     }
@@ -87,8 +93,12 @@ export class PrestamoDetalleModalComponent implements OnInit {
   private initComponent(): void {
     if (this.prestamo.idPrestamo) {
       this.obtenerPrestamoDetalles(this.prestamo.idPrestamo);
+  
+      if (this.incluirHistorial) {
+        this.obtenerHistorialEstados(this.prestamo.idPrestamo);
+      }
     }
-    
+
     this.obtenerEstados();
 
     // Configuración según el modo:
@@ -106,7 +116,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       this.displayedColumns = (userType === 'Almacén') ? ['nombre', 'cantidad'] : ['nombre', 'cantidad', 'acciones'];
     }
   }
-  
+
   obtenerEstados(): void {
     this.prestamoService.getEstados().subscribe({
       next: (estados: Estado[]) => {
@@ -126,8 +136,9 @@ export class PrestamoDetalleModalComponent implements OnInit {
 
   obtenerPrestamoDetalles(prestamoId: number): void {
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         if (response?.data) {
+          // Mapeamos elementos
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
             ele_nombre: item.nombre || '',
@@ -138,19 +149,45 @@ export class PrestamoDetalleModalComponent implements OnInit {
             pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado),
             editing: false
           }));
+
           this.originalItems = [...this.prestamo.elementos];
+
+          // Ajustamos estado si viene de la respuesta
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
           this.setEstadoInicial();
           this.cdr.detectChanges();
         }
       },
-      error: (error) => console.error('Error al obtener detalles', error)
+      error: (error: any) => console.error('Error al obtener detalles', error)
     });
   }
+
+  obtenerHistorialEstados(pre_id: number): void {
+    this.prestamoService.getHistorialEstados(pre_id).subscribe({
+      next: (response: any) => {
+        if (response.respuesta && response.data) {
+          // Asigna el arreglo al dataSource de la tabla
+          this.historialAcciones = response.data;
+          // (Opcional) Ordenar de más reciente a más antiguo
+          this.historialAcciones.sort(
+            (a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+          );
   
+          console.log('Historial:', this.historialAcciones);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al obtener historial de estados', error);
+      }
+    });
+  }  
+
   // MÉTODOS DE CAMBIO DE ESTADO: Si no estamos en modo soloDetalle, ejecutan la acción y cierran el modal
+
   aprobarSolicitud(): void {
     if (this.soloDetalle) return;
+
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
       data: {
@@ -160,25 +197,44 @@ export class PrestamoDetalleModalComponent implements OnInit {
         textoBotonCancelar: 'No'
       }
     });
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        // Buscamos el objeto Estado que tenga est_nombre = 'En proceso'
         const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
+
         if (estadoEnProceso && this.prestamo.idPrestamo) {
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
             estado: estadoEnProceso.est_id,
             fechaEntrega: new Date(),
             usr_cedula: this.authService.getCedula() || ''
           }).subscribe({
-            next: (response) => {
+            next: (response: any) => {
               if (response.respuesta) {
+                // 1. Actualiza el estado del préstamo en el frontend
                 this.prestamo.estado = 'En proceso';
+
+                // 2. Recibe el historial en la misma respuesta
+                const historialOrdenado = (response.historial_estados || []).sort(
+                  (a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+                );
+
+                // 3. Asigna el historial a la variable que alimenta la tabla de Historial
+                this.historialAcciones = historialOrdenado;
+
+                // Verificamos en consola
+                console.log('Historial en front:', this.historialAcciones);
+
+                // Opcional: también puedes guardarlo en this.prestamo.historial_estados
+                this.prestamo.historial_estados = historialOrdenado;
+
                 this.dataUpdated = true;
                 this.cdr.detectChanges();
                 this.snackBar.open('Solicitud aprobada correctamente', 'Cerrar', { duration: 3000 });
                 this.dialogRef.close(true);
               }
             },
-            error: (error) => {
+            error: (error: any) => {
               console.error('Error al aprobar la solicitud', error);
               this.snackBar.open('Error al aprobar la solicitud', 'Cerrar', { duration: 3000 });
             }
@@ -187,7 +243,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
     });
   }
-  
 
   cambiarEstadoAEnProceso(): void {
     if (this.soloDetalle) return;
@@ -200,14 +255,13 @@ export class PrestamoDetalleModalComponent implements OnInit {
       console.error('No se encontró el estado "En proceso".');
       return;
     }
-    const fechaEntrega = new Date();
     this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
       estado: estadoEnProceso.est_id,
       fechaEntrega: new Date(),
       usr_cedula: this.authService.getCedula() || ''
     })
     .subscribe({
-      next: (response) => {
+      next: (response: any) => {
         if (response.respuesta) {
           this.prestamo.estado = 'En proceso';
           this.prestamo.pre_actualizacion = new Date();
@@ -217,7 +271,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
           this.dialogRef.close(true);
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al cambiar estado a "En proceso":', error);
         this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
       }
@@ -235,7 +289,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
         textoBotonCancelar: 'No'
       }
     });
-    dialogRef.afterClosed().subscribe(result => { 
+    dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const estadoEnPrestamo = this.estados.find(e => e.est_nombre === 'En préstamo');
         if (estadoEnPrestamo && this.prestamo.idPrestamo !== undefined) {
@@ -245,14 +299,14 @@ export class PrestamoDetalleModalComponent implements OnInit {
             usr_cedula: this.authService.getCedula() || ''
           })
           .subscribe({
-            next: (response) => {
+            next: (response: any) => {
               if (response.respuesta) {
                 this.prestamo.estado = 'En préstamo';
                 this.snackBar.open('Estado actualizado a "En préstamo"', 'Cerrar', { duration: 3000 });
                 this.dialogRef.close(true);
               }
             },
-            error: (error) => {
+            error: (error: any) => {
               console.error('Error al cambiar estado a "En préstamo":', error);
               this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
             }
@@ -283,7 +337,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
             usr_cedula: this.authService.getCedula() || ''
           })
           .subscribe({
-            next: (response) => {
+            next: (response: any) => {
               if (response.respuesta) {
                 this.prestamo.estado = 'Prestado';
                 this.prestamo.pre_actualizacion = new Date();
@@ -293,7 +347,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
                 this.dialogRef.close(true);
               }
             },
-            error: (error) => {
+            error: (error: any) => {
               console.error('Error al cambiar estado a "Prestado":', error);
               this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
             }
@@ -302,7 +356,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
     });
   }
-  
+
   cambiarAEntregado(): void {
     if (this.soloDetalle) return;
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -325,7 +379,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
           };
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, estadoData)
             .subscribe({
-              next: (response) => {
+              next: (response: any) => {
                 if (response.respuesta) {
                   this.prestamo.fechaEntrega = estadoData.fechaEntrega;
                   this.prestamo.estado = 'Entregado';
@@ -336,7 +390,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
                   this.dialogRef.close(true);
                 }
               },
-              error: (error) => {
+              error: (error: any) => {
                 console.error('Error al actualizar el estado', error);
                 this.snackBar.open('Error al actualizar el estado', 'Cerrar', { duration: 3000 });
               }
@@ -344,8 +398,8 @@ export class PrestamoDetalleModalComponent implements OnInit {
         }
       }
     });
-  }  
-  
+  }
+
   enableEditing(item: EditableElemento): void {
     if (this.soloDetalle) return;
     item.editing = true;
@@ -375,23 +429,23 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
       const originalItem = this.originalItems.find(original => original.ele_id === item.ele_id);
       if (!originalItem) return;
-  
+
       const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado);
       const cantidadActual = Number(item.pre_ele_cantidad_prestado);
       const diferencia = cantidadActual - cantidadOriginal;
-  
+
       const updatePrestamoElemento = {
         pre_id: pre_id,
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: cantidadActual
       };
-  
+
       const updateStock = {
         ele_id: item.ele_id,
         ele_cantidad_actual: -diferencia,
         ele_cantidad_total: 0
       };
-  
+
       this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe({
         next: () => {
           this.elementoService.actualizarStock(updateStock).subscribe({
@@ -400,13 +454,13 @@ export class PrestamoDetalleModalComponent implements OnInit {
               this.cdr.detectChanges();
               this.snackBar.open('Cambios guardados correctamente', 'Cerrar', { duration: 3000 });
             },
-            error: (error) => {
+            error: (error: any) => {
               console.error('Error actualizando stock', error);
               this.snackBar.open('Error al actualizar el stock', 'Cerrar', { duration: 3000 });
             }
           });
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error actualizando PrestamosElementos', error);
           this.snackBar.open('Error al guardar los cambios', 'Cerrar', { duration: 3000 });
         }
@@ -444,6 +498,15 @@ export class PrestamoDetalleModalComponent implements OnInit {
     }
     return date.toISOString().split('T')[0];
   }
+
+  onTabChange(event: MatTabChangeEvent): void {
+    // Si el index de la pestaña "Historial" es 1 (por ejemplo),
+    // llamas al servicio cuando el usuario hace clic en la pestaña
+    if (this.prestamo.idPrestamo !== undefined) {
+      this.obtenerHistorialEstados(this.prestamo.idPrestamo);
+    }
+   
+  } 
 
   close(): void {
     this.dialogRef.close(this.dataUpdated);

@@ -134,6 +134,12 @@ export class PrestamoService {
       );
   }
 
-
+  getHistorialEstados(pre_id: number): Observable<any> {
+    // Ajusta la URL base a la tuya
+    return this.http.get<any>(`${this.prestamosUrl}/${pre_id}/historial-estado`, {
+      headers: this.getHeaders()
+    });
+  }
+  
 
 }
