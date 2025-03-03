@@ -58,7 +58,7 @@ export class PrestamoService {
     return this.http.post(`${this.prestamosUrl}/crear`, prestamo)
       .pipe(catchError(this.handleError));
   }
-  
+
 
   getPrestamos(): Observable<Prestamo[]> {
     return this.http.get<{ respuesta: boolean; mensaje: string; data: Prestamo[] }>(this.prestamosUrl, { headers: this.getHeaders() })
@@ -106,17 +106,19 @@ export class PrestamoService {
     return this.request('PUT', `${this.prestamosUrl}/update`, data);
   }
 
-  // Método para actualizar estado y fecha de entrega
-  actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: Date }): Observable<any> {
+  // Método para actualizar estado, fecha de entrega y registrar el usuario que realiza el cambio
+  actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: Date; usr_cedula: string }): Observable<any> {
     const url = `${this.prestamosUrl}/${idPrestamo}/actualizar-estado`;
-  
+
     const body = {
-      est_id: data.estado,         // Enviar el estado correctamente
-      fechaEntrega: data.fechaEntrega.toISOString() // Convierte la fecha a string ISO antes de enviarla
+      est_id: data.estado, // Enviar el estado correctamente
+      fechaEntrega: data.fechaEntrega.toISOString(), // Convierte la fecha a string ISO antes de enviarla
+      usr_cedula: data.usr_cedula
     };
-  
+
     return this.request('PUT', url, body);
-  }  
+  }
+
 
   getPrestamosUrl(): string {
     return this.prestamosUrl;
@@ -131,7 +133,7 @@ export class PrestamoService {
         })
       );
   }
-  
+
 
 
 }

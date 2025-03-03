@@ -244,17 +244,17 @@ export class InstructorHistoryComponent implements OnInit {
   
         this.prestamoService.actualizarEstadoPrestamo(prestamo.idPrestamo!, {
           estado: 5, // ID del estado "Cancelado"
-          fechaEntrega: fechaActual // Solo se actualiza la fecha de entrega
+          fechaEntrega: fechaActual, // Solo se actualiza la fecha de entrega
+          usr_cedula: this.authService.getCedula() || ''
         }).subscribe(
           (response: any) => {
-            // No modificamos la fechaInicio
+            // Actualizamos localmente el préstamo sin modificar fechaInicio
             this.prestamos = this.prestamos.map(p => {
               if (p.idPrestamo === prestamo.idPrestamo) {
                 return {
-                  ...p, 
+                  ...p,
                   estado: 'Cancelado',
-                  fechaEntrega: response.pre_fin
-                  // No tocamos fechaInicio, simplemente la dejamos intacta
+                  fechaEntrega: response.pre_fin // o la fecha que devuelva el backend
                 };
               }
               return p;
@@ -270,8 +270,8 @@ export class InstructorHistoryComponent implements OnInit {
         );
       }
     });
-  }  
-  
+  }
+    
   actualizarToken(): void {
     this.token = this.authService.getToken();
     if (this.token) {

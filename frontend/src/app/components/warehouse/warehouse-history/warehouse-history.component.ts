@@ -238,13 +238,15 @@ export class WarehouseHistoryComponent implements OnInit {
       width: '800px',
       data: {
         prestamo: prestamo,
-        historialAcciones: prestamo.historialAcciones || [], // Si no hay historial, se envía un array vacío
-        soloDetalle: true
-      }
+        soloDetalle: true,            // Modo solo visualización: sin botones de acción
+        incluirHistorial: true,       // Se muestra la pestaña de Historial
+        historialEstados: prestamo.historial_estados || []  // Pasamos el historial (si existe)
+      },
+      disableClose: true
     });
   
     dialogRef.afterClosed().subscribe(result => {
-      // Aquí puedes manejar la lógica después de cerrar el modal, si es necesario.
+      // Puedes refrescar la data o manejar el resultado si es necesario
     });
   }
   

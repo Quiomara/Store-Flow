@@ -201,7 +201,6 @@ export class WarehouseRequestsComponent implements OnInit {
     });
   }
   
-  
   formatearFecha(fecha: string): string {
     return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
   }

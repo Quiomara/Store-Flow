@@ -10,5 +10,6 @@ export interface Prestamo {
   estado?: string; // Estado del préstamo (opcional)
   fechaEntrega: Date | null; // Fecha de entrega (opcional)
   instructorNombre?: string; // Nombre completo del instructor (opcional)
-  pre_actualizacion?: Date;
+  pre_actualizacion?: Date; // Fecha de la última actualización del préstamo
+  historial_estados?: { estado: string; usuario: string; fecha: string }[]; // Registro de cambios de estado
 }

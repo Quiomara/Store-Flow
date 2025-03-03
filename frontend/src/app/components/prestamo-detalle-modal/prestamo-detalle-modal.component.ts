@@ -166,7 +166,8 @@ export class PrestamoDetalleModalComponent implements OnInit {
         if (estadoEnProceso && this.prestamo.idPrestamo) {
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
             estado: estadoEnProceso.est_id,
-            fechaEntrega: new Date()
+            fechaEntrega: new Date(),
+            usr_cedula: this.authService.getCedula() || ''
           }).subscribe({
             next: (response) => {
               if (response.respuesta) {
@@ -186,6 +187,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
       }
     });
   }
+  
 
   cambiarEstadoAEnProceso(): void {
     if (this.soloDetalle) return;
@@ -201,8 +203,10 @@ export class PrestamoDetalleModalComponent implements OnInit {
     const fechaEntrega = new Date();
     this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
       estado: estadoEnProceso.est_id,
-      fechaEntrega: fechaEntrega
-    }).subscribe({
+      fechaEntrega: new Date(),
+      usr_cedula: this.authService.getCedula() || ''
+    })
+    .subscribe({
       next: (response) => {
         if (response.respuesta) {
           this.prestamo.estado = 'En proceso';
@@ -237,8 +241,10 @@ export class PrestamoDetalleModalComponent implements OnInit {
         if (estadoEnPrestamo && this.prestamo.idPrestamo !== undefined) {
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
             estado: estadoEnPrestamo.est_id,
-            fechaEntrega: new Date()
-          }).subscribe({
+            fechaEntrega: new Date(),
+            usr_cedula: this.authService.getCedula() || ''
+          })
+          .subscribe({
             next: (response) => {
               if (response.respuesta) {
                 this.prestamo.estado = 'En préstamo';
@@ -273,8 +279,10 @@ export class PrestamoDetalleModalComponent implements OnInit {
         if (estadoPrestado && this.prestamo.idPrestamo !== undefined) {
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
             estado: estadoPrestado.est_id,
-            fechaEntrega: new Date()
-          }).subscribe({
+            fechaEntrega: new Date(),
+            usr_cedula: this.authService.getCedula() || ''
+          })
+          .subscribe({
             next: (response) => {
               if (response.respuesta) {
                 this.prestamo.estado = 'Prestado';
@@ -312,7 +320,8 @@ export class PrestamoDetalleModalComponent implements OnInit {
         if (estadoEntregado && this.prestamo.idPrestamo !== undefined) {
           const estadoData = {
             estado: estadoEntregado.est_id,
-            fechaEntrega: new Date()
+            fechaEntrega: new Date(),
+            usr_cedula: this.authService.getCedula() || ''
           };
           this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, estadoData)
             .subscribe({
@@ -335,7 +344,7 @@ export class PrestamoDetalleModalComponent implements OnInit {
         }
       }
     });
-  }
+  }  
   
   enableEditing(item: EditableElemento): void {
     if (this.soloDetalle) return;
