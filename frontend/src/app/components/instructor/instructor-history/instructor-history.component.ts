@@ -210,16 +210,19 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   verDetalles(prestamo: Prestamo): void {
-    const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
+    this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { prestamo }
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
+      data: {
+        prestamo,
+        soloDetalle: false, // Permite edición
+        incluirHistorial: false
+      }
+    }).afterClosed().subscribe(() => {
       console.log('El modal se cerró');
       this.getHistory();
     });
   }
+  
 
   formatearFecha(fecha: string | Date): string {
     // 1. Verificar que la fecha no sea nula o indefinida

@@ -1,7 +1,6 @@
 <h2 mat-dialog-title class="modal-title">Información del Préstamo</h2>
 
 <mat-dialog-content class="scrollable-content">
-  <!-- Se agrega (selectedTabChange)="onTabChange($event)" -->
   <mat-tab-group [selectedIndex]="0" (selectedTabChange)="onTabChange($event)">
     <!-- Pestaña de Detalles: Siempre se muestra -->
     <mat-tab label="Detalles">
@@ -13,6 +12,7 @@
         </p>
         <div class="user-table-container">
           <table mat-table [dataSource]="prestamo.elementos" class="mat-elevation-z8 table">
+
             <!-- Columna: Elemento -->
             <ng-container matColumnDef="nombre">
               <th mat-header-cell *matHeaderCellDef class="header-cell">Elemento</th>
@@ -33,27 +33,28 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Acciones (sólo si no es modo soloDetalle) -->
-            <ng-container *ngIf="!soloDetalle">
-              <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef class="acciones-header">Acciones</th>
-                <td mat-cell *matCellDef="let item" class="acciones-cell">
-                  <button *ngIf="!item.editing" mat-icon-button (click)="enableEditing(item)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button *ngIf="item.editing" mat-icon-button (click)="saveChanges(item)">
-                    <mat-icon>save</mat-icon>
-                  </button>
-                  <button *ngIf="item.editing" mat-icon-button (click)="cancelEditing(item)">
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                </td>
-              </ng-container>
+            <!-- Columna: Acciones -->
+            <!-- Ya no usamos *ngIf aquí, la lógica está en el TypeScript -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="acciones-header">Acciones</th>
+              <td mat-cell *matCellDef="let item" class="acciones-cell">
+                <button *ngIf="!item.editing" mat-icon-button (click)="enableEditing(item)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button *ngIf="item.editing" mat-icon-button (click)="saveChanges(item)">
+                  <mat-icon>save</mat-icon>
+                </button>
+                <button *ngIf="item.editing" mat-icon-button (click)="cancelEditing(item)">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </td>
             </ng-container>
 
             <!-- Filas de la tabla -->
-            <tr mat-header-row *matHeaderRowDef="!soloDetalle ? displayedColumns : ['nombre','cantidad']"></tr>
-            <tr mat-row *matRowDef="let row; columns: !soloDetalle ? displayedColumns : ['nombre','cantidad']"></tr>
+            <!-- Reemplazamos las referencias a 'displayedColumns' por 'columnsToDisplay' -->
+            <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnsToDisplay"></tr>
+
           </table>
         </div>
       </div>
