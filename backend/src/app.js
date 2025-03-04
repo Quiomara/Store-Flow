@@ -16,12 +16,11 @@ const app = express();
 
 console.log('Configurando middlewares...');
 
-// Configurar el tamaño máximo permitido para el cuerpo de la solicitud
-app.use(bodyParser.json({ limit: '25mb' }));
-app.use(bodyParser.urlencoded({ limit: '25mb', extended: true }));
+// Aumenta el límite de tamaño permitido para la carga de archivos
+app.use(bodyParser.json({ limit: '100mb' })); 
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-
 
 console.log('Definiendo rutas...');
 app.use('/api/auth', authRoutes);

@@ -14,6 +14,7 @@ import { User, UserBackend } from '../../../models/user.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
 import { EditUserComponent } from '../edit-user/edit-user.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-search-user',
@@ -50,7 +51,13 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator, { static: true }) paginator!: MatPaginator;
 
-  constructor(private userService: UserService, private centroService: CentroService, private fb: FormBuilder, public dialog: MatDialog) {
+  constructor(
+    private userService: UserService,
+    private centroService: CentroService,
+    private fb: FormBuilder,
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar // ✅ Agregado para usar el snackbar
+  ) {
     this.searchForm = this.fb.group({
       nombre: [''],
       centroFormacion: [''],
@@ -184,20 +191,34 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
       width: '400px',
       data: { user: user }
     });
-
+  
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.userService.deleteUser(user.cedula.toString()).subscribe(
-          (response: any) => {
+          () => {
             this.filteredResults = this.filteredResults.filter(u => u.cedula !== user.cedula);
             this.dataSource.data = this.filteredResults;
             this.updatePaginator();
+  
+            // ✅ Mostrar SnackBar con el nombre del usuario eliminado
+            this.snackBar.open(`Usuario ${user.primerNombre} eliminado con éxito`, '', {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'bottom',
+              panelClass: ['snack-bar-success'],
+            });
           },
-          (error: any) => {
+          (error) => {
             console.error('Error al eliminar usuario', error);
+            this.snackBar.open('Error al eliminar el usuario', '', {
+              duration: 3000,
+              horizontalPosition: 'right',
+              verticalPosition: 'bottom',
+              panelClass: ['snack-bar-error'],
+            });
           }
         );
       }
-    });
+    })
   }
 }

@@ -63,8 +63,6 @@
   color: #888888;
 }
 
-
-
 .mat-mdc-header-cell,
 .mat-cell {
   text-align: center;
@@ -105,7 +103,6 @@
   background: none;
 }
 
-
 mat-icon {
   font-size: 20px;
   line-height: 24px;
@@ -145,3 +142,22 @@ select.form-control:focus {
     max-height: 400px;
   }
 }
+
+.imagen-container {
+  width: 100px;  /* Ajusta según necesites */
+  height: 100px; /* Ajusta según necesites */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f3f3f3; /* Opcional, para fondo */
+  border-radius: 5px; /* Opcional */
+}
+
+.imagen-preview {
+  max-width: 100%;  /* No sobrepasa el contenedor */
+  max-height: 100%; /* No sobrepasa el contenedor */
+  object-fit: contain; /* La imagen se ajusta sin recortarse */
+}
+
+

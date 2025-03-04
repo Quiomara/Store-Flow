@@ -64,48 +64,57 @@ export class EditModalComponent implements OnInit, AfterViewInit {
 
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
-    if (file.size > this.MAX_FILE_SIZE) {
-      alert('El archivo es demasiado grande. El tamaño máximo permitido es de 25 MB.');
+  
+    // Verificar que el archivo es válido y que es una imagen
+    if (!file) {
       return;
     }
+  
+    if (!file.type.startsWith('image/')) {
+      alert('Solo se permiten archivos de imagen (JPG o PNG).');
+      return;
+    }
+  
     this.fileSelected = !!file;
     this.selectedFile = file;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.src = reader.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+  
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.src = reader.result as string;
+  
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+  
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+  
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
           }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.drawImage(img, 0, 0, width, height);
-          const resizedImage = canvas.toDataURL('image/jpeg');
-          this.data.form.patchValue({ ele_imagen: resizedImage });
-        };
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+  
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+  
+        const resizedImage = canvas.toDataURL('image/jpeg');
+        this.data.form.patchValue({ ele_imagen: resizedImage });
       };
-      reader.readAsDataURL(file);
-    }
+    };
+    reader.readAsDataURL(file);
   }
-
+  
   actualizarElemento(): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {

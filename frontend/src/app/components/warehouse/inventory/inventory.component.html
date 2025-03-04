@@ -42,11 +42,13 @@
       <ng-container matColumnDef="ele_imagen">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Imagen</th>
         <td mat-cell *matCellDef="let elemento">
-          <button mat-icon-button (click)="verImagen(elemento.ele_imagen, elemento.ele_nombre)" class="icon-btn">
-            <mat-icon>photo</mat-icon>
-          </button>
+          <div class="imagen-container">
+            <img [src]="elemento.ele_imagen" alt="{{ elemento.ele_nombre }}" class="imagen-preview"
+              (click)="verImagen(elemento.ele_imagen, elemento.ele_nombre)">
+          </div>
         </td>
       </ng-container>
+
 
       <!-- Columna: Detalles -->
       <ng-container matColumnDef="detalles">
@@ -67,10 +69,8 @@
     </table>
 
     <!-- Paginador -->
-    <mat-paginator [length]="filteredInventario.data.length"
-                   [pageSize]="10"
-                   [pageSizeOptions]="[5, 10, 25, 100]"
-                   aria-label="Seleccionar página">
+    <mat-paginator [length]="filteredInventario.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
+      aria-label="Seleccionar página">
     </mat-paginator>
   </div>
 </div>

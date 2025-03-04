@@ -25,7 +25,11 @@
   </div>
   <div class="form-row">
     <label for="ele_imagen" class="font-weight-bold">Elige la imagen a subir:</label>
-    <input type="file" id="ele_imagen" (change)="onFileSelected($event)" class="form-control">
+    <input 
+    type="file" 
+    (change)="onFileSelected($event)" 
+    accept="image/png, image/jpeg, image/jpg"
+  />  
     <small *ngIf="!fileSelected" class="form-text text-muted">Ningún archivo seleccionado</small>
   </div>
 </mat-dialog-content>

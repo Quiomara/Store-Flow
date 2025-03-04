@@ -61,3 +61,25 @@
   background-color: #ff9800; /* Naranja para advertencia */
   color: white;
 }
+
+.imagen-elemento {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain; /* O prueba object-fit: cover */
+  max-width: 100%; 
+}
+
+.preview-container {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.imagen-preview {
+  max-width: 100%;
+  max-height: 300px; /* Ajusta el tamaño según sea necesario */
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+

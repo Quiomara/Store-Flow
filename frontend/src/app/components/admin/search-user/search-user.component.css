@@ -81,4 +81,13 @@
   vertical-align: middle; /* Alinea verticalmente */
 }
 
+.snack-bar-success {
+  background-color: #4CAF50 !important; /* Verde */
+  color: white !important;
+}
+
+.snack-bar-error {
+  background-color: #F44336 !important; /* Rojo */
+  color: white !important;
+}
 

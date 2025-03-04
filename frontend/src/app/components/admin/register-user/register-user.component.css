@@ -80,6 +80,21 @@ input:focus {
   outline: none; 
 }
 
+.snack-bar-success {
+  background-color: #4CAF50 !important; /* Verde */
+  color: white !important;
+}
+
+.snack-bar-error {
+  background-color: #F44336 !important; /* Rojo */
+  color: white !important;
+}
+
+.snack-bar-warning {
+  background-color: #FF9800 !important; /* Naranja */
+  color: white !important;
+}
+
 
 
 
