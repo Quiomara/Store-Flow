@@ -132,31 +132,59 @@ export class WarehouseHistoryComponent implements OnInit {
     const { searchId, searchEstado, searchFecha, searchInstructor } = this.searchForm.value;
     let filteredData = this.prestamos;
   
+    // Filtrar por ID
     if (searchId) {
-      filteredData = filteredData.filter(prestamo =>
-        prestamo.idPrestamo?.toString().includes(searchId)
+      filteredData = filteredData.filter(
+        prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
       );
     }
   
+    // Filtrar por Estado
     if (searchEstado && searchEstado.trim() !== '') {
-      filteredData = filteredData.filter(prestamo =>
-        prestamo.estado?.toLowerCase().includes(searchEstado.trim().toLowerCase())
+      filteredData = filteredData.filter(
+        prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
       );
     }
   
+    // Filtrar por Fecha
     if (searchFecha) {
-      filteredData = filteredData.filter(prestamo =>
-        prestamo.fechaInicio === searchFecha
-      );
+      const parsedSearchFecha = new Date(searchFecha);
+  
+      if (isNaN(parsedSearchFecha.getTime())) {
+        console.error("Fecha de búsqueda inválida:", searchFecha);
+        return; // Detiene el filtro si la fecha ingresada no es válida
+      }
+  
+      filteredData = filteredData.filter(prestamo => {
+        // Si no hay fecha en el préstamo, se descarta
+        if (!prestamo.fechaInicio) return false;
+  
+        const parsedPrestamoFecha = new Date(prestamo.fechaInicio);
+        // Si la fecha del préstamo no es válida, también se descarta
+        if (isNaN(parsedPrestamoFecha.getTime())) {
+          console.warn("Fecha inválida en el préstamo:", prestamo);
+          return false;
+        }
+  
+        // Convertimos ambas fechas a 'YYYY-MM-DD' para compararlas sin hora
+        const prestamoFechaStr = parsedPrestamoFecha.toISOString().split('T')[0];
+        const searchFechaStr = parsedSearchFecha.toISOString().split('T')[0];
+  
+        return prestamoFechaStr === searchFechaStr;
+      });
     }
   
+    // Filtrar por Nombre de Instructor
     if (searchInstructor) {
-      filteredData = filteredData.filter(prestamo =>
-        prestamo.instructorNombre?.toLowerCase().includes(searchInstructor.trim().toLowerCase())
+      filteredData = filteredData.filter(
+        prestamo => prestamo.instructorNombre?.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
     }
   
+    // Actualizar el DataSource con los resultados filtrados
     this.filteredPrestamos.data = filteredData;
+  
+    // Mostrar mensaje si no hay resultados
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
 
@@ -203,8 +231,26 @@ export class WarehouseHistoryComponent implements OnInit {
   }
   
   
-  formatearFecha(fecha: string): string {
-    return fecha && fecha.includes('T') ? fecha.split('T')[0] : '';
+  formatearFecha(fecha: string | Date): string {
+    // 1. Verificar que la fecha no sea nula o indefinida
+    if (!fecha) return '';
+  
+    // 2. Convertir la fecha a objeto Date
+    const fechaObj = new Date(fecha);
+  
+    // 3. Verificar si la fecha es válida
+    if (isNaN(fechaObj.getTime())) {
+      // Si la fecha es inválida, devolver un string vacío (o un mensaje de error)
+      return '';
+    }
+  
+    // 4. Devolver la fecha en el formato deseado
+    // Ejemplo: "28/02/2025"
+    return fechaObj.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
   
   seleccionarEstado(event: Event): void {

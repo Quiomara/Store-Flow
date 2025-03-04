@@ -83,25 +83,24 @@ export class InstructorHistoryComponent implements OnInit {
     const cedula = this.authService.getCedula();
     if (cedula) {
       this.prestamoService.getPrestamosPorCedula(cedula).subscribe(
-        (data: any) => {
+        (data: any[]) => {
           console.log('Datos recibidos del backend:', data);
-          this.prestamos = data.map((item: any) => ({
-            idPrestamo: item.pre_id,
-            fechaInicio: this.formatearFecha(item.pre_inicio),
-            fechaEntrega: item.pre_fin ? this.formatearFecha(item.pre_fin) : '',
-            estado: item.est_nombre,
-            items: [],
-            cedulaSolicitante: item.usr_cedula
+  
+          this.prestamos = data.map(prestamo => ({
+            idPrestamo: prestamo.pre_id,
+            cedulaSolicitante: prestamo.usr_cedula,
+            fechaInicio: new Date(prestamo.pre_inicio), // <--- Se asume SIEMPRE válido
+            // Si fechaEntrega puede ser nula, úsala así:
+            fechaEntrega: prestamo.pre_fin ? new Date(prestamo.pre_fin) : null,
+            estado: prestamo.est_nombre,
+            elementos: prestamo.elementos || [],
           }));
-          
-          // Ordenar los préstamos por fecha de inicio (de más reciente a más antigua)
+  
+          // Ordenar por fecha de inicio (más reciente a más antigua)
           this.prestamos.sort((a, b) => {
-            const fechaA = a.fechaInicio ? new Date(a.fechaInicio).getTime() : 0;  // Valor por defecto si es undefined
-            const fechaB = b.fechaInicio ? new Date(b.fechaInicio).getTime() : 0;  // Valor por defecto si es undefined
-            
-            return fechaB - fechaA;  // Orden descendente (de más reciente a más viejo)
+            // Dado que fechaInicio NUNCA es nula, podemos usar getTime() directamente
+            return b.fechaInicio.getTime() - a.fechaInicio.getTime();
           });
-          
   
           this.filteredPrestamos.data = this.prestamos;
           this.filteredPrestamos.paginator = this.paginator;
@@ -122,7 +121,7 @@ export class InstructorHistoryComponent implements OnInit {
     }
   }
   
-
+  
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {
@@ -154,17 +153,32 @@ export class InstructorHistoryComponent implements OnInit {
     }
 
     if (searchFecha) {
-      console.log('Tipo de dato de searchFecha:', typeof searchFecha); // Mostrar el tipo de dato
-      console.log('Valor de searchFecha:', searchFecha); // Mostrar el valor de searchFecha
+      const parsedSearchFecha = new Date(searchFecha);
+      
+      if (isNaN(parsedSearchFecha.getTime())) {
+        console.error("Fecha de búsqueda inválida:", searchFecha);
+        return; // No continúa si la fecha ingresada no es válida
+      }
     
       filteredData = filteredData.filter(prestamo => {
-        const fechaInicioTipo = typeof prestamo.fechaInicio;
-        console.log('Tipo de dato de prestamo.fechaInicio:', fechaInicioTipo); // Mostrar el tipo de dato de prestamo.fechaInicio
-        console.log('Valor de searchFecha:', prestamo.fechaInicio);
-        return prestamo.fechaInicio === searchFecha;
+        if (!prestamo.fechaInicio) return false; // Excluye préstamos sin fecha
+    
+        const parsedPrestamoFecha = new Date(prestamo.fechaInicio);
+        if (isNaN(parsedPrestamoFecha.getTime())) {
+          console.warn("Fecha inválida en el préstamo:", prestamo);
+          return false; // Excluye préstamos con fechas inválidas
+        }
+    
+        // Convertir ambas fechas a formato YYYY-MM-DD para comparación sin hora
+        const prestamoFechaStr = parsedPrestamoFecha.toISOString().split('T')[0];
+        const searchFechaStr = parsedSearchFecha.toISOString().split('T')[0];
+    
+        return prestamoFechaStr === searchFechaStr;
       });
     }
-   
+    
+    
+    
     this.filteredPrestamos.data = filteredData;
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
@@ -208,17 +222,26 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   formatearFecha(fecha: string | Date): string {
-    if (!fecha) return '';  // Si la fecha es undefined o vacía, devuelve un string vacío
+    // 1. Verificar que la fecha no sea nula o indefinida
+    if (!fecha) return '';
   
+    // 2. Convertir la fecha a objeto Date
     const fechaObj = new Date(fecha);
-    
-    if (isNaN(fechaObj.getTime())) {  // Verifica si la fecha no es válida
-      return '';  // Devuelve un string vacío si no es una fecha válida
+  
+    // 3. Verificar si la fecha es válida
+    if (isNaN(fechaObj.getTime())) {
+      // Si la fecha es inválida, devolver un string vacío (o un mensaje de error)
+      return '';
     }
   
-    return fechaObj.toLocaleDateString('es-ES');  // Devuelve la fecha en el formato que desees
+    // 4. Devolver la fecha en el formato deseado
+    // Ejemplo: "28/02/2025"
+    return fechaObj.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
-  
 
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
