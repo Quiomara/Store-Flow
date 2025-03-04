@@ -10,7 +10,7 @@ import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
-import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
+import { PrestamoDetalleModalComponent } from '../../prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { ConfirmationDialogComponent } from '../../warehouse/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
@@ -154,9 +154,15 @@ export class InstructorHistoryComponent implements OnInit {
     }
 
     if (searchFecha) {
-      filteredData = filteredData.filter(prestamo =>
-        prestamo.fechaInicio === searchFecha
-      );
+      console.log('Tipo de dato de searchFecha:', typeof searchFecha); // Mostrar el tipo de dato
+      console.log('Valor de searchFecha:', searchFecha); // Mostrar el valor de searchFecha
+    
+      filteredData = filteredData.filter(prestamo => {
+        const fechaInicioTipo = typeof prestamo.fechaInicio;
+        console.log('Tipo de dato de prestamo.fechaInicio:', fechaInicioTipo); // Mostrar el tipo de dato de prestamo.fechaInicio
+        console.log('Valor de searchFecha:', prestamo.fechaInicio);
+        return prestamo.fechaInicio === searchFecha;
+      });
     }
    
     this.filteredPrestamos.data = filteredData;

@@ -10,7 +10,7 @@ import { PrestamoService } from '../../../services/prestamo.service';
 import { AuthService } from '../../../services/auth.service';
 import { Prestamo } from '../../../models/prestamo.model';
 import { Estado } from '../../../models/estado.model';
-import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
+import { PrestamoDetalleModalComponent } from '../../prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 

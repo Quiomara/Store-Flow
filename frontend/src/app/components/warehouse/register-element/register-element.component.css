@@ -1,35 +1,63 @@
+/* Contenedor principal */
+.registrar-elemento-container {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  padding: 2rem;
+}
 
+/* Formulario */
+.registrar-elemento {
+  padding: 2rem;
+}
 
-  .registrar-elemento h2 {
-    margin-bottom: 3rem; /* Más espacio debajo del título */
-  }
-  
-  .registrar-elemento .form-group {
-    margin-bottom: 1.5rem; /* Más espacio entre los grupos de campos */
-  }
-  
-  .registrar-elemento label {
-    font-weight: bold; /* Texto en negrilla para las etiquetas */
-  }
-  
-  .registrar-elemento .btn {
-    padding: 5px 10px; /* Ajusta el padding para un botón más pequeño */
-    font-size: 14px; /* Ajusta el tamaño de la fuente */
-  }
+/* Título del formulario */
+.registrar-elemento h2 {
+  margin-bottom: 3rem; /* Más espacio debajo del título */
+  text-align: center;
+  font-size: 1.8rem;
+}
 
-  .snack-bar-success {
-    background-color: #4caf50; /* Verde para éxito */
-    color: white;
-  }
-  
-  .snack-bar-error {
-    background-color: #f44336; /* Rojo para error */
-    color: white;
-  }
-  
-  .snack-bar-warning {
-    background-color: #ff9800; /* Naranja para advertencia */
-    color: white;
-  }
-  
-  
+/* Espaciado entre los grupos de campos */
+.registrar-elemento .form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Etiquetas de los campos */
+.registrar-elemento label {
+  font-weight: bold;
+  display: block; /* Asegura que la etiqueta esté arriba del input */
+  margin-bottom: 0.5rem;
+}
+
+/* Campos de entrada y select */
+.registrar-elemento .form-control {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Botón de enviar */
+.registrar-elemento .btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+/* Mensajes de notificación */
+.snack-bar-success {
+  background-color: #4caf50; /* Verde para éxito */
+  color: white;
+}
+
+.snack-bar-error {
+  background-color: #f44336; /* Rojo para error */
+  color: white;
+}
+
+.snack-bar-warning {
+  background-color: #ff9800; /* Naranja para advertencia */
+  color: white;
+}

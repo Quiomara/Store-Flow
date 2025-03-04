@@ -48,7 +48,7 @@ const crearPrestamo = async (req, res) => {
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    // Insertar préstamo y obtener su ID
+    // 1. Insertar préstamo y obtener su ID
     const [prestamoResult] = await connection.execute(
       `INSERT INTO Prestamos (usr_cedula, est_id) VALUES (?, ?)`,
       [usr_cedula, est_id]
@@ -59,19 +59,62 @@ const crearPrestamo = async (req, res) => {
 
     console.log("✅ Préstamo creado con ID:", prestamoId);
 
-    // Insertar los elementos asociados al préstamo en paralelo
+    // 2. Insertar los elementos asociados al préstamo
     await Promise.all(elementos.map(item =>
       connection.execute(
-        `INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado) VALUES (?, ?, ?)`,
+        `INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado) 
+         VALUES (?, ?, ?)`,
         [prestamoId, item.ele_id, item.pre_ele_cantidad_prestado]
       )
     ));
 
-    await connection.commit(); // Confirmar transacción
-    res.status(201).json({ success: true, message: "Préstamo creado exitosamente", prestamoId });
+    // 3. Buscar el nombre completo del usuario (a partir de la cédula)
+    const [rowsUser] = await connection.execute(`
+      SELECT 
+        usr_primer_nombre,
+        usr_segundo_nombre,
+        usr_primer_apellido,
+        usr_segundo_apellido
+      FROM usuarios
+      WHERE usr_cedula = ?
+    `, [usr_cedula]);
+
+    let nombreCompleto = usr_cedula; // Si no se encuentra, dejamos la cédula por defecto
+    if (rowsUser.length > 0) {
+      const u = rowsUser[0];
+      const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
+      const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
+      nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+    }
+
+    // 4. Crear el historial con el evento "Creado"
+    const historial = [{
+      estado: "Creado",
+      usuario: nombreCompleto,
+      fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
+    }];
+
+    // 5. Guardar el historial en la columna 'historial_estados'
+    const historialJSON = JSON.stringify(historial);
+    await connection.execute(
+      `UPDATE Prestamos 
+       SET historial_estados = ?, pre_actualizacion = NOW()
+       WHERE pre_id = ?`,
+      [historialJSON, prestamoId]
+    );
+
+    // 6. Confirmar la transacción
+    await connection.commit();
+
+    res.status(201).json({
+      success: true,
+      message: "Préstamo creado exitosamente",
+      prestamoId,
+      historial
+    });
 
   } catch (error) {
-    if (connection) await connection.rollback(); // Revertir si algo falló
+    if (connection) await connection.rollback();
     console.error("❌ Error al crear el préstamo:", error.message);
     res.status(500).json({ success: false, message: "Error en el servidor", error: error.message });
 
@@ -79,7 +122,6 @@ const crearPrestamo = async (req, res) => {
     if (connection) connection.release();
   }
 };
-
 
 // Actualizar Préstamo
 const actualizarPrestamo = async (req, res) => {
