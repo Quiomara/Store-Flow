@@ -1,22 +1,15 @@
 const bcrypt = require('bcryptjs');
 const Usuario = require('../models/usuarioModel');
 
+/**
+ * Registra un nuevo usuario en la base de datos.
+ * Verifica que los datos sean correctos y encripta la contraseña antes de almacenarla.
+ */
 const registrarUsuario = async (req, res) => {
   const data = req.body;
 
-  console.log('Datos recibidos para el registro:', data);
-
   // Verificar que todos los datos requeridos estén presentes
   if (!data.usr_cedula || !data.usr_primer_nombre || !data.usr_primer_apellido || !data.usr_correo || !data.usr_contrasena || !data.tip_usr_id || !data.cen_id) {
-    console.log('Datos faltantes:', {
-      usr_cedula: data.usr_cedula,
-      usr_primer_nombre: data.usr_primer_nombre,
-      usr_primer_apellido: data.usr_primer_apellido,
-      usr_correo: data.usr_correo,
-      usr_contrasena: data.usr_contrasena,
-      tip_usr_id: data.tip_usr_id,
-      cen_id: data.cen_id,
-    });
     return res.status(400).json({ respuesta: false, mensaje: 'Faltan datos requeridos.' });
   }
 
@@ -51,6 +44,10 @@ const registrarUsuario = async (req, res) => {
   }
 };
 
+/**
+ * Actualiza la información de un usuario existente.
+ * Un usuario solo puede actualizar su propia información a menos que sea administrador.
+ */
 const actualizarUsuario = async (req, res) => {
   const data = req.body;
   const userId = req.user.usr_cedula;
@@ -73,6 +70,9 @@ const actualizarUsuario = async (req, res) => {
   }
 };
 
+/**
+ * Elimina un usuario de la base de datos.
+ */
 const eliminarUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
 
@@ -88,6 +88,9 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene un usuario por su cédula.
+ */
 const obtenerUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
 
@@ -103,6 +106,9 @@ const obtenerUsuario = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene la lista de todos los usuarios.
+ */
 const obtenerTodosUsuarios = async (req, res) => {
   try {
     const results = await Usuario.buscarTodos();
@@ -113,6 +119,9 @@ const obtenerTodosUsuarios = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene una lista de usuarios filtrada por su tipo.
+ */
 const obtenerUsuariosPorTipo = async (req, res) => {
   const tip_usr_id = req.params.tip_usr_id;
 

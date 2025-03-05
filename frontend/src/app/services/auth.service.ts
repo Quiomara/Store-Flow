@@ -16,69 +16,21 @@ export interface LoginResponse {
 })
 export class AuthService {
   private readonly apiUrl = 'http://localhost:3000/api/auth';
-  private readonly TOKEN_KEY = 'authToken'; // Usar nombre consistente
+  private readonly TOKEN_KEY = 'authToken';
   private readonly CEDULA_KEY = 'userCedula';
-  private readonly USER_TYPE_KEY = 'userType'; // Clave para almacenar el tipo de usuario
+  private readonly USER_TYPE_KEY = 'userType';
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) { }
 
-  // Método para iniciar sesión
-  login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
-      map((response) => {
-        console.log('Respuesta del servidor:', response); // <-- Agregado
-        if (response && response.token) {
-          this.setToken(response.token); 
-          if (response.userType) {
-            this.setUserType(response.userType);
-          }
-          console.log('Token almacenado correctamente:', response.token);
-          return response;
-        }
-        throw new Error('Inicio de sesión fallido');
-      }),
-      catchError(this.handleLoginError)
-    );
-  }
-  
-
-  setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token); // Usar la clave constante
-    console.log('Token almacenado con clave:', this.TOKEN_KEY);
-  }
-
-  getToken(): string | null {
-    // Solo accede a localStorage si estamos en el navegador
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    const token = localStorage.getItem(this.TOKEN_KEY);
-    console.log(`Token recuperado: ${token}`);
-    return token;
-  }
-  
-
-  clearToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-  }
-
-  // Métodos para gestionar el tipo de usuario
-  setUserType(userType: string): void {
-    localStorage.setItem(this.USER_TYPE_KEY, userType);
-  }
-
-  getUserType(): string | null {
-    return localStorage.getItem(this.USER_TYPE_KEY);
-  }
-
-  clearUserType(): void {
-    localStorage.removeItem(this.USER_TYPE_KEY);
-  }
-
-  private handleLoginError(error: HttpErrorResponse): Observable<never> {
+  /**
+   * Manejo de errores generales
+   * @param error Objeto de error HTTP
+   * @returns Observable con error formateado
+   */
+  private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Error desconocido. Por favor, inténtalo de nuevo.';
     if (error.status === 400) {
       errorMessage = error.error.error || 'Usuario o contraseña incorrectos.';
@@ -87,49 +39,143 @@ export class AuthService {
     } else if (error.status === 500) {
       errorMessage = 'Error en el servidor. Por favor, inténtalo de nuevo más tarde.';
     }
-    console.error('Detalles del error de inicio de sesión:', error);
     return throwError(() => new Error(errorMessage));
   }
 
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    console.error('Ocurrió un error:', error);
-    return throwError(() => new Error('Ocurrió un error'));
+  /**
+   * Inicia sesión en la aplicación
+   * @param email Correo electrónico del usuario
+   * @param password Contraseña del usuario
+   * @returns Observable con la respuesta del servidor
+   */
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { correo: email, contrasena: password }).pipe(
+      map((response) => {
+        if (response && response.token) {
+          this.setToken(response.token); 
+          if (response.userType) {
+            this.setUserType(response.userType);
+          }
+          return response;
+        }
+        throw new Error('Inicio de sesión fallido');
+      }),
+      catchError(this.handleError)
+    );
   }
 
+  /**
+   * Almacena el token de autenticación en localStorage
+   * @param token Token de autenticación
+   */
+  setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+  }
+
+  /**
+   * Obtiene el token de autenticación almacenado
+   * @returns Token de autenticación o null si no está almacenado
+   */
+  getToken(): string | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  /**
+   * Elimina el token de autenticación almacenado
+   */
+  clearToken(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  /**
+   * Almacena el tipo de usuario en localStorage
+   * @param userType Tipo de usuario
+   */
+  setUserType(userType: string): void {
+    localStorage.setItem(this.USER_TYPE_KEY, userType);
+  }
+
+  /**
+   * Obtiene el tipo de usuario almacenado
+   * @returns Tipo de usuario o null si no está almacenado
+   */
+  getUserType(): string | null {
+    return localStorage.getItem(this.USER_TYPE_KEY);
+  }
+
+  /**
+   * Elimina el tipo de usuario almacenado
+   */
+  clearUserType(): void {
+    localStorage.removeItem(this.USER_TYPE_KEY);
+  }
+
+  /**
+   * Envia una solicitud para restablecer la contraseña
+   * @param email Correo electrónico del usuario
+   * @returns Observable con la respuesta del servidor
+   */
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { correo: email }).pipe(
       catchError(this.handleError)
     );
   }
 
+  /**
+   * Restablece la contraseña del usuario
+   * @param token Token de validación para el restablecimiento
+   * @param newPassword Nueva contraseña
+   * @returns Observable con la respuesta del servidor
+   */
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/reset-password`, // Corrige la URL aquí
+      `${this.apiUrl}/reset-password`,
       { token, newPassword }
     ).pipe(
       catchError(this.handleError)
     );
   }
 
-  // Gestión de cédula
+  /**
+   * Almacena la cédula del usuario en localStorage
+   * @param cedula Cédula del usuario
+   */
   setCedula(cedula: string): void {
     localStorage.setItem(this.CEDULA_KEY, cedula);
   }
 
+  /**
+   * Obtiene la cédula del usuario almacenada
+   * @returns Cédula del usuario o null si no está almacenada
+   */
   getCedula(): string | null {
     return localStorage.getItem(this.CEDULA_KEY);
   }
 
-  clearCedula(): void {
+   /**
+   * Elimina la cédula almacenada en localStorage
+   */
+   clearCedula(): void {
     localStorage.removeItem(this.CEDULA_KEY);
   }
 
-  // Verificación de autenticación con validación de token
+  /**
+   * Verifica si el usuario está autenticado validando el token
+   * @returns Booleano indicando si el usuario está autenticado
+   */
   isAuthenticated(): boolean {
     const token = this.getToken();
     return !!token && !this.isTokenExpired(token);
   }
 
+  /**
+   * Maneja la respuesta del login, almacenando el token y la cédula si están presentes
+   * @param response Respuesta de la autenticación
+   * @returns Respuesta validada del login
+   */
   private handleLoginResponse(response: LoginResponse): LoginResponse {
     if (!response?.token) {
       throw new Error('Respuesta de autenticación inválida');
@@ -144,6 +190,11 @@ export class AuthService {
     return response;
   }
 
+  /**
+   * Obtiene un mensaje de error basado en el código de estado HTTP
+   * @param error Error de la solicitud HTTP
+   * @returns Mensaje de error adecuado
+   */
   private getLoginErrorMessage(error: HttpErrorResponse): string {
     const defaultMessage = 'Error de autenticación. Verifique sus credenciales';
 
@@ -155,7 +206,11 @@ export class AuthService {
     }[error.status] || defaultMessage;
   }
 
-  // Validación de expiración de token (requiere implementación JWT)
+  /**
+   * Valida si el token ha expirado (requiere implementación JWT)
+   * @param token Token de autenticación
+   * @returns Booleano indicando si el token ha expirado
+   */
   private isTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -165,7 +220,9 @@ export class AuthService {
     }
   }
 
-  // Cierre de sesión completo
+  /**
+   * Cierra sesión del usuario, eliminando sus datos y redirigiéndolo al login
+   */
   logout(): void {
     this.clearToken();
     this.clearCedula();
@@ -173,10 +230,14 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // Método para obtener el ID del usuario
+  /**
+   * Obtiene el ID del usuario
+   * @returns ID del usuario
+   */
   getUserId(): number {
     // Implementación para obtener el ID del usuario
     const userId = 3; // Ejemplo estático, reemplaza con la lógica real
     return userId;
   }
 }
+

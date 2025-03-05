@@ -10,6 +10,11 @@ export class ImageUploadService {
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Sube una imagen al servidor.
+   * @param {File} file - Archivo de imagen a subir.
+   * @returns {Observable<any>} - Respuesta del servidor.
+   */
   uploadImage(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);

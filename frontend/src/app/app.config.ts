@@ -8,7 +8,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(
       withFetch(),
-      withInterceptorsFromDi() // ✅ Correcto para Angular 17
+      withInterceptorsFromDi()
     ),
     provideRouter(routes)
   ]

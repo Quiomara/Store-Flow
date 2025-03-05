@@ -9,7 +9,6 @@ const { iniciarTransaccion, confirmarTransaccion, revertirTransaccion } = requir
 const winston = require("winston");
 const manejarError = require("../utils/manejarError");
 
-
 // Configuración de logs
 const logger = winston.createLogger({
   level: "info",
@@ -35,7 +34,12 @@ const prestamoSchema = Joi.object({
     .required(),
 });
 
-// Crear un nuevo préstamo con manejo de transacciones
+/**
+ * Crear un nuevo préstamo con manejo de transacciones
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con los datos del préstamo
+ * @param {Object} res - Objeto de respuesta HTTP
+ */
 const crearPrestamo = async (req, res) => {
   const { usr_cedula, est_id, elementos } = req.body;
   let connection;
@@ -48,18 +52,15 @@ const crearPrestamo = async (req, res) => {
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    // 1. Insertar préstamo y obtener su ID
+    // Insertar préstamo y obtener su ID
     const [prestamoResult] = await connection.execute(
       `INSERT INTO Prestamos (usr_cedula, est_id) VALUES (?, ?)`,
       [usr_cedula, est_id]
     );
-
     const prestamoId = prestamoResult.insertId;
     if (!prestamoId) throw new Error("No se pudo obtener el ID del préstamo.");
 
-    console.log("✅ Préstamo creado con ID:", prestamoId);
-
-    // 2. Insertar los elementos asociados al préstamo
+    // Insertar los elementos asociados al préstamo
     await Promise.all(elementos.map(item =>
       connection.execute(
         `INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado) 
@@ -68,18 +69,14 @@ const crearPrestamo = async (req, res) => {
       )
     ));
 
-    // 3. Buscar el nombre completo del usuario (a partir de la cédula)
+    // Buscar el nombre completo del usuario (a partir de la cédula)
     const [rowsUser] = await connection.execute(`
-      SELECT 
-        usr_primer_nombre,
-        usr_segundo_nombre,
-        usr_primer_apellido,
-        usr_segundo_apellido
+      SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
       FROM usuarios
       WHERE usr_cedula = ?
     `, [usr_cedula]);
 
-    let nombreCompleto = usr_cedula; // Si no se encuentra, dejamos la cédula por defecto
+    let nombreCompleto = usr_cedula;
     if (rowsUser.length > 0) {
       const u = rowsUser[0];
       const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
@@ -87,14 +84,14 @@ const crearPrestamo = async (req, res) => {
       nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
     }
 
-    // 4. Crear el historial con el evento "Creado"
+    // Crear el historial con el evento "Creado"
     const historial = [{
       estado: "Creado",
       usuario: nombreCompleto,
       fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
     }];
 
-    // 5. Guardar el historial en la columna 'historial_estados'
+    // Guardar el historial en la columna 'historial_estados'
     const historialJSON = JSON.stringify(historial);
     await connection.execute(
       `UPDATE Prestamos 
@@ -103,7 +100,7 @@ const crearPrestamo = async (req, res) => {
       [historialJSON, prestamoId]
     );
 
-    // 6. Confirmar la transacción
+    // Confirmar la transacción
     await connection.commit();
 
     res.status(201).json({
@@ -115,15 +112,20 @@ const crearPrestamo = async (req, res) => {
 
   } catch (error) {
     if (connection) await connection.rollback();
-    console.error("❌ Error al crear el préstamo:", error.message);
+    logger.error("Error al crear el préstamo: " + error.message);
     res.status(500).json({ success: false, message: "Error en el servidor", error: error.message });
-
   } finally {
     if (connection) connection.release();
   }
 };
 
 // Actualizar Préstamo
+/**
+ * Actualiza un préstamo existente.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con los datos de actualización.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const actualizarPrestamo = async (req, res) => {
   const data = req.body;
   const { tip_usr_id: userRole, usr_cedula: userCedula } = req.user;
@@ -174,15 +176,19 @@ const actualizarPrestamo = async (req, res) => {
       pre_inicio: pre_inicio, // Devolver la fecha de inicio original
     });
   } catch (err) {
-    console.error('Error al actualizar el préstamo:', err);
+    logger.error('Error al actualizar el préstamo: ' + err.message);
     res.status(500).json({ respuesta: false, mensaje: "Error al actualizar el préstamo." });
   }
 };
 
 // Eliminar Préstamo con control de stock
+/**
+ * Elimina un préstamo junto con sus elementos asociados.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const eliminarPrestamo = async (req, res) => {
-  
-  console.log("🔍 Parámetros recibidos:", req.params); // 👀 Depuración
   const { pre_id } = req.params;
   
   if (!pre_id) {
@@ -195,13 +201,13 @@ const eliminarPrestamo = async (req, res) => {
       connection = await db.getConnection();
       await connection.beginTransaction();
 
-      // 1️⃣ Eliminar primero los elementos asociados al préstamo
+      // Eliminar primero los elementos asociados al préstamo
       await connection.execute(
           `DELETE FROM PrestamosElementos WHERE pre_id = ?`,
           [pre_id]
       );
 
-      // 2️⃣ Eliminar el préstamo en sí
+      // Eliminar el préstamo en sí
       const [result] = await connection.execute(
           `DELETE FROM Prestamos WHERE pre_id = ?`,
           [pre_id]
@@ -216,36 +222,44 @@ const eliminarPrestamo = async (req, res) => {
 
   } catch (error) {
       if (connection) await connection.rollback();
-      console.error("❌ Error al eliminar el préstamo:", error.message);
+      logger.error("Error al eliminar el préstamo: " + error.message);
       res.status(500).json({ success: false, message: "Error al eliminar el préstamo", error: error.message });
-
   } finally {
       if (connection) connection.release();
   }
 };
 
 // Obtener todos los préstamos
+/**
+ * Obtiene la lista de todos los préstamos disponibles.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con información del usuario.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const obtenerTodosPrestamos = async (req, res) => {
   try {
     const { tip_usr_id, usr_cedula } = req.user; // Obtener el rol del usuario y la cédula
-    console.log(`Obteniendo préstamos para el rol: ${tip_usr_id} del usuario con cédula: ${usr_cedula}`);
 
     // Validar que el usuario tenga permisos (Rol Almacén o Administrador)
     if ([1, 3].includes(tip_usr_id)) {
       const prestamos = await Prestamo.obtenerTodos();
-      console.log('Préstamos obtenidos y ordenados:', prestamos);
       res.json({ respuesta: true, mensaje: "¡Préstamos obtenidos con éxito!", data: prestamos });
     } else {
-      console.error(`No tiene permiso para ver los préstamos con el rol ${tip_usr_id}`); // Depuración de error
       res.status(403).json({ respuesta: false, mensaje: "No tiene permiso para ver los préstamos." });
     }
   } catch (err) {
-    console.error('Error al obtener los préstamos:', err.stack);
+    logger.error('Error al obtener los préstamos: ' + err.stack);
     res.status(500).json({ respuesta: false, mensaje: "Error al obtener los préstamos." });
   }
 };
 
-// Obtener préstamo por ID (controller)
+// Obtener préstamo por ID
+/**
+ * Obtiene la información de un préstamo por su ID.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const obtenerPrestamoPorId = async (req, res) => {
   const pre_id = req.params.pre_id;
 
@@ -260,7 +274,7 @@ const obtenerPrestamoPorId = async (req, res) => {
       try {
         prestamo.historial_estados = JSON.parse(prestamo.historial_estados);
       } catch (error) {
-        console.error('Error al parsear historial_estados:', error);
+        logger.error('Error al parsear historial_estados: ' + error);
         prestamo.historial_estados = [];
       }
     }
@@ -276,40 +290,46 @@ const obtenerPrestamoPorId = async (req, res) => {
   }
 };
 
-
 // Obtener préstamos por cédula
+/**
+ * Obtiene los préstamos asociados a una cédula de usuario.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con la cédula del usuario.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const obtenerPrestamosPorCedula = async (req, res) => {
   const { usr_cedula } = req.params;
 
   // Validar que la cédula no esté vacía
   if (!usr_cedula) {
-    console.error('Error: La cédula no fue proporcionada.');
     return res.status(400).json({ respuesta: false, mensaje: 'La cédula no fue proporcionada.' });
   }
-
-  console.log(`Obteniendo préstamos para la cédula: ${usr_cedula}`); // Log de depuración
 
   try {
     const results = await Prestamo.obtenerPorCedula(usr_cedula);
 
     if (results.length === 0) {
-      console.log("No se encontraron préstamos para la cédula proporcionada.");
       return res.status(404).json({ respuesta: false, mensaje: 'No se encontraron préstamos para la cédula proporcionada.' });
     }
 
-    console.log("Préstamos obtenidos:", results);
     res.json({
       respuesta: true,
       mensaje: "¡Préstamos obtenidos con éxito!",
       data: results
     });
   } catch (err) {
-    console.error('Error al obtener los préstamos:', err);
+    logger.error('Error al obtener los préstamos: ' + err);
     res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los préstamos.', error: err.message });
   }
 };
 
 // Obtener elementos del préstamo
+/**
+ * Obtiene los elementos asociados a un préstamo.
+ * 
+ * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ */
 const obtenerElementoPrestamos = async (req, res) => {
   const pre_id = req.params.pre_id;
 
@@ -338,7 +358,7 @@ const obtenerElementoPrestamos = async (req, res) => {
 
     res.json(respuesta);
   } catch (err) {
-    console.error('Error al obtener los elementos del préstamo:', err);
+    logger.error('Error al obtener los elementos del préstamo: ' + err);
     res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos del préstamo' });
   }
 };
@@ -359,134 +379,87 @@ const actualizarCantidadElemento = async (req, res) => {
     // Actualizar el stock en Elementos
     await Elemento.actualizarStock(ele_id, -pre_ele_cantidad_prestado);
 
-    // Si todo sale bien, enviar una respuesta exitosa
     res.json({ respuesta: true, mensaje: 'Cantidad y stock actualizados con éxito' });
   } catch (err) {
-    console.error('Error en actualizarCantidadElemento:', err);
     res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad o el stock', error: err.message });
   }
 };
 
+// Actualizar el estado de un préstamo
 const actualizarEstadoPrestamo = async (req, res) => {
   const { pre_id } = req.params;
   const { est_id, usr_cedula } = req.body;
 
   if (!pre_id || !est_id || !usr_cedula) {
-    return res.status(400).json({
-      respuesta: false,
-      mensaje: "Faltan campos: pre_id, est_id o usr_cedula"
-    });
+    return res.status(400).json({ respuesta: false, mensaje: "Faltan campos: pre_id, est_id o usr_cedula" });
   }
 
   try {
-    // 1. Validar que el estado existe
+    // Validar que el estado existe
     const [estado] = await db.execute("SELECT est_nombre FROM estados WHERE est_id = ?", [est_id]);
     if (estado.length === 0) {
-      return res.status(404).json({
-        respuesta: false,
-        mensaje: "Estado no válido"
-      });
+      return res.status(404).json({ respuesta: false, mensaje: "Estado no válido" });
     }
 
-    // 2. Buscar el nombre completo del usuario en la tabla 'usuarios'
-    const [rowsUser] = await db.execute(`
-      SELECT 
-        usr_primer_nombre,
-        usr_segundo_nombre,
-        usr_primer_apellido,
-        usr_segundo_apellido
-      FROM usuarios
-      WHERE usr_cedula = ?
-    `, [usr_cedula]);
-
-    let nombreCompleto = usr_cedula; // Por defecto, la cédula
+    // Obtener el nombre completo del usuario
+    const [rowsUser] = await db.execute(`SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido FROM usuarios WHERE usr_cedula = ?`, [usr_cedula]);
+    let nombreCompleto = usr_cedula;
     if (rowsUser.length > 0) {
       const u = rowsUser[0];
-      // Construimos el nombre completo
-      const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
-      const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
-      nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+      nombreCompleto = `${u.usr_primer_nombre} ${u.usr_segundo_nombre || ''} ${u.usr_primer_apellido} ${u.usr_segundo_apellido || ''}`.trim();
     }
 
-    // 3. Obtener el préstamo y su historial actual
-    const [prestamo] = await db.execute(
-      "SELECT historial_estados FROM prestamos WHERE pre_id = ?",
-      [pre_id]
-    );
-
+    // Obtener el historial de estados del préstamo
+    const [prestamo] = await db.execute("SELECT historial_estados FROM prestamos WHERE pre_id = ?", [pre_id]);
     let historial = [];
     if (prestamo.length > 0 && prestamo[0].historial_estados) {
       try {
         historial = JSON.parse(prestamo[0].historial_estados);
-      } catch (error) {
-        console.error("Error al parsear historial_estados:", error);
-        historial = []; 
+      } catch {
+        historial = [];
       }
     }
 
-    // 4. Agregar la nueva entrada de estado al historial, usando el nombre completo
+    // Agregar nueva entrada de estado al historial
     historial.push({
       estado: estado[0].est_nombre,
       usuario: nombreCompleto,
       fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
     });
 
-    // 5. Preparar la actualización de la tabla 'prestamos'
-    let query = `UPDATE prestamos 
-                 SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW() 
-                 WHERE pre_id = ?`;
+    // Construir la consulta de actualización
+    let query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW() WHERE pre_id = ?`;
     let values = [est_id, JSON.stringify(historial), pre_id];
 
-    // Si el estado es "Entregado" (4) o "Cancelado" (5), también se actualiza pre_fin
     if (est_id == 4 || est_id == 5) {
-      query = `UPDATE prestamos 
-               SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW(), pre_fin = NOW() 
-               WHERE pre_id = ?`;
+      query = `UPDATE prestamos SET est_id = ?, historial_estados = ?, pre_actualizacion = NOW(), pre_fin = NOW() WHERE pre_id = ?`;
     }
 
-    // 6. Ejecutar la actualización
+    // Ejecutar la actualización
     const [result] = await db.execute(query, values);
-
     if (result.affectedRows === 0) {
-      return res.status(404).json({
-        respuesta: false,
-        mensaje: "Préstamo no encontrado"
-      });
+      return res.status(404).json({ respuesta: false, mensaje: "Préstamo no encontrado" });
     }
 
-    // 7. Responder con el nuevo estado y el historial
-    res.json({
-      respuesta: true,
-      mensaje: "Estado actualizado correctamente",
-      nuevo_estado: estado[0].est_nombre,
-      historial_estados: historial
-    });
-
+    res.json({ respuesta: true, mensaje: "Estado actualizado correctamente", nuevo_estado: estado[0].est_nombre, historial_estados: historial });
   } catch (err) {
-    console.error("Error en la base de datos:", err);
-    res.status(500).json({
-      respuesta: false,
-      mensaje: "Error interno del servidor",
-      error: err.message
-    });
+    res.status(500).json({ respuesta: false, mensaje: "Error interno del servidor", error: err.message });
   }
 };
 
+// Cancelar un préstamo
 const cancelarPrestamo = async (req, res) => {
-  console.log("🔍 Parámetros recibidos para cancelar:", req.params);
-
   const pre_id = Number(req.params.pre_id);
 
   if (!pre_id) {
-      return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
+    return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
   try {
-      const resultado = await Prestamo.cancelarPrestamo(pre_id);
-      return res.status(200).json(resultado);
+    const resultado = await Prestamo.cancelarPrestamo(pre_id);
+    return res.status(200).json(resultado);
   } catch (error) {
-      console.error("❌ Error al cancelar el préstamo:", error);
-      return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -494,29 +467,15 @@ const cancelarPrestamo = async (req, res) => {
 const obtenerHistorialEstado = async (req, res) => {
   try {
     const pre_id = req.params.pre_id;
-
-    // Llamamos al modelo para obtener el historial
     const historial = await Prestamo.obtenerHistorialEstado(pre_id);
 
-    // Si no hay préstamo o no existe el registro, retornamos 404
     if (!historial) {
-      return res.status(404).json({
-        respuesta: false,
-        mensaje: 'Préstamo no encontrado o sin historial.'
-      });
+      return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado o sin historial.' });
     }
 
-    // Devolvemos el historial como arreglo
-    return res.json({
-      respuesta: true,
-      data: historial
-    });
+    return res.json({ respuesta: true, data: historial });
   } catch (error) {
-    console.error('Error al obtener historial:', error);
-    return res.status(500).json({
-      respuesta: false,
-      mensaje: 'Error al obtener historial'
-    });
+    return res.status(500).json({ respuesta: false, mensaje: 'Error al obtener historial' });
   }
 };
 

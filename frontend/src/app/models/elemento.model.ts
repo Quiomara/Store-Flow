@@ -1,3 +1,6 @@
+/**
+ * Interfaz que representa un elemento con sus propiedades principales.
+ */
 export interface Elemento {
   ele_id: number; // ID del elemento
   ele_nombre: string; // Nombre del elemento

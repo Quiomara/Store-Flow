@@ -1,5 +1,8 @@
 import { Elemento } from './elemento.model';
 
+/**
+ * Interfaz que representa un préstamo y sus propiedades asociadas.
+ */
 export interface Prestamo {
   idPrestamo?: number; // ID del préstamo (opcional para nuevos préstamos)
   cedulaSolicitante: number; // Cédula del solicitante (obligatoria)

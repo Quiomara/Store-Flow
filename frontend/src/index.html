@@ -5,24 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Store Flow</title>
   
-  <!-- Base URL para enrutamiento correcto -->
+  <!-- Base URL para enrutamiento correcto en aplicaciones SPA (Single Page Application) -->
   <base href="/">
 
-  <!-- Ícono de la página -->
+  <!-- Ícono de la página (favicon) -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- Fuentes y estilos -->
+  <!-- Fuentes de Google utilizadas en la aplicación -->
   <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Iconos de Material Design -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <!-- Bootstrap 4.3.1 para estilos y diseño responsivo -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  
+  <!-- Font Awesome para iconos adicionales -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  
+  <!-- Archivo de estilos personalizados -->
   <link rel="stylesheet" href="styles.css"> <!-- Asegúrate de que la ruta sea correcta -->
 </head>
 <body class="mat-typography">
   
+  <!-- Componente principal de Angular donde se renderiza la aplicación -->
   <app-root></app-root>
 
-  <!-- Scripts optimizados (sin cambiar la versión de Bootstrap) -->
+  <!-- Scripts optimizados para la funcionalidad de Bootstrap y dependencias -->
   <script defer src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

@@ -3,7 +3,11 @@ const router = express.Router();
 const tipoDeUsuarioController = require('../controllers/tipoDeUsuarioController');
 const auth = require('../middleware/auth');
 
-// Rutas para tipos de usuario
-router.get('/', auth(['Administrador']), tipoDeUsuarioController.getTiposUsuario); // Ajusta aquí si es necesario
+/**
+ * @route GET /
+ * @description Obtiene todos los tipos de usuario registrados
+ * @access Administrador
+ */
+router.get('/', auth(['Administrador']), tipoDeUsuarioController.getTiposUsuario);
 
 module.exports = router;

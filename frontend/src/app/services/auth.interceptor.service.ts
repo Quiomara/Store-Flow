@@ -3,22 +3,22 @@ import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
+/**
+ * Interceptor de autenticación para adjuntar el token JWT a las solicitudes HTTP.
+ */
 export const AuthInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandlerFn) => {
-  const authService = inject(AuthService); // Inyección en runtime
+  const authService = inject(AuthService); // Inyección en tiempo de ejecución
   const token = authService.getToken();
 
-  console.log('🛑 Interceptor activado');
-  console.log('🔑 Token obtenido:', token); // <-- Depuración
-
+  // Si no hay token, la solicitud continúa sin autenticación.
   if (!token) {
-    console.warn('🚨 No se encontró un token. La petición seguirá sin autenticación.');
     return next(req);
   }
 
+  // Clonar la solicitud y agregar el encabezado de autorización con el token.
   const authReq = req.clone({
     setHeaders: { Authorization: `Bearer ${token}` }
   });
 
-  console.log('✅ Token agregado a la solicitud:', authReq);
   return next(authReq);
 };

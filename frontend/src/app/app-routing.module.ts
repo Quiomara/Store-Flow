@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 
-// Importar los componentes necesarios
+// Importación de componentes
 import { LoginComponent } from './components/login/login.component';
 import { ForgotPasswordPopupComponent } from './components/forgot-password-popup/forgot-password-popup.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
@@ -19,24 +19,33 @@ import { PrestamoDetalleModalComponent } from './components/prestamo-detalle-mod
 import { RegisterElementComponent } from './components/warehouse/register-element/register-element.component';
 import { InventoryComponent } from './components/warehouse/inventory/inventory.component';
 
-// Importar el AuthGuard (asegúrate de que la ruta sea la correcta)
+// Importación de guardas de autenticación
 import { AuthGuard } from './guards/auth.guard';
 
-
+/**
+ * Definición de rutas de la aplicación.
+ * - Se definen rutas públicas como `login`, `forgot-password-popup` y `reset-password`.
+ * - Se protegen rutas con `canActivate: [AuthGuard]` para restringir el acceso a usuarios autenticados.
+ * - Se utilizan `children` para organizar rutas dentro de paneles administrativos.
+ */
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password-popup', component: ForgotPasswordPopupComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
+
+  // Rutas del panel de administrador
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,
-    canActivate: [AuthGuard], // Rutas protegidas
+    canActivate: [AuthGuard], // Protección de ruta
     children: [
       { path: 'register-user', component: RegisterUserComponent },
       { path: 'search-user', component: SearchUserComponent },
-      { path: '', redirectTo: 'register-user', pathMatch: 'full' }
+      { path: '', redirectTo: 'register-user', pathMatch: 'full' } // Redirección por defecto
     ]
   },
+
+  // Rutas del panel de instructor
   {
     path: 'instructor-dashboard',
     component: InstructorDashboardComponent,
@@ -47,6 +56,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'new-request', pathMatch: 'full' }
     ]
   },
+
+  // Rutas del panel de almacén
   {
     path: 'warehouse-dashboard',
     component: WarehouseDashboardComponent,
@@ -59,8 +70,11 @@ export const routes: Routes = [
       { path: '', redirectTo: 'loan-requests', pathMatch: 'full' }
     ]
   },
-  // Si este componente también requiere autenticación, agrega canActivate
+
+  // Ruta protegida para el detalle del préstamo
   { path: 'prestamo-detalle-modal', component: PrestamoDetalleModalComponent, canActivate: [AuthGuard] },
+
+  // Ruta por defecto: redirige al login
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 

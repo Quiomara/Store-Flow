@@ -1,12 +1,20 @@
 const db = require("../config/db");
 
 const Prestamo = {
+  /**
+   * Crea un nuevo préstamo en la base de datos.
+   * @param {string} usr_cedula - Cédula del usuario que solicita el préstamo.
+   * @param {number} est_id - Identificador del estado inicial del préstamo.
+   * @param {Array<{ele_id: number, pre_ele_cantidad_prestado: number}>} elementos - Lista de elementos a prestar.
+   * @returns {Promise<number>} ID del préstamo creado.
+   * @throws {Error} Si ocurre un error en la transacción.
+   */
   crear: async (usr_cedula, est_id, elementos) => {
     const connection = await db.getConnection();
     try {
       await connection.beginTransaction(); // Inicia transacción
   
-      // 1. Insertar el préstamo en la tabla "prestamos"
+      // Insertar el préstamo en la tabla "prestamos"
       const queryPrestamo =
         "INSERT INTO prestamos (usr_cedula, est_id) VALUES (?, ?)";
       const [result] = await connection.execute(queryPrestamo, [
@@ -19,9 +27,7 @@ const Prestamo = {
         throw new Error("No se pudo obtener el ID del préstamo.");
       }
   
-      console.log("✅ Préstamo creado con ID:", prestamoId);
-  
-      // 2. Insertar los elementos en la tabla "PrestamosElementos"
+      // Insertar los elementos en la tabla "PrestamosElementos"
       const queryElementos = `
         INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado)
         VALUES (?, ?, ?)
@@ -35,7 +41,7 @@ const Prestamo = {
         ]);
       }
   
-      // 3. Obtener el nombre completo del usuario a partir de la cédula
+      // Obtener el nombre completo del usuario a partir de la cédula
       const [rowsUser] = await connection.execute(`
         SELECT 
           usr_primer_nombre,
@@ -54,14 +60,14 @@ const Prestamo = {
         nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
       }
   
-      // 4. Crear el historial inicial con la acción "Creado"
+      // Crear el historial inicial con la acción "Creado"
       const historial = [{
         estado: "Creado",
         usuario: nombreCompleto,
         fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
       }];
   
-      // 5. Guardar el historial en la columna 'historial_estados'
+      // Guardar el historial en la columna 'historial_estados'
       const queryUpdateHistorial = `
         UPDATE prestamos
         SET historial_estados = ?, pre_actualizacion = NOW()
@@ -72,24 +78,28 @@ const Prestamo = {
         prestamoId
       ]);
   
-      // 6. Confirmar la transacción
+      // Confirmar la transacción
       await connection.commit();
       connection.release();
   
       return prestamoId;
     } catch (error) {
       await connection.rollback(); // Revertir cambios en caso de error
-      console.error("❌ Error al crear el préstamo:", error.message);
       throw error;
     }
   },
-  
 
-  // Actualizar estado de un préstamo y agregarlo al historial JSON
+  /**
+   * Actualiza el estado de un préstamo y lo agrega al historial JSON.
+   * @param {number} pre_id - ID del préstamo.
+   * @param {number} est_id - Nuevo estado del préstamo.
+   * @param {string} usr_cedula - Cédula del usuario que realiza el cambio.
+   * @returns {Object} - Indica si la actualización fue exitosa.
+   */
   actualizarEstado: async (pre_id, est_id, usr_cedula) => {
     let pre_fin = null;
-    // 4 = Entregado, 5 = Cancelado
-    if (est_id == 4 || est_id == 5) {
+    // Si el estado es "Entregado" (4) o "Cancelado" (5), se registra la fecha de finalización
+    if (est_id === 4 || est_id === 5) {
       pre_fin = new Date().toISOString().slice(0, 19).replace("T", " ");
     }
 
@@ -97,29 +107,23 @@ const Prestamo = {
     try {
       await conn.beginTransaction();
 
-      // 1. Obtener el nombre completo del usuario a partir de la cédula
-      const [rowsUser] = await conn.execute(`
-      SELECT 
-        usr_primer_nombre,
-        usr_segundo_nombre,
-        usr_primer_apellido,
-        usr_segundo_apellido
-      FROM usuarios
-      WHERE usr_cedula = ?
-    `, [usr_cedula]);
+      // Obtener el nombre completo del usuario a partir de la cédula
+      const [rowsUser] = await conn.execute(
+        `SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
+         FROM usuarios WHERE usr_cedula = ?`,
+        [usr_cedula]
+      );
 
-      // Por defecto, si no se encuentra el usuario, usamos la cédula
+      // Si no se encuentra el usuario, se usa la cédula como identificador
       let nombreCompleto = usr_cedula;
-
       if (rowsUser.length > 0) {
         const u = rowsUser[0];
-        // Construimos el nombre completo
         const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
         const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
         nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
       }
 
-      // 2. Obtener historial actual del préstamo
+      // Obtener el historial actual del préstamo
       const [prestamo] = await conn.execute(
         "SELECT historial_estados FROM prestamos WHERE pre_id = ?",
         [pre_id]
@@ -130,27 +134,24 @@ const Prestamo = {
         try {
           historial = JSON.parse(prestamo[0].historial_estados);
         } catch (error) {
-          console.error('Error parseando historial_estados:', error);
           historial = [];
         }
       }
 
-      // 3. Agregar nueva acción al historial, guardando el nombre en vez de la cédula
+      // Agregar el nuevo estado al historial
       historial.push({
         estado: est_id,
         usuario: nombreCompleto,
         fecha: new Date().toISOString().slice(0, 19).replace("T", " ")
       });
 
-      // 4. Convertir historial a JSON y actualizar la tabla
+      // Convertir el historial a JSON y actualizar la base de datos
       const historialJSON = JSON.stringify(historial);
       const queryUpdate = `
-      UPDATE prestamos
-      SET est_id = ?, 
-          pre_fin = COALESCE(?, pre_fin), 
-          historial_estados = ?
-      WHERE pre_id = ?
-    `;
+        UPDATE prestamos
+        SET est_id = ?, pre_fin = COALESCE(?, pre_fin), historial_estados = ?
+        WHERE pre_id = ?
+      `;
       await conn.execute(queryUpdate, [est_id, pre_fin, historialJSON, pre_id]);
 
       await conn.commit();
@@ -163,8 +164,11 @@ const Prestamo = {
     }
   },
 
-
-  // Actualizar un préstamo
+  /**
+   * Actualiza un préstamo en la base de datos.
+   * @param {Object} data - Datos del préstamo a actualizar.
+   * @returns {Promise<Object>} Resultado de la actualización.
+   */
   actualizar: async (data) => {
     const query = `UPDATE Prestamos SET pre_fin = ?, usr_cedula = ?, est_id = ?, pre_actualizacion = ? WHERE pre_id = ?`;
     const values = [
@@ -178,7 +182,12 @@ const Prestamo = {
     return result;
   },
 
-  // Actualizar la cantidad prestada de un elemento
+  /**
+   * Actualiza la cantidad disponible de un elemento prestado.
+   * @param {number} ele_id - ID del elemento.
+   * @param {number} ele_cantidad - Nueva cantidad disponible.
+   * @returns {Promise<Object>} Resultado de la actualización.
+   */
   actualizarCantidadElemento: async (ele_id, ele_cantidad) => {
     const query = `UPDATE Elementos SET ele_cantidad = ? WHERE ele_id = ?`;
     const values = [ele_cantidad, ele_id];
@@ -186,31 +195,39 @@ const Prestamo = {
     return result;
   },
 
-  // Eliminar un préstamo
+  /**
+   * Elimina un préstamo de la base de datos.
+   * @param {number} pre_id - ID del préstamo a eliminar.
+   * @returns {Promise<Object>} Resultado de la eliminación.
+   */
   eliminar: async (pre_id) => {
     const query = `DELETE FROM Prestamos WHERE pre_id = ?`;
     const [result] = await db.execute(query, [pre_id]);
     return result;
   },
 
-  // Obtener todos los préstamos
+  /**
+   * Obtiene todos los préstamos junto con la información del usuario y los elementos prestados.
+   * @returns {Promise<Array>} Lista de préstamos con sus detalles.
+   */
   obtenerTodos: async () => {
     const query = `
       SELECT 
-  p.pre_id, 
-  DATE_FORMAT(p.pre_inicio, '%Y-%m-%dT%H:%i:%sZ') AS pre_inicio, -- Agrega 'Z' al final
-  p.pre_fin, 
-  u.usr_cedula, 
-  CONCAT(u.usr_primer_nombre, ' ', u.usr_segundo_nombre, ' ', u.usr_primer_apellido, ' ', u.usr_segundo_apellido) AS usr_nombre, 
-  e.est_nombre,
-  p.pre_actualizacion
-FROM Prestamos p
-JOIN Usuarios u ON p.usr_cedula = u.usr_cedula
-JOIN Estados e ON p.est_id = e.est_id
-ORDER BY p.pre_inicio DESC;
+        p.pre_id, 
+        DATE_FORMAT(p.pre_inicio, '%Y-%m-%dT%H:%i:%sZ') AS pre_inicio, 
+        p.pre_fin, 
+        u.usr_cedula, 
+        CONCAT(u.usr_primer_nombre, ' ', u.usr_segundo_nombre, ' ', u.usr_primer_apellido, ' ', u.usr_segundo_apellido) AS usr_nombre, 
+        e.est_nombre,
+        p.pre_actualizacion
+      FROM Prestamos p
+      JOIN Usuarios u ON p.usr_cedula = u.usr_cedula
+      JOIN Estados e ON p.est_id = e.est_id
+      ORDER BY p.pre_inicio DESC;
     `;
     const [prestamos] = await db.execute(query);
 
+    // Obtener los elementos asociados a cada préstamo
     const elementosQuery = `
       SELECT 
         pe.pre_id, 
@@ -222,6 +239,7 @@ ORDER BY p.pre_inicio DESC;
     `;
     const [elementos] = await db.execute(elementosQuery);
 
+    // Asignar elementos a sus respectivos préstamos
     const prestamosConElementos = prestamos.map((prestamo) => {
       const elementosPrestamo = elementos.filter(
         (elemento) => elemento.pre_id === prestamo.pre_id
@@ -233,7 +251,11 @@ ORDER BY p.pre_inicio DESC;
     return prestamosConElementos;
   },
 
-  // Obtener un préstamo por ID (modelo)
+  /**
+   * Obtiene un préstamo por su ID.
+   * @param {number} pre_id - ID del préstamo.
+   * @returns {Promise<Object>} - Datos del préstamo.
+   */
   obtenerPorId: async (pre_id) => {
     const query = `SELECT p.pre_id, p.est_id, e.est_nombre, p.historial_estados 
                  FROM Prestamos p 
@@ -243,8 +265,11 @@ ORDER BY p.pre_inicio DESC;
     return results[0];
   },
 
-
-  // Obtener préstamos por cédula de usuario
+  /**
+   * Obtiene todos los préstamos asociados a una cédula de usuario.
+   * @param {string} usr_cedula - Cédula del usuario.
+   * @returns {Promise<Array>} - Lista de préstamos del usuario.
+   */
   obtenerPorCedula: async (usr_cedula) => {
     const query = `
       SELECT 
@@ -263,14 +288,22 @@ ORDER BY p.pre_inicio DESC;
     return results;
   },
 
-  // Obtener estado y usuario por ID de préstamo
+  /**
+   * Obtiene el estado y usuario de un préstamo por su ID.
+   * @param {number} pre_id - ID del préstamo.
+   * @returns {Promise<Array>} - Datos del préstamo con estado y usuario.
+   */
   obtenerEstadoYUsuarioPorId: async (pre_id) => {
     const query = `SELECT pre_inicio, pre_fin, est_id, usr_cedula FROM Prestamos WHERE pre_id = ?`;
     const [results] = await db.execute(query, [pre_id]);
-    return results; // Devuelve un array de resultados
+    return results;
   },
 
-  // Obtener elementos de un préstamo por ID
+  /**
+   * Obtiene los elementos asociados a un préstamo por su ID.
+   * @param {number} pre_id - ID del préstamo.
+   * @returns {Promise<Array>} - Lista de elementos en el préstamo.
+   */
   obtenerElementosPrestamo: async (pre_id) => {
     const query = `
       SELECT 
@@ -295,27 +328,28 @@ ORDER BY p.pre_inicio DESC;
     return results;
   },
 
-  // Actualizar la cantidad prestada de un elemento en un préstamo
-  actualizarCantidadElemento: async (
-    pre_id,
-    ele_id,
-    pre_ele_cantidad_prestado
-  ) => {
+  /**
+   * Actualiza la cantidad prestada de un elemento en un préstamo.
+   * @param {number} pre_id - ID del préstamo.
+   * @param {number} ele_id - ID del elemento.
+   * @param {number} pre_ele_cantidad_prestado - Nueva cantidad prestada.
+   * @returns {Promise<Object>} - Resultado de la actualización.
+   */
+  actualizarCantidadElemento: async (pre_id, ele_id, pre_ele_cantidad_prestado) => {
     const query = `UPDATE PrestamosElementos SET pre_ele_cantidad_prestado = ? WHERE pre_id = ? AND ele_id = ?`;
-    const [result] = await db.execute(query, [
-      pre_ele_cantidad_prestado,
-      pre_id,
-      ele_id,
-    ]);
+    const [result] = await db.execute(query, [pre_ele_cantidad_prestado, pre_id, ele_id]);
     return result;
   },
 
-  // Obtener únicamente el historial_estados de un préstamo
+  /**
+   * Obtiene el historial de estados de un préstamo.
+   * @param {number} pre_id - ID del préstamo.
+   * @returns {Promise<Array|null>} - Historial de estados o null si no existe.
+   */
   obtenerHistorialEstado: async (pre_id) => {
     const query = `SELECT historial_estados FROM prestamos WHERE pre_id = ?`;
     const [rows] = await db.execute(query, [pre_id]);
 
-    // Si no se encuentra el préstamo, retornamos null o lanzamos un error
     if (rows.length === 0) {
       return null;
     }
@@ -327,19 +361,22 @@ ORDER BY p.pre_inicio DESC;
       try {
         historial = JSON.parse(historialStr);
       } catch (error) {
-        console.error('Error parseando historial_estados:', error);
-        // Podrías decidir devolver un arreglo vacío en caso de error
         historial = [];
       }
     }
 
-    return historial; // Devuelve un arreglo con objetos { estado, usuario, fecha }, etc.
+    return historial;
   },
 
+  /**
+   * Cancela un préstamo si está en estado "Creado".
+   * @param {number} pre_id - ID del préstamo a cancelar.
+   * @returns {Promise<Object>} - Resultado de la cancelación.
+   */
   cancelarPrestamo: async (pre_id) => {
     const connection = await db.getConnection();
     try {
-      // 1️⃣ Verificar si el préstamo existe y su estado
+      // Verificar si el préstamo existe y su estado
       const [rows] = await connection.query(
         "SELECT est_id FROM prestamos WHERE pre_id = ?",
         [pre_id]
@@ -350,16 +387,14 @@ ORDER BY p.pre_inicio DESC;
       }
 
       const estadoActual = rows[0].est_id;
-
-      // 2️⃣ Validar si el estado es "Creado"
-      const ESTADO_CREADO = 1; // Asegúrate de que este sea el ID correcto en tu BD
-      const ESTADO_CANCELADO = 5; // ID del estado "Cancelado"
+      const ESTADO_CREADO = 1; // Estado "Creado"
+      const ESTADO_CANCELADO = 5; // Estado "Cancelado"
 
       if (estadoActual !== ESTADO_CREADO) {
         throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
       }
 
-      // 3️⃣ Actualizar el estado a "Cancelado"
+      // Actualizar el estado a "Cancelado"
       const [result] = await connection.query(
         "UPDATE prestamos SET est_id = ? WHERE pre_id = ?",
         [ESTADO_CANCELADO, pre_id]
@@ -375,7 +410,7 @@ ORDER BY p.pre_inicio DESC;
     } finally {
       connection.release();
     }
-  },
-};
+  }
+}
 
 module.exports = Prestamo;
