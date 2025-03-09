@@ -248,7 +248,7 @@ export class InstructorHistoryComponent implements OnInit {
       data: {
         prestamo,
         soloDetalle: false, // Permite edición
-        incluirHistorial: false
+        incluirHistorial: true
       }
     }).afterClosed().subscribe(() => {
       this.getHistory();
