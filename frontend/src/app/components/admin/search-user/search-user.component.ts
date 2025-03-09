@@ -16,6 +16,10 @@ import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.compone
 import { EditUserComponent } from '../edit-user/edit-user.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+/**
+ * Componente para la búsqueda, visualización y gestión de usuarios.
+ * @component
+ */
 @Component({
   selector: 'app-search-user',
   standalone: true,
@@ -36,27 +40,51 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providers: [UserService, CentroService]
 })
 export class SearchUserComponent implements OnInit, AfterViewInit {
+  /** Formulario reactivo para la búsqueda de usuarios */
   searchForm: FormGroup;
+
+  /** Lista de centros de formación */
   centros: any[] = [];
+
+  /** Tipos de usuario disponibles */
   tiposUsuario: any[] = [
     { id: 1, nombre: 'Administrador' },
     { id: 2, nombre: 'Instructor' },
     { id: 3, nombre: 'Almacen' }
   ];
+
+  /** Resultados de la búsqueda de usuarios */
   searchResults: User[] = [];
+
+  /** Resultados filtrados de los usuarios */
   filteredResults: User[] = [];
+
+  /** Fuente de datos para la tabla de usuarios */
   dataSource = new MatTableDataSource<User>(this.filteredResults);
+
+  /** Columnas a mostrar en la tabla */
   displayedColumns: string[] = ['cedula', 'nombre', 'centroFormacion', 'email', 'telefono', 'tipoUsuario', 'acciones'];
+
+  /** Objeto para almacenar los errores de validación */
   errores: any = {};
 
+  /** Referencia al paginador */
   @ViewChild(MatPaginator, { static: true }) paginator!: MatPaginator;
 
+  /**
+   * Constructor del componente.
+   * @param userService Servicio para obtener los usuarios
+   * @param centroService Servicio para obtener los centros de formación
+   * @param fb Instancia de FormBuilder para crear formularios reactivos
+   * @param dialog Instancia de MatDialog para manejar los diálogos modales
+   * @param snackBar Instancia de MatSnackBar para mostrar notificaciones
+   */
   constructor(
     private userService: UserService,
     private centroService: CentroService,
     private fb: FormBuilder,
     public dialog: MatDialog,
-    private snackBar: MatSnackBar // ✅ Agregado para usar el snackbar
+    private snackBar: MatSnackBar
   ) {
     this.searchForm = this.fb.group({
       nombre: [''],
@@ -66,6 +94,10 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Inicializa el componente y carga los centros de formación.
+   * Configura la suscripción para filtrar usuarios al cambiar los valores del formulario.
+   */
   ngOnInit() {
     this.loadCentros();
     this.searchForm.valueChanges.pipe(
@@ -76,25 +108,25 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Configura la paginación para la tabla después de que la vista se haya inicializado.
+   */
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
   }
 
+  /**
+   * Carga los usuarios desde el servicio `UserService`.
+   * Asigna el centro de formación y tipo de usuario a los usuarios obtenidos.
+   */
   loadUsers(): void {
     this.userService.getUsers().subscribe(
       (response: User[]) => {
-        console.log('Usuarios obtenidos:', response); // Verifica los usuarios obtenidos
-
         this.searchResults = response.map(user => {
-          console.log(`Centro de formación para usuario ${user.primerNombre} ${user.primerApellido}:`, user.cen_nombre);
-          console.log(`Tipo de usuario para usuario ${user.primerNombre} ${user.primerApellido}:`, user.tip_usr_nombre);
-
-          user.centroFormacion = user.cen_nombre || 'N/A'; // Asigna directamente el nombre del centro
-          user.tipoUsuario = user.tip_usr_nombre || 'N/A'; // Asigna directamente el nombre del tipo de usuario
+          user.centroFormacion = user.cen_nombre || 'N/A';
+          user.tipoUsuario = user.tip_usr_nombre || 'N/A';
           return user;
         });
-
-        console.log('Usuarios con centros y tipos de usuario asignados:', this.searchResults); // Verifica los usuarios después de asignar el centro y tipo de usuario
 
         this.filteredResults = this.searchResults;
         this.dataSource.data = this.filteredResults;
@@ -107,12 +139,14 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Carga los centros de formación desde el servicio `CentroService`.
+   * Una vez cargados, se llaman a los usuarios.
+   */
   loadCentros(): void {
     this.centroService.getCentros().subscribe(
       (response: any) => {
         this.centros = response.data;
-        console.log('Centros de formación obtenidos:', this.centros); // Verifica los centros obtenidos
-
         this.loadUsers(); // Carga los usuarios después de obtener los centros
       },
       (error: any) => {
@@ -121,12 +155,15 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Filtra los usuarios en base a los valores del formulario de búsqueda.
+   * @param {any} values Los valores del formulario de búsqueda
+   */
   filterUsers(values: any): void {
     this.filteredResults = this.searchResults.filter(user => {
       const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
       const nombreFiltrado = values.nombre.toLowerCase();
-      const centroFiltrado = this.centros.find(c => c.cen_id === Number(values.centroFormacion))?.cen_nombre; // Encontrar el nombre del centro por ID
-      console.log('Valores del formulario:', values); // Log para verificar los valores del formulario
+      const centroFiltrado = this.centros.find(c => c.cen_id === Number(values.centroFormacion))?.cen_nombre;
 
       return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
              (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
@@ -134,22 +171,30 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
              (values.cedula === '' || user.cedula.toString().includes(values.cedula));
     });
 
-    console.log('Resultados filtrados:', this.filteredResults); // Log para verificar los resultados filtrados
-
     this.dataSource.data = this.filteredResults;
     this.sortUsersAlphabetically();
     this.updatePaginator();
   }
 
+  /**
+   * Actualiza el paginador de la tabla después de filtrar los usuarios.
+   */
   updatePaginator(): void {
     this.dataSource.paginator = this.paginator;
     this.paginator.length = this.filteredResults.length;
   }
 
+  /**
+   * Ordena los usuarios alfabéticamente por nombre.
+   */
   sortUsersAlphabetically(): void {
     this.filteredResults.sort((a, b) => `${a.primerNombre} ${a.primerApellido}`.localeCompare(`${b.primerNombre} ${b.primerApellido}`));
   }
 
+  /**
+   * Abre un diálogo para editar un usuario.
+   * @param {User} user El usuario a editar
+   */
   onEdit(user: User): void {
     const centroNombre = this.centros.find(c => c.cen_id === user.centroFormacion)?.cen_nombre || user.centroFormacion;
     const dialogRef = this.dialog.open(EditUserComponent, {
@@ -186,12 +231,16 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Abre un diálogo de confirmación para eliminar un usuario.
+   * @param {User} user El usuario a eliminar
+   */
   onDelete(user: User): void {
     const dialogRef = this.dialog.open(ConfirmDeleteComponent, {
       width: '400px',
       data: { user: user }
     });
-  
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.userService.deleteUser(user.cedula.toString()).subscribe(
@@ -199,8 +248,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
             this.filteredResults = this.filteredResults.filter(u => u.cedula !== user.cedula);
             this.dataSource.data = this.filteredResults;
             this.updatePaginator();
-  
-            // ✅ Mostrar SnackBar con el nombre del usuario eliminado
+
             this.snackBar.open(`Usuario ${user.primerNombre} eliminado con éxito`, '', {
               duration: 3000,
               horizontalPosition: 'right',
@@ -219,6 +267,7 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
           }
         );
       }
-    })
+    });
   }
 }
+

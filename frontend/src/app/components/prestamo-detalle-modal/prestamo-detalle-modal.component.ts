@@ -17,6 +17,10 @@ import { ConfirmationDialogComponent } from '../warehouse/confirmation-dialog/co
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 
+/**
+ * @component PrestamoDetalleModalComponent
+ * Modal que muestra los detalles de un préstamo.
+ */
 @Component({
   selector: 'app-prestamo-detalle-modal',
   templateUrl: './prestamo-detalle-modal.component.html',
@@ -56,14 +60,23 @@ export class PrestamoDetalleModalComponent implements OnInit {
 
   // Getter: decide si se muestra la columna "acciones"
   get columnsToDisplay(): string[] {
-    // Si puedeEditarCantidad es true, incluimos "acciones"
     if (this.puedeEditarCantidad) {
       return this.displayedColumnsBase; // ['nombre','cantidad','acciones']
     }
-    // Caso contrario, solo "nombre" y "cantidad"
     return ['nombre', 'cantidad'];
   }
 
+  /**
+   * Constructor del componente PrestamoDetalleModalComponent.
+   * @param {any} data Datos que se pasan al abrir el modal.
+   * @param {MatDialogRef<PrestamoDetalleModalComponent>} dialogRef Referencia al diálogo.
+   * @param {PrestamoService} prestamoService Servicio de préstamos.
+   * @param {ElementoService} elementoService Servicio de elementos.
+   * @param {AuthService} authService Servicio de autenticación.
+   * @param {ChangeDetectorRef} cdr Detector de cambios.
+   * @param {MatDialog} dialog Diálogo de confirmación.
+   * @param {MatSnackBar} snackBar Servicio para mostrar notificaciones.
+   */
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<PrestamoDetalleModalComponent>,
@@ -74,7 +87,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {
-    // Asignar el préstamo
     this.prestamo = data.prestamo || {
       idPrestamo: 0,
       cedulaSolicitante: 0,
@@ -86,7 +98,6 @@ export class PrestamoDetalleModalComponent implements OnInit {
       instructorNombre: ''
     };
 
-    // Recibir banderas (soloDetalle, incluirHistorial, historialAcciones)
     if (data.soloDetalle !== undefined) {
       this.soloDetalle = data.soloDetalle;
     }
@@ -113,40 +124,39 @@ export class PrestamoDetalleModalComponent implements OnInit {
 
     this.obtenerEstados();
 
-    // Datos del usuario logueado
     const userType = this.authService.getUserType(); // "Instructor", "Almacén", etc.
     const userId = this.authService.getUserId();     // 2, 3, etc.
-    console.log('Usuario:', this.authService.getUserType(), 'ID:', this.authService.getUserId());
-console.log('Estado del préstamo:', this.prestamo.estado);
-console.log('Solo detalle:', this.soloDetalle);
-console.log('Puede editar cantidad:', this.puedeEditarCantidad);
 
-    // Lógica para cambiar estado (si la necesitas)
+    // Lógica para cambiar estado
     this.puedeCambiarEstado = (userType === 'Almacén' && userId === 3);
 
-    // Si es soloDetalle, no se permiten cambios de estado
     if (this.soloDetalle) {
       this.puedeCambiarEstado = false;
     }
 
     // Lógica para editar la cantidad:
-    // 1) Usuario "Instructor" con id=2
-    // 2) Préstamo en estado "Creado"
-    // 3) !soloDetalle (modo edición)
     this.puedeEditarCantidad = this.prestamo.estado === 'Creado' && userType !== 'Almacén';
-
   }
 
+  /**
+ * Obtiene los estados disponibles para los préstamos.
+ */
   obtenerEstados(): void {
     this.prestamoService.getEstados().subscribe({
       next: (estados: Estado[]) => {
         this.estados = estados;
         this.setEstadoInicial();
       },
-      error: (error) => console.error('Error al obtener estados', error)
+      error: (error) => {
+        // Eliminar console.log y agregar manejo adecuado de errores
+        console.error('Error al obtener estados', error);
+      }
     });
   }
 
+  /**
+   * Establece el estado inicial del préstamo basado en el estado actual.
+   */
   private setEstadoInicial(): void {
     if (this.prestamo.estado) {
       const estadoActual = this.estados.find(e => e.est_nombre === this.prestamo.estado);
@@ -154,34 +164,47 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
     }
   }
 
+  /**
+   * Obtiene los detalles de un préstamo.
+   * @param {number} prestamoId ID del préstamo para obtener los detalles.
+   */
   obtenerPrestamoDetalles(prestamoId: number): void {
     this.prestamoService.getPrestamoDetalles(prestamoId).subscribe({
       next: (response: any) => {
         if (response?.data) {
-          // Mapeamos elementos
+          // Mapeamos elementos y corregimos la cantidad actual si el préstamo está cancelado
           this.prestamo.elementos = response.data.map((item: any): EditableElemento => ({
             ele_id: Number(item.ele_id),
             ele_nombre: item.nombre || '',
             ele_cantidad_total: Number(item.ele_cantidad_total),
-            ele_cantidad_actual: Number(item.ele_cantidad_actual),
+            ele_cantidad_actual: response.estadoPrestamo === 'Cancelado' 
+              ? Number(item.ele_cantidad_actual) + Number(item.pre_ele_cantidad_prestado) // 🔥 Se ajusta la cantidad
+              : Number(item.ele_cantidad_actual),
             ubi_ele_id: item.ubi_ele_id,
             ubi_nombre: item.ubi_nombre || '',
             pre_ele_cantidad_prestado: Number(item.pre_ele_cantidad_prestado),
             editing: false
           }));
-
+  
           this.originalItems = [...this.prestamo.elementos];
-
+  
           // Ajustar estado si viene de la respuesta
           this.prestamo.estado = response.estadoPrestamo || 'Desconocido';
           this.setEstadoInicial();
           this.cdr.detectChanges();
         }
       },
-      error: (error: any) => console.error('Error al obtener detalles', error)
+      error: (error: any) => {
+        console.error('Error al obtener detalles', error);
+      }
     });
   }
+   
 
+  /**
+   * Obtiene el historial de estados de un préstamo.
+   * @param {number} pre_id ID del préstamo para obtener el historial de estados.
+   */
   obtenerHistorialEstados(pre_id: number): void {
     this.prestamoService.getHistorialEstados(pre_id).subscribe({
       next: (response: any) => {
@@ -195,13 +218,16 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
         }
       },
       error: (error: any) => {
+        // Eliminar console.log y agregar manejo adecuado de errores
         console.error('Error al obtener historial de estados', error);
       }
     });
   }
 
-  // MÉTODOS DE CAMBIO DE ESTADO: Si no estamos en modo soloDetalle, ejecutan la acción y cierran el modal
-
+  /**
+  * Aprueba la solicitud y cambia el estado del préstamo a "En proceso".
+  * Si no estamos en modo soloDetalle, abre un diálogo de confirmación antes de ejecutar la acción.
+  */
   aprobarSolicitud(): void {
     if (this.soloDetalle) return;
 
@@ -217,7 +243,7 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Buscamos el objeto Estado que tenga est_nombre = 'En proceso'
+        // Buscar el estado "En proceso"
         const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
 
         if (estadoEnProceso && this.prestamo.idPrestamo) {
@@ -228,21 +254,16 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
           }).subscribe({
             next: (response: any) => {
               if (response.respuesta) {
-                // 1. Actualiza el estado del préstamo en el frontend
+                // Actualiza el estado del préstamo
                 this.prestamo.estado = 'En proceso';
 
-                // 2. Recibe el historial en la misma respuesta
+                // Ordena el historial de estados
                 const historialOrdenado = (response.historial_estados || []).sort(
                   (a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
                 );
 
-                // 3. Asigna el historial a la variable que alimenta la tabla de Historial
+                // Asigna el historial
                 this.historialAcciones = historialOrdenado;
-
-                // Verificamos en consola
-                console.log('Historial en front:', this.historialAcciones);
-
-                // Opcional: también puedes guardarlo en this.prestamo.historial_estados
                 this.prestamo.historial_estados = historialOrdenado;
 
                 this.dataUpdated = true;
@@ -252,7 +273,6 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
               }
             },
             error: (error: any) => {
-              console.error('Error al aprobar la solicitud', error);
               this.snackBar.open('Error al aprobar la solicitud', 'Cerrar', { duration: 3000 });
             }
           });
@@ -261,40 +281,50 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
     });
   }
 
+  /**
+   * Cambia el estado del préstamo a "En proceso" y cierra el modal.
+   * Si no estamos en modo soloDetalle, ejecuta la acción directamente.
+   */
   cambiarEstadoAEnProceso(): void {
     if (this.soloDetalle) return;
     if (!this.prestamo.idPrestamo) {
       console.error('ID del préstamo no definido.');
       return;
     }
+
     const estadoEnProceso = this.estados.find(e => e.est_nombre === 'En proceso');
     if (!estadoEnProceso) {
       console.error('No se encontró el estado "En proceso".');
       return;
     }
+
     this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, {
       estado: estadoEnProceso.est_id,
       fechaEntrega: new Date(),
       usr_cedula: this.authService.getCedula() || ''
     })
-    .subscribe({
-      next: (response: any) => {
-        if (response.respuesta) {
-          this.prestamo.estado = 'En proceso';
-          this.prestamo.pre_actualizacion = new Date();
-          this.dataUpdated = true;
-          this.cdr.detectChanges();
-          this.snackBar.open('Estado cambiado a "En proceso"', 'Cerrar', { duration: 3000 });
-          this.dialogRef.close(true);
+      .subscribe({
+        next: (response: any) => {
+          if (response.respuesta) {
+            this.prestamo.estado = 'En proceso';
+            this.prestamo.pre_actualizacion = new Date();
+            this.dataUpdated = true;
+            this.cdr.detectChanges();
+            this.snackBar.open('Estado cambiado a "En proceso"', 'Cerrar', { duration: 3000 });
+            this.dialogRef.close(true);
+          }
+        },
+        error: (error: any) => {
+          this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
         }
-      },
-      error: (error: any) => {
-        console.error('Error al cambiar estado a "En proceso":', error);
-        this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
-      }
-    });
+      });
   }
 
+
+  /**
+ * Cambia el estado del préstamo a "En préstamo" después de confirmar la acción en un diálogo.
+ * Si no estamos en modo soloDetalle, ejecuta la acción de actualización.
+ */
   cambiarAEnPrestamo(): void {
     if (this.soloDetalle) return;
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -306,6 +336,7 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
         textoBotonCancelar: 'No'
       }
     });
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const estadoEnPrestamo = this.estados.find(e => e.est_nombre === 'En préstamo');
@@ -315,24 +346,27 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
             fechaEntrega: new Date(),
             usr_cedula: this.authService.getCedula() || ''
           })
-          .subscribe({
-            next: (response: any) => {
-              if (response.respuesta) {
-                this.prestamo.estado = 'En préstamo';
-                this.snackBar.open('Estado actualizado a "En préstamo"', 'Cerrar', { duration: 3000 });
-                this.dialogRef.close(true);
+            .subscribe({
+              next: (response: any) => {
+                if (response.respuesta) {
+                  this.prestamo.estado = 'En préstamo';
+                  this.snackBar.open('Estado actualizado a "En préstamo"', 'Cerrar', { duration: 3000 });
+                  this.dialogRef.close(true);
+                }
+              },
+              error: (error: any) => {
+                this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
               }
-            },
-            error: (error: any) => {
-              console.error('Error al cambiar estado a "En préstamo":', error);
-              this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
-            }
-          });
+            });
         }
       }
     });
   }
 
+  /**
+   * Cambia el estado del préstamo a "Prestado" después de confirmar la acción en un diálogo.
+   * Si no estamos en modo soloDetalle, ejecuta la acción de actualización.
+   */
   cambiarAPrestado(): void {
     if (this.soloDetalle) return;
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -344,6 +378,7 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
         textoBotonCancelar: 'No'
       }
     });
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const estadoPrestado = this.estados.find(e => e.est_nombre === 'Prestado');
@@ -353,27 +388,30 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
             fechaEntrega: new Date(),
             usr_cedula: this.authService.getCedula() || ''
           })
-          .subscribe({
-            next: (response: any) => {
-              if (response.respuesta) {
-                this.prestamo.estado = 'Prestado';
-                this.prestamo.pre_actualizacion = new Date();
-                this.dataUpdated = true;
-                this.cdr.detectChanges();
-                this.snackBar.open('Estado actualizado a "Prestado"', 'Cerrar', { duration: 3000 });
-                this.dialogRef.close(true);
+            .subscribe({
+              next: (response: any) => {
+                if (response.respuesta) {
+                  this.prestamo.estado = 'Prestado';
+                  this.prestamo.pre_actualizacion = new Date();
+                  this.dataUpdated = true;
+                  this.cdr.detectChanges();
+                  this.snackBar.open('Estado actualizado a "Prestado"', 'Cerrar', { duration: 3000 });
+                  this.dialogRef.close(true);
+                }
+              },
+              error: (error: any) => {
+                this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
               }
-            },
-            error: (error: any) => {
-              console.error('Error al cambiar estado a "Prestado":', error);
-              this.snackBar.open('Error al cambiar estado', 'Cerrar', { duration: 3000 });
-            }
-          });
+            });
         }
       }
     });
   }
 
+  /**
+   * Cambia el estado del préstamo a "Entregado" después de confirmar la acción en un diálogo.
+   * Si no estamos en modo soloDetalle, ejecuta la acción de actualización.
+   */
   cambiarAEntregado(): void {
     if (this.soloDetalle) return;
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -385,20 +423,15 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
         textoBotonCancelar: 'No'
       }
     });
+  
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        const estadoEntregado = this.estados.find(e => e.est_nombre === 'Entregado');
-        if (estadoEntregado && this.prestamo.idPrestamo !== undefined) {
-          const estadoData = {
-            estado: estadoEntregado.est_id,
-            fechaEntrega: new Date(),
-            usr_cedula: this.authService.getCedula() || ''
-          };
-          this.prestamoService.actualizarEstadoPrestamo(this.prestamo.idPrestamo, estadoData)
+        if (this.prestamo.idPrestamo !== undefined) {
+          this.prestamoService.entregarPrestamo(this.prestamo.idPrestamo)
             .subscribe({
               next: (response: any) => {
-                if (response.respuesta) {
-                  this.prestamo.fechaEntrega = estadoData.fechaEntrega;
+                if (response.success) {
+                  this.prestamo.fechaEntrega = new Date(response.fechaEntrega); // Actualizar fecha de entrega
                   this.prestamo.estado = 'Entregado';
                   this.prestamo.pre_actualizacion = new Date();
                   this.dataUpdated = true;
@@ -407,8 +440,7 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
                   this.dialogRef.close(true);
                 }
               },
-              error: (error: any) => {
-                console.error('Error al actualizar el estado', error);
+              error: () => {
                 this.snackBar.open('Error al actualizar el estado', 'Cerrar', { duration: 3000 });
               }
             });
@@ -416,14 +448,24 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
       }
     });
   }
+  
 
-  // Métodos para editar la cantidad:
+  /**
+   * Habilita el modo de edición para la cantidad de un elemento.
+   * Si no estamos en modo soloDetalle, permite la edición.
+   * @param item - El elemento cuyo campo de cantidad se desea editar.
+   */
   enableEditing(item: EditableElemento): void {
     if (this.soloDetalle) return;
     item.editing = true;
     this.cdr.detectChanges();
   }
 
+  /**
+   * Cancela la edición de la cantidad de un elemento y restaura el valor original.
+   * Si no estamos en modo soloDetalle, restaura los cambios.
+   * @param item - El elemento cuyo campo de cantidad se desea cancelar.
+   */
   cancelEditing(item: EditableElemento): void {
     if (this.soloDetalle) return;
     if (item.editing) {
@@ -436,57 +478,57 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
     }
   }
 
+  /**
+   * Guarda los cambios realizados en el elemento del préstamo, actualizando la cantidad prestada y el stock.
+   * Si no estamos en modo soloDetalle, se guardan los cambios y se realiza la actualización.
+   * @param item - El elemento cuyo cambio de cantidad se desea guardar.
+   */
   saveChanges(item: EditableElemento): void {
     if (this.soloDetalle) return;
     if (item.editing) {
       item.editing = false;
       const pre_id = this.prestamo.idPrestamo;
       if (!pre_id) {
-        console.error('ID del préstamo no definido.');
+        this.snackBar.open('ID del préstamo no definido', 'Cerrar', { duration: 3000 });
         return;
       }
-      const originalItem = this.originalItems.find(original => original.ele_id === item.ele_id);
-      if (!originalItem) return;
-
-      const cantidadOriginal = Number(originalItem.pre_ele_cantidad_prestado);
-      const cantidadActual = Number(item.pre_ele_cantidad_prestado);
-      const diferencia = cantidadActual - cantidadOriginal;
-
-      const updatePrestamoElemento = {
-        pre_id: pre_id,
-        ele_id: item.ele_id,
-        pre_ele_cantidad_prestado: cantidadActual
-      };
-
-      const updateStock = {
-        ele_id: item.ele_id,
-        ele_cantidad_actual: -diferencia,
-        ele_cantidad_total: 0
-      };
-
-      this.prestamoService.updatePrestamoElemento(updatePrestamoElemento).subscribe({
-        next: () => {
-          this.elementoService.actualizarStock(updateStock).subscribe({
-            next: () => {
-              this.dataUpdated = true;
-              this.cdr.detectChanges();
-              this.snackBar.open('Cambios guardados correctamente', 'Cerrar', { duration: 3000 });
-            },
-            error: (error: any) => {
-              console.error('Error actualizando stock', error);
-              this.snackBar.open('Error al actualizar el stock', 'Cerrar', { duration: 3000 });
+      
+      // Convertimos la cantidad ingresada a número
+      const nuevaCantidad = Number(item.pre_ele_cantidad_prestado);
+      
+      // Llamamos al método en elementoService con los 3 parámetros requeridos
+      this.elementoService.actualizarCantidadPrestado(pre_id, item.ele_id, nuevaCantidad)
+        .subscribe({
+          next: (response: any) => {
+            console.log("Respuesta del backend al actualizar cantidad:", response);
+            if (!response.respuesta) {
+              this.snackBar.open('Error al actualizar la cantidad', 'Cerrar', { duration: 3000 });
+              return;
             }
-          });
-        },
-        error: (error: any) => {
-          console.error('Error actualizando PrestamosElementos', error);
-          this.snackBar.open('Error al guardar los cambios', 'Cerrar', { duration: 3000 });
-        }
-      });
+            // Actualizamos la vista con el stock actualizado que retorna el backend
+            const stockActualizado = response.data.ele_cantidad_actual;
+            const index = this.prestamo.elementos.findIndex(e => e.ele_id === item.ele_id);
+            if (index !== -1) {
+              this.prestamo.elementos[index].ele_cantidad_actual = stockActualizado;
+            }
+            this.dataUpdated = true;
+            this.cdr.detectChanges();
+            this.snackBar.open('Cambios guardados correctamente', 'Cerrar', { duration: 3000 });
+          },
+          error: (error: any) => {
+            console.error("Error en actualizarCantidadPrestado:", error);
+            this.snackBar.open('Error al actualizar la cantidad', 'Cerrar', { duration: 3000 });
+          }
+        });
     }
   }
-
-  // Para clases de estilo de estado
+  
+  
+  /**
+   * Retorna la clase CSS correspondiente para el estado del préstamo.
+   * @param estado - El estado del préstamo (por ejemplo, 'En proceso', 'Cancelado', etc.).
+   * @returns - La clase CSS que representa el estado.
+   */
   getEstadoClass(estado: string | undefined): string {
     if (!estado) return 'estado-desconocido';
     switch (estado) {
@@ -505,26 +547,36 @@ console.log('Puede editar cantidad:', this.puedeEditarCantidad);
     }
   }
 
-  // Formatear fecha si lo necesitas
+  /**
+   * Formatea una fecha en formato ISO (YYYY-MM-DD).
+   * Si la fecha no es válida, retorna 'Fecha no válida'.
+   * @param fecha - La fecha en formato de cadena a formatear.
+   * @returns - La fecha formateada como una cadena o 'Fecha no válida' si la fecha no es válida.
+   */
   formatearFecha(fecha: string | undefined): string {
     if (!fecha) {
-      console.error('Fecha no válida: undefined');
       return 'Fecha no válida';
     }
     const date = new Date(fecha);
     if (isNaN(date.getTime())) {
-      console.error('Fecha no válida:', fecha);
       return 'Fecha no válida';
     }
     return date.toISOString().split('T')[0];
   }
 
+  /**
+   * Obtiene el historial de estados cuando se cambia de pestaña.
+   * @param event - El evento de cambio de pestaña.
+   */
   onTabChange(event: MatTabChangeEvent): void {
     if (this.prestamo.idPrestamo !== undefined) {
       this.obtenerHistorialEstados(this.prestamo.idPrestamo);
     }
   }
 
+  /**
+   * Cierra el modal y devuelve el estado de si los datos fueron actualizados.
+   */
   close(): void {
     this.dialogRef.close(this.dataUpdated);
   }

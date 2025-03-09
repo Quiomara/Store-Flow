@@ -1,8 +1,13 @@
+<!-- Contenedor principal para la solicitud de préstamo -->
 <div class="instructor-request-container">
+  <!-- Títulos principales del sistema y el préstamo de herramientas -->
   <h1 class="text-center font-weight-bold mb-4">Sistema Integrado de Gestión</h1>
   <h2 class="text-center font-weight-bold mb-4">PRÉSTAMO DE HERRAMIENTAS</h2>
 
+  <!-- Formulario para enviar solicitud de préstamo -->
   <form (ngSubmit)="enviarSolicitud()">
+
+    <!-- Fila para mostrar la fecha actual (deshabilitada) -->
     <div class="form-row justify-content-center mt-5">
       <div class="form-group col-md-2 text-center">
         <label for="fecha" class="text-center d-block">Fecha</label>
@@ -10,48 +15,41 @@
       </div>
     </div>
 
+    <!-- Fila para ingresar nombre del elemento y cantidad -->
     <div class="form-row justify-content-center mt-5">
+      <!-- Campo de texto para buscar y seleccionar un elemento -->
       <div class="form-group col-md-6">
         <label for="elemento" class="text-center d-block">Elemento</label>
-        <input
-          type="text"
-          id="elemento"
-          [(ngModel)]="nuevoElemento.nombre"
-          name="elementoNombre"
-          class="form-control"
-          placeholder="Buscar elemento..."
-          (focus)="mostrarListaElementos()"
-          (input)="filtrarElementos()"
+        <input type="text" id="elemento" [(ngModel)]="nuevoElemento.nombre" name="elementoNombre" class="form-control"
+          placeholder="Buscar elemento..." (focus)="mostrarListaElementos()" (input)="filtrarElementos()"
           (blur)="ocultarListaElementos()">
+        <!-- Lista desplegable de elementos filtrados -->
         <ul *ngIf="mostrarElementos" class="list-group elemento-lista">
-          <li
-            class="list-group-item"
-            *ngFor="let elemento of elementosFiltrados"
+          <li class="list-group-item" *ngFor="let elemento of elementosFiltrados"
             (click)="seleccionarElemento(elemento)">
             {{ elemento.ele_nombre }}
           </li>
         </ul>
       </div>
 
+      <!-- Campo para ingresar la cantidad del elemento -->
       <div class="form-group col-md-6">
         <label for="cantidad" class="text-center d-block">Cantidad</label>
-        <input
-          type="number"
-          id="cantidad"
-          [(ngModel)]="nuevoElemento.cantidad"
-          name="elementoCantidad"
-          class="form-control"
-          placeholder="Cantidad">
+        <input type="number" id="cantidad" [(ngModel)]="nuevoElemento.cantidad" name="elementoCantidad"
+          class="form-control" placeholder="Cantidad">
+        <!-- Mostrar cantidad disponible si se ha seleccionado un elemento -->
         <small *ngIf="elementoSeleccionado" class="text-muted">
           Disponibles: {{ obtenerCantidadDisponible(elementoSeleccionado.ele_id) }}
         </small>
       </div>
     </div>
 
+    <!-- Botón para agregar el elemento a la solicitud -->
     <div class="form-row justify-content-center mt-3">
       <button type="button" class="btn btn-dark" (click)="agregarElemento()">Agregar Elemento</button>
     </div>
 
+    <!-- Tabla para mostrar los elementos agregados -->
     <table *ngIf="elementosAgregados.length > 0" class="table mt-5 text-center">
       <thead>
         <tr>
@@ -61,10 +59,12 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Listado de elementos agregados -->
         <tr *ngFor="let elemento of elementosAgregados">
           <td>{{ elemento.ele_nombre }}</td>
-          <td>{{ elemento.pre_ele_cantidad_prestado }}</td> <!-- Mostrar pre_ele_cantidad_prestado -->
+          <td>{{ elemento.pre_ele_cantidad_prestado }}</td>
           <td>
+            <!-- Botón para eliminar un elemento de la solicitud -->
             <button mat-icon-button (click)="eliminarElemento(elemento)">
               <mat-icon>delete</mat-icon>
             </button>
@@ -73,6 +73,7 @@
       </tbody>
     </table>
 
+    <!-- Botón para enviar la solicitud si hay elementos agregados -->
     <div class="form-row justify-content-center mt-5" *ngIf="elementosAgregados.length > 0">
       <button type="submit" class="btn btn-dark">Enviar Solicitud</button>
     </div>

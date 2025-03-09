@@ -1,25 +1,39 @@
+<!-- Contenedor principal de la página de administración -->
 <div class="admin-dashboard container-fluid d-flex flex-column justify-content-center align-items-center vh-100">
+  
+  <!-- Header: Barra de navegación superior con menú desplegable de administrador -->
   <header class="w-100 d-flex justify-content-end p-3">
     <div class="dropdown">
+      <!-- Elemento que muestra el nombre del administrador y un ícono -->
       <div class="admin-label d-flex align-items-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-user-cog"></i> <span class="ml-2">Administrador</span>
       </div>
+      <!-- Menú desplegable con opción de cerrar sesión -->
       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
         <a class="dropdown-item" href="#">Cerrar Sesión</a>
       </div>
     </div>
   </header>
+  
+  <!-- Contenedor principal de contenido -->
   <div class="content-container bg-white p-4 rounded">
     <div class="row no-gutters">
+      
+      <!-- Barra lateral (sidebar) con opciones de navegación -->
       <aside class="sidebar col-12 col-md-3 p-3 rounded d-flex flex-column align-items-center">
+        <!-- Logo del Sena -->
         <img src="/img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
+        
+        <!-- Lista de navegación de la barra lateral -->
         <ul class="nav flex-column">
+          <!-- Opción de registrar usuarios -->
           <li class="nav-item">
             <a class="sidebar-btn" [routerLink]="['register-user']" aria-label="Registrar Usuarios">
               <i class="fas fa-user-plus"></i>
               <span>Registrar Usuarios</span>
             </a>
           </li>
+          <!-- Opción de buscar usuarios -->
           <li class="nav-item">
             <a class="sidebar-btn" [routerLink]="['search-user']" aria-label="Buscar Usuarios">
               <i class="fas fa-search"></i>
@@ -28,7 +42,10 @@
           </li>
         </ul>
       </aside>
+      
+      <!-- Contenido principal (donde se cargan otras vistas) -->
       <main class="content col-12 col-md-9">
+        <!-- Outlet de Angular para renderizar vistas dinámicas -->
         <router-outlet></router-outlet>
       </main>
     </div>

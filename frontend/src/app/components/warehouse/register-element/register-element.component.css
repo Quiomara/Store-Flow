@@ -1,85 +1,86 @@
-/* Contenedor principal */
+/* Contenedor principal para el formulario de registro de elementos. */
 .registrar-elemento-container {
-  width: 100%;
-  max-width: 800px;
-  margin: auto;
-  padding: 2rem;
+  width: 100%; /* El contenedor ocupa el 100% del ancho disponible */
+  max-width: 800px; /* Limita el ancho máximo a 800px */
+  margin: auto; /* Centra el contenedor horizontalmente */
+  padding: 2rem; /* Relleno alrededor del contenido */
 }
 
-/* Formulario */
+/* Estilo del formulario en sí. */
 .registrar-elemento {
-  padding: 2rem;
+  padding: 2rem; /* Espaciado interno alrededor de los elementos del formulario */
 }
 
-/* Título del formulario */
+/* Estilo del título del formulario. */
 .registrar-elemento h2 {
-  margin-bottom: 3rem; /* Más espacio debajo del título */
-  text-align: center;
-  font-size: 1.8rem;
+  margin-bottom: 3rem; /* Añade más espacio debajo del título */
+  text-align: center; /* Centra el título */
+  font-size: 1.8rem; /* Tamaño de fuente más grande para el título */
 }
 
-/* Espaciado entre los grupos de campos */
+/* Estilo para los grupos de campos dentro del formulario. */
 .registrar-elemento .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem; /* Añade espaciado entre los grupos de campos */
 }
 
-/* Etiquetas de los campos */
+/* Estilo para las etiquetas de los campos del formulario. */
 .registrar-elemento label {
-  font-weight: bold;
-  display: block; /* Asegura que la etiqueta esté arriba del input */
-  margin-bottom: 0.5rem;
+  font-weight: bold; /* Aplica negrita a las etiquetas */
+  display: block; /* Asegura que las etiquetas estén encima de los inputs */
+  margin-bottom: 0.5rem; /* Espaciado debajo de las etiquetas */
 }
 
-/* Campos de entrada y select */
+/* Estilo para los campos de entrada y los selects. */
 .registrar-elemento .form-control {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+  width: 100%; /* Los campos ocupan todo el ancho disponible */
+  padding: 8px 10px; /* Relleno interno de los campos */
+  border-radius: 5px; /* Bordes redondeados */
+  border: 1px solid #ccc; /* Borde gris claro */
+  font-size: 14px; /* Tamaño de fuente pequeño para los campos */
 }
 
-/* Botón de enviar */
+/* Estilo para el botón de enviar del formulario. */
 .registrar-elemento .btn {
-  padding: 6px 12px;
-  font-size: 14px;
-  border-radius: 4px;
+  padding: 6px 12px; /* Relleno interno */
+  font-size: 14px; /* Tamaño de fuente más pequeño */
+  border-radius: 4px; /* Bordes redondeados */
 }
 
-/* Mensajes de notificación */
+/* Estilos para los mensajes de notificación (éxito, error, advertencia). */
 .snack-bar-success {
-  background-color: #4caf50; /* Verde para éxito */
-  color: white;
+  background-color: #4caf50; /* Fondo verde para mensajes de éxito */
+  color: white; /* Texto blanco */
 }
 
 .snack-bar-error {
-  background-color: #f44336; /* Rojo para error */
-  color: white;
+  background-color: #f44336; /* Fondo rojo para mensajes de error */
+  color: white; /* Texto blanco */
 }
 
 .snack-bar-warning {
-  background-color: #ff9800; /* Naranja para advertencia */
-  color: white;
+  background-color: #ff9800; /* Fondo naranja para mensajes de advertencia */
+  color: white; /* Texto blanco */
 }
 
+/* Estilo para las imágenes dentro del formulario. */
 .imagen-elemento {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain; /* O prueba object-fit: cover */
-  max-width: 100%; 
+  width: 100%; /* La imagen ocupa todo el ancho disponible */
+  height: auto; /* Mantiene la proporción de la imagen */
+  display: block; /* Asegura que la imagen se muestre como un bloque */
+  object-fit: contain; /* La imagen se ajusta al contenedor sin recortarse */
+  max-width: 100%; /* Limita el ancho máximo al 100% del contenedor */
 }
 
+/* Contenedor para la vista previa de la imagen. */
 .preview-container {
-  margin-top: 10px;
-  text-align: center;
+  margin-top: 10px; /* Espaciado superior */
+  text-align: center; /* Centra el contenido dentro del contenedor */
 }
 
+/* Estilo para la vista previa de la imagen. */
 .imagen-preview {
-  max-width: 100%;
-  max-height: 300px; /* Ajusta el tamaño según sea necesario */
-  border-radius: 5px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 100%; /* La imagen ocupa el 100% del ancho disponible */
+  max-height: 300px; /* Limita la altura máxima a 300px */
+  border-radius: 5px; /* Bordes redondeados */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil alrededor de la imagen */
 }
-
-

@@ -1,11 +1,17 @@
+<!-- Modal de éxito que muestra un mensaje cuando la solicitud se realiza correctamente -->
 <div class="success-modal">
+  
+  <!-- Encabezado del modal, que incluye el título y el botón de cierre -->
   <div class="modal-header">
-    <h1>Solicitud Exitosa</h1>
-    <button mat-icon-button class="close-btn" (click)="cerrar()">
-      <mat-icon>close</mat-icon>
+    <h1>Solicitud Exitosa</h1> <!-- Título del modal -->
+    <button mat-icon-button class="close-btn" (click)="cerrar()"> <!-- Botón para cerrar el modal -->
+      <mat-icon>close</mat-icon> <!-- Ícono de cierre (X) -->
     </button>
   </div>
+
+  <!-- Contenido del modal donde se muestra el mensaje de éxito -->
   <div class="modal-content">
-    <p>{{ data.mensaje }}</p>
+    <p>{{ data.mensaje }}</p> <!-- Mensaje dinámico que se pasa al modal -->
   </div>
+
 </div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -30,6 +30,12 @@ export class ForgotPasswordPopupComponent {
   successMessage: string = '';
   showMessage: boolean = false;
 
+  /**
+   * Crea una instancia de ForgotPasswordPopupComponent.
+   * @param dialogRef Referencia al diálogo para poder cerrarlo.
+   * @param fb FormBuilder utilizado para crear el formulario reactivo.
+   * @param authService Servicio de autenticación para manejar la lógica de recuperación de contraseña.
+   */
   constructor(
     private dialogRef: MatDialogRef<ForgotPasswordPopupComponent>,
     private fb: FormBuilder,
@@ -40,6 +46,10 @@ export class ForgotPasswordPopupComponent {
     });
   }
 
+  /**
+   * Envía el correo de recuperación de contraseña si el formulario es válido.
+   * Muestra el mensaje de éxito si la respuesta es exitosa o el mensaje de error si ocurre un fallo.
+   */
   sendForgotPasswordEmail() {
     if (this.forgotPasswordForm.invalid) {
       this.errorMessage = 'El correo es necesario y debe ser válido.';
@@ -60,6 +70,9 @@ export class ForgotPasswordPopupComponent {
     );
   }
 
+  /**
+   * Cierra el diálogo de la ventana emergente.
+   */
   close() {
     this.dialogRef.close();
   }

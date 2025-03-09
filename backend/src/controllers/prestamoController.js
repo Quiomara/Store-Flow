@@ -61,20 +61,26 @@ const crearPrestamo = async (req, res) => {
     if (!prestamoId) throw new Error("No se pudo obtener el ID del préstamo.");
 
     // Insertar los elementos asociados al préstamo
-    await Promise.all(elementos.map(item =>
-      connection.execute(
+    await Promise.all(elementos.map(async (item) => {
+      // Insertar el elemento en PrestamosElementos
+      await connection.execute(
         `INSERT INTO PrestamosElementos (pre_id, ele_id, pre_ele_cantidad_prestado) 
          VALUES (?, ?, ?)`,
         [prestamoId, item.ele_id, item.pre_ele_cantidad_prestado]
-      )
-    ));
+      );
+
+      // Actualizar la cantidad actual del elemento en la tabla Elementos
+      await connection.execute(
+        `UPDATE Elementos 
+         SET ele_cantidad_actual = ele_cantidad_actual - ? 
+         WHERE ele_id = ?`,
+        [item.pre_ele_cantidad_prestado, item.ele_id]
+      );
+    }));
 
     // Buscar el nombre completo del usuario (a partir de la cédula)
-    const [rowsUser] = await connection.execute(`
-      SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
-      FROM usuarios
-      WHERE usr_cedula = ?
-    `, [usr_cedula]);
+    const [rowsUser] = await connection.execute(`SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
+                                                  FROM usuarios WHERE usr_cedula = ?`, [usr_cedula]);
 
     let nombreCompleto = usr_cedula;
     if (rowsUser.length > 0) {
@@ -119,7 +125,6 @@ const crearPrestamo = async (req, res) => {
   }
 };
 
-// Actualizar Préstamo
 /**
  * Actualiza un préstamo existente.
  * 
@@ -181,55 +186,74 @@ const actualizarPrestamo = async (req, res) => {
   }
 };
 
-// Eliminar Préstamo con control de stock
 /**
- * Elimina un préstamo junto con sus elementos asociados.
+ * Eliminar Préstamo junto con sus elementos asociados. (Control de stock)
  * 
  * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
  * @param {Object} res - Objeto de respuesta HTTP.
  */
 const eliminarPrestamo = async (req, res) => {
   const { pre_id } = req.params;
-  
+
+  // Verifica que el ID del préstamo esté presente
   if (!pre_id) {
-      return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
+    console.error("Error: ID del préstamo es requerido.");
+    return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
   let connection;
 
   try {
-      connection = await db.getConnection();
-      await connection.beginTransaction();
+    // Log de entrada
+    console.log(`Intentando eliminar el préstamo con ID: ${pre_id}`);
+    
+    // Obtener conexión a la base de datos
+    connection = await db.getConnection();
+    await connection.beginTransaction();
 
-      // Eliminar primero los elementos asociados al préstamo
-      await connection.execute(
-          `DELETE FROM PrestamosElementos WHERE pre_id = ?`,
-          [pre_id]
-      );
+    // Eliminar primero los elementos asociados al préstamo
+    console.log(`Eliminando elementos asociados al préstamo con ID: ${pre_id}`);
+    const deleteElementosResult = await connection.execute(
+      `DELETE FROM PrestamosElementos WHERE pre_id = ?`,
+      [pre_id]
+    );
+    console.log(`Elementos eliminados: ${deleteElementosResult.affectedRows}`);
 
-      // Eliminar el préstamo en sí
-      const [result] = await connection.execute(
-          `DELETE FROM Prestamos WHERE pre_id = ?`,
-          [pre_id]
-      );
+    // Verificar si la eliminación de elementos fue exitosa
+    if (deleteElementosResult.affectedRows === 0) {
+      console.warn(`No se encontraron elementos asociados al préstamo con ID: ${pre_id}`);
+    }
 
-      if (result.affectedRows === 0) {
-          throw new Error("No se encontró el préstamo o ya fue eliminado.");
-      }
+    // Eliminar el préstamo en sí
+    const [result] = await connection.execute(
+      `DELETE FROM Prestamos WHERE pre_id = ?`,
+      [pre_id]
+    );
 
-      await connection.commit();
-      res.json({ success: true, message: "Préstamo eliminado correctamente" });
+    // Si no se encuentra el préstamo
+    if (result.affectedRows === 0) {
+      console.error(`No se encontró el préstamo con ID: ${pre_id}`);
+      throw new Error("No se encontró el préstamo o ya fue eliminado.");
+    }
+
+    // Confirmar la transacción
+    await connection.commit();
+    
+    console.log(`Préstamo con ID: ${pre_id} eliminado correctamente.`);
+    res.json({ success: true, message: "Préstamo eliminado correctamente" });
 
   } catch (error) {
-      if (connection) await connection.rollback();
-      logger.error("Error al eliminar el préstamo: " + error.message);
-      res.status(500).json({ success: false, message: "Error al eliminar el préstamo", error: error.message });
+    if (connection) await connection.rollback();
+
+    // Log del error
+    console.error(`Error al eliminar el préstamo: ${error.message}`);
+    res.status(500).json({ success: false, message: "Error al eliminar el préstamo", error: error.message });
   } finally {
-      if (connection) connection.release();
+    if (connection) connection.release();
   }
 };
 
-// Obtener todos los préstamos
+
 /**
  * Obtiene la lista de todos los préstamos disponibles.
  * 
@@ -253,7 +277,6 @@ const obtenerTodosPrestamos = async (req, res) => {
   }
 };
 
-// Obtener préstamo por ID
 /**
  * Obtiene la información de un préstamo por su ID.
  * 
@@ -280,17 +303,16 @@ const obtenerPrestamoPorId = async (req, res) => {
     }
 
     const elementos = await PrestamoElemento.obtenerPorPrestamoId(pre_id);
-    res.json({ 
-      respuesta: true, 
-      mensaje: 'Préstamo obtenido con éxito.', 
-      data: { ...prestamo, elementos } 
+    res.json({
+      respuesta: true,
+      mensaje: 'Préstamo obtenido con éxito.',
+      data: { ...prestamo, elementos }
     });
   } catch (err) {
     manejarError(res, 'Error al obtener el préstamo', err);
   }
 };
 
-// Obtener préstamos por cédula
 /**
  * Obtiene los préstamos asociados a una cédula de usuario.
  * 
@@ -323,69 +345,112 @@ const obtenerPrestamosPorCedula = async (req, res) => {
   }
 };
 
-// Obtener elementos del préstamo
-/**
- * Obtiene los elementos asociados a un préstamo.
- * 
- * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
- * @param {Object} res - Objeto de respuesta HTTP.
- */
 const obtenerElementoPrestamos = async (req, res) => {
   const pre_id = req.params.pre_id;
+  
+  console.log(`🔍 Buscando elementos del préstamo con ID: ${pre_id}`);
 
   try {
     const results = await Prestamo.obtenerElementosPrestamo(pre_id);
 
     if (results.length === 0) {
+      console.warn(`⚠ No se encontraron elementos para el préstamo ${pre_id}`);
       return res.status(404).json({ respuesta: false, mensaje: 'Préstamo no encontrado' });
     }
 
-    // Extrae el estado del préstamo del primer resultado
+    // Formatear la respuesta
     const estadoPrestamo = results[0].estado;
-
-    // Formatea la respuesta para incluir el estado y los elementos
     const respuesta = {
       respuesta: true,
       mensaje: '¡Elementos del préstamo obtenidos con éxito!',
-      estadoPrestamo: estadoPrestamo, // Incluye el estado del préstamo
+      estadoPrestamo: estadoPrestamo,
       data: results.map(item => ({
         pre_id: item.pre_id,
         ele_id: item.ele_id,
         pre_ele_cantidad_prestado: item.pre_ele_cantidad_prestado,
-        nombre: item.nombre
+        nombre: item.nombre,
+        ele_cantidad_actual: item.ele_cantidad_actual  // Se agrega en la respuesta
       }))
     };
 
     res.json(respuesta);
   } catch (err) {
-    logger.error('Error al obtener los elementos del préstamo: ' + err);
+    console.error('❌ Error al obtener los elementos del préstamo:', err);
     res.status(500).json({ respuesta: false, mensaje: 'Error al obtener los elementos del préstamo' });
   }
 };
 
-// Actualizar cantidad de un elemento en un préstamo
+/**
+ * Actualiza la cantidad de un elemento en un préstamo y ajusta el stock correspondiente.
+ * @param {Object} req - Objeto de solicitud con pre_id, ele_id, pre_ele_cantidad_prestado, cancelar y entregado.
+ * @param {Object} res - Objeto de respuesta para el cliente.
+ */
 const actualizarCantidadElemento = async (req, res) => {
-  const { pre_id, ele_id, pre_ele_cantidad_prestado } = req.body;
-
-  // Verificar que los campos necesarios estén presentes
+  const { pre_id, ele_id, pre_ele_cantidad_prestado } = req.body; // Este valor es la nueva cantidad deseada
   if (!pre_id || !ele_id || pre_ele_cantidad_prestado === undefined) {
-    return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios: pre_id, ele_id o pre_ele_cantidad_prestado.' });
+    return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios.' });
   }
-
+  
   try {
+    // Obtener la cantidad actual prestada para este elemento en el préstamo
+    const [rows] = await db.execute(
+      "SELECT pre_ele_cantidad_prestado FROM PrestamosElementos WHERE pre_id = ? AND ele_id = ?",
+      [pre_id, ele_id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ respuesta: false, mensaje: "No se encontró el registro del préstamo." });
+    }
+    const cantidadOriginal = Number(rows[0].pre_ele_cantidad_prestado);
+    const cantidadNueva = Number(pre_ele_cantidad_prestado);
+    const diferencia = cantidadNueva - cantidadOriginal; 
+    // Si diferencia > 0, se aumenta la cantidad prestada y se debe reducir el stock en esa diferencia.
+    // Si diferencia < 0, se reduce la cantidad prestada y se debe aumentar el stock en esa diferencia.
+
     // Actualizar la cantidad en PrestamosElementos
-    await Prestamo.actualizarCantidadElemento(pre_id, ele_id, pre_ele_cantidad_prestado);
+    const [result] = await db.execute(
+      "UPDATE PrestamosElementos SET pre_ele_cantidad_prestado = ? WHERE pre_id = ? AND ele_id = ?",
+      [cantidadNueva, pre_id, ele_id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ respuesta: false, mensaje: "No se pudo actualizar la cantidad en el préstamo." });
+    }
 
-    // Actualizar el stock en Elementos
-    await Elemento.actualizarStock(ele_id, -pre_ele_cantidad_prestado);
+    // Ajustar el stock: se actualiza sumando (-diferencia) al stock actual
+    // Es decir, si se incrementa la cantidad prestada (diferencia positiva), se resta esa cantidad al stock;
+    // si se reduce la cantidad prestada (diferencia negativa), se suma esa cantidad (por su valor absoluto).
+    const [resultStock] = await db.execute(
+      "UPDATE Elementos SET ele_cantidad_actual = ele_cantidad_actual - ? WHERE ele_id = ?",
+      [diferencia, ele_id]
+    );
 
-    res.json({ respuesta: true, mensaje: 'Cantidad y stock actualizados con éxito' });
+    // Obtener el stock actualizado
+    const [elementoRows] = await db.execute(
+      "SELECT ele_cantidad_actual FROM Elementos WHERE ele_id = ?",
+      [ele_id]
+    );
+
+    return res.status(200).json({ 
+      respuesta: true, 
+      mensaje: "Cantidad actualizada con éxito.", 
+      data: elementoRows[0] // Devuelve, por ejemplo, { ele_cantidad_actual: <valor_actualizado> }
+    });
   } catch (err) {
-    res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar la cantidad o el stock', error: err.message });
+    console.error("Error al actualizar cantidad:", err);
+    return res.status(500).json({ 
+      respuesta: false, 
+      mensaje: 'Error al actualizar la cantidad o el stock', 
+      error: err.message 
+    });
   }
 };
 
-// Actualizar el estado de un préstamo
+
+/**
+ * Actualiza el estado de un préstamo y su historial de estados.
+ * @param {Object} req - El objeto de solicitud que contiene los parámetros de la URL y el cuerpo con los datos necesarios.
+ * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {void}
+ */
 const actualizarEstadoPrestamo = async (req, res) => {
   const { pre_id } = req.params;
   const { est_id, usr_cedula } = req.body;
@@ -447,7 +512,13 @@ const actualizarEstadoPrestamo = async (req, res) => {
   }
 };
 
-// Cancelar un préstamo
+/**
+ * Cancela un préstamo dado su ID y restaura la cantidad de los elementos prestados.
+ * @param {Object} req - El objeto de solicitud que contiene el ID del préstamo.
+ * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {void}
+ */
+
 const cancelarPrestamo = async (req, res) => {
   const pre_id = Number(req.params.pre_id);
 
@@ -455,15 +526,68 @@ const cancelarPrestamo = async (req, res) => {
     return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
+  let connection;
+
   try {
-    const resultado = await Prestamo.cancelarPrestamo(pre_id);
-    return res.status(200).json(resultado);
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    // Obtener los elementos asociados al préstamo
+    const [prestamoElementos] = await connection.execute(
+      `SELECT ele_id, pre_ele_cantidad_prestado
+       FROM PrestamosElementos
+       WHERE pre_id = ?`,
+      [pre_id]
+    );
+
+    // Restaurar la cantidad de cada elemento prestado
+    await Promise.all(prestamoElementos.map(async (elemento) => {
+      await connection.execute(
+        `UPDATE Elementos
+         SET ele_cantidad_actual = ele_cantidad_actual + ?
+         WHERE ele_id = ?`,
+        [elemento.pre_ele_cantidad_prestado, elemento.ele_id]
+      );
+    }));
+
+    // Actualizar el estado del préstamo a "Cancelado" y asignar la fecha de cancelación en la base de datos
+    const ESTADO_CANCELADO = 5;
+    await connection.execute(
+      `UPDATE Prestamos
+       SET est_id = ?, pre_actualizacion = NOW(), pre_fin = NOW()
+       WHERE pre_id = ?`,
+      [ESTADO_CANCELADO, pre_id]
+    );
+
+    // Confirmar la transacción
+    await connection.commit();
+
+    // 🔄 Obtener datos actualizados después de la cancelación
+    const datosActualizados = await Prestamo.obtenerElementosPrestamo(pre_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Préstamo cancelado y cantidades restauradas.",
+      estadoPrestamo: "Cancelado",
+      fechaCancelacion: new Date().toISOString(), // Para confirmar la fecha en la respuesta
+      data: datosActualizados,
+    });
+
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    if (connection) await connection.rollback();
+    return res.status(500).json({ success: false, message: "Error al cancelar el préstamo", error: error.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
-// Obtener el historial de un préstamo
+
+/**
+ * Obtiene el historial de estado de un préstamo dado su ID.
+ * @param {Object} req - El objeto de solicitud que contiene los parámetros de la URL con el ID del préstamo.
+ * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {void}
+ */
 const obtenerHistorialEstado = async (req, res) => {
   try {
     const pre_id = req.params.pre_id;
@@ -479,6 +603,28 @@ const obtenerHistorialEstado = async (req, res) => {
   }
 };
 
+/**
+ * Controlador para entregar un préstamo
+ * @param {Object} req - El objeto de solicitud que contiene el ID del préstamo.
+ * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {void}
+ */
+const entregarPrestamo = async (req, res) => {
+  const pre_id = Number(req.params.pre_id);
+
+  if (!pre_id) {
+    return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
+  }
+
+  try {
+    const result = await Prestamo.entregarPrestamo(pre_id);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Error al entregar el préstamo", error: error.message });
+  }
+
+};
+
 module.exports = {
   crearPrestamo,
   actualizarPrestamo,
@@ -491,4 +637,6 @@ module.exports = {
   actualizarEstadoPrestamo,
   cancelarPrestamo,
   obtenerHistorialEstado,
+  entregarPrestamo,
 };
+

@@ -13,9 +13,10 @@ import { Estado } from '../../../models/estado.model';
 import { PrestamoDetalleModalComponent } from '../../../components/prestamo-detalle-modal/prestamo-detalle-modal.component';
 import { UserService } from '../../../services/user.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { HistorialAccionesComponent } from './../historial-acciones/historial-acciones.component';
 
-
+/**
+ * Componente para mostrar el historial de préstamos en el almacén.
+ */
 @Component({
   selector: 'app-warehouse-history',
   templateUrl: './warehouse-history.component.html',
@@ -62,6 +63,9 @@ export class WarehouseHistoryComponent implements OnInit {
     this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
+  /**
+   * Inicializa el componente y carga los datos.
+   */
   async ngOnInit(): Promise<void> {
     await this.loadInitialData();
 
@@ -73,15 +77,21 @@ export class WarehouseHistoryComponent implements OnInit {
       .subscribe(() => this.buscar());
   }
 
+  /**
+   * Carga los datos iniciales, incluyendo el historial de préstamos y los estados.
+   */
   async loadInitialData(): Promise<void> {
     await this.getHistory();
     this.getEstados();
   }
 
+  /**
+   * Obtiene el historial de préstamos.
+   */
   async getHistory(): Promise<void> {
     try {
       const prestamos = await this.prestamoService.getPrestamos().toPromise();
-  
+
       if (prestamos && Array.isArray(prestamos)) {
         this.prestamos = prestamos
           .map((item: any) => ({
@@ -96,13 +106,8 @@ export class WarehouseHistoryComponent implements OnInit {
             estado: item.est_nombre,
             elementos: item.elementos || []
           }))
-          // En un historial es probable que quieras ver TODOS los préstamos, incluidos los entregados o cancelados.
-          // .filter(prestamo => {
-          //   const estado = prestamo.estado.toLowerCase();
-          //   return estado !== 'entregado' && estado !== 'cancelado';
-          // })
           .sort((a, b) => new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime());
-  
+
         this.filteredPrestamos = new MatTableDataSource<Prestamo>(this.prestamos);
         this.filteredPrestamos.paginator = this.paginator;
         this.buscar();
@@ -110,84 +115,90 @@ export class WarehouseHistoryComponent implements OnInit {
         this.snackBar.open('No se encontraron préstamos.', 'Cerrar', { duration: 5000 });
       }
     } catch (error) {
-      console.error('Error al obtener el historial de préstamos', error);
       this.snackBar.open('Ocurrió un error al obtener el historial. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
     }
   }
-  
+
+  /**
+   * Obtiene los estados disponibles.
+   */
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
       (data: Estado[]) => {
-        // Para el historial, mostramos todos los estados.
         this.estados = data;
       },
       (error: any) => {
-        console.error('Error al obtener los estados', error);
         this.snackBar.open('Ocurrió un error al obtener los estados. Por favor, intenta nuevamente más tarde.', 'Cerrar', { duration: 5000 });
       }
     );
   }
 
+  /**
+   * Filtra los préstamos en base a los criterios de búsqueda.
+   */
   buscar(): void {
     const { searchId, searchEstado, searchFecha, searchInstructor } = this.searchForm.value;
     let filteredData = this.prestamos;
-  
+
     // Filtrar por ID
     if (searchId) {
       filteredData = filteredData.filter(
         prestamo => prestamo.idPrestamo && prestamo.idPrestamo.toString().includes(searchId)
       );
     }
-  
+
     // Filtrar por Estado
     if (searchEstado && searchEstado.trim() !== '') {
       filteredData = filteredData.filter(
         prestamo => prestamo.estado && prestamo.estado.toLowerCase().includes(searchEstado.trim().toLowerCase())
       );
     }
-  
+
     // Filtrar por Fecha
     if (searchFecha) {
       const parsedSearchFecha = new Date(searchFecha);
-  
+
       if (isNaN(parsedSearchFecha.getTime())) {
-        console.error("Fecha de búsqueda inválida:", searchFecha);
+        this.snackBar.open("Fecha de búsqueda inválida.", 'Cerrar', { duration: 3000 });
         return; // Detiene el filtro si la fecha ingresada no es válida
       }
-  
+
       filteredData = filteredData.filter(prestamo => {
         // Si no hay fecha en el préstamo, se descarta
         if (!prestamo.fechaInicio) return false;
-  
+
         const parsedPrestamoFecha = new Date(prestamo.fechaInicio);
         // Si la fecha del préstamo no es válida, también se descarta
         if (isNaN(parsedPrestamoFecha.getTime())) {
-          console.warn("Fecha inválida en el préstamo:", prestamo);
           return false;
         }
-  
+
         // Convertimos ambas fechas a 'YYYY-MM-DD' para compararlas sin hora
         const prestamoFechaStr = parsedPrestamoFecha.toISOString().split('T')[0];
         const searchFechaStr = parsedSearchFecha.toISOString().split('T')[0];
-  
+
         return prestamoFechaStr === searchFechaStr;
       });
     }
-  
+
     // Filtrar por Nombre de Instructor
     if (searchInstructor) {
       filteredData = filteredData.filter(
         prestamo => prestamo.instructorNombre?.toLowerCase().includes(searchInstructor.trim().toLowerCase())
       );
     }
-  
+
     // Actualizar el DataSource con los resultados filtrados
     this.filteredPrestamos.data = filteredData;
-  
+
     // Mostrar mensaje si no hay resultados
     this.actualizarMensajeNoPrestamos(searchEstado);
   }
 
+  /**
+ * Actualiza el mensaje que se muestra cuando no se encuentran préstamos en el filtro.
+ * @param searchEstado - El estado de búsqueda que se está utilizando.
+ */
   actualizarMensajeNoPrestamos(searchEstado: string): void {
     if (this.filteredPrestamos.data.length === 0) {
       switch (searchEstado?.toLowerCase()) {
@@ -208,16 +219,20 @@ export class WarehouseHistoryComponent implements OnInit {
     }
   }
 
+  /**
+   * Muestra los detalles de un préstamo en un modal.
+   * @param prestamo - El préstamo cuyos detalles se van a mostrar.
+   */
   verDetalles(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
-      data: { 
+      data: {
         prestamo: { ...prestamo, fechaInicio: prestamo.fechaInicio },
         soloDetalle: true // Indicamos que es solo para visualizar detalles
       },
       disableClose: true
     });
-  
+
     dialogRef.afterClosed().subscribe((updated: boolean) => {
       if (updated) {
         this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
@@ -229,56 +244,68 @@ export class WarehouseHistoryComponent implements OnInit {
       }
     });
   }
-  
-  
+
+  /**
+   * Formatea una fecha en formato 'dd/mm/yyyy'.
+   * @param fecha - Fecha a formatear, puede ser un string o un objeto Date.
+   * @returns La fecha formateada en 'dd/mm/yyyy' o una cadena vacía si la fecha no es válida.
+   */
   formatearFecha(fecha: string | Date): string {
-    // 1. Verificar que la fecha no sea nula o indefinida
-    if (!fecha) return '';
-  
-    // 2. Convertir la fecha a objeto Date
+    if (!fecha) return ''; // Verifica que la fecha no sea nula o indefinida
+
     const fechaObj = new Date(fecha);
-  
-    // 3. Verificar si la fecha es válida
+
     if (isNaN(fechaObj.getTime())) {
-      // Si la fecha es inválida, devolver un string vacío (o un mensaje de error)
+      // Si la fecha es inválida, devuelve una cadena vacía
       return '';
     }
-  
-    // 4. Devolver la fecha en el formato deseado
-    // Ejemplo: "28/02/2025"
+
     return fechaObj.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
   }
-  
+
+  /**
+   * Establece el valor del estado seleccionado en el formulario de búsqueda.
+   * @param event - El evento que contiene el valor seleccionado.
+   */
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const estadoSeleccionado = selectElement.value;
     this.searchForm.get('searchEstado')?.setValue(estadoSeleccionado);
-    this.buscar();
+    this.buscar(); // Realiza la búsqueda con el nuevo estado seleccionado
   }
-  
+
+  /**
+   * Obtiene la clase CSS correspondiente al estado de un préstamo.
+   * @param estado - El estado del préstamo para el cual se desea obtener la clase CSS.
+   * @returns La clase CSS asociada al estado.
+   */
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
-      case 'creado': 
+      case 'creado':
         return 'estado-creado';
-      case 'en proceso': 
+      case 'en proceso':
         return 'estado-proceso';
-      case 'préstamo': 
+      case 'préstamo':
         return 'estado-prestamo';
-      case 'pendiente': 
+      case 'pendiente':
         return 'estado-pendiente';
-      case 'cancelado': 
+      case 'cancelado':
         return 'estado-cancelado';
-      case 'entregado': 
+      case 'entregado':
         return 'estado-entregado';
-      default: 
+      default:
         return 'estado-default';
     }
   }
 
+  /**
+   * Muestra el historial de un préstamo en un modal.
+   * @param prestamo - El préstamo cuyo historial se desea ver.
+   */
   verHistorial(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
@@ -286,16 +313,14 @@ export class WarehouseHistoryComponent implements OnInit {
         prestamo: prestamo,
         soloDetalle: true,
         incluirHistorial: true,
-        historialEstados: prestamo.historial_estados || []
+        historialEstados: prestamo.historial_estados || [] // Si no hay historial, se pasa un arreglo vacío
       },
       disableClose: true
     });
-  
+
     dialogRef.afterClosed().subscribe(result => {
       // Manejas el resultado si es necesario
     });
   }
-  
-  
 }
-  
+

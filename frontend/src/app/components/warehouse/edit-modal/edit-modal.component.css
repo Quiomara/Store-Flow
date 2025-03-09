@@ -1,29 +1,34 @@
+/* Estilo para el título modal */
 .modal-title {
-    font-weight: bold;
-    text-align: center;
-  }
-  
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .form-column {
-    flex: 1;
-    padding: 0 10px;
-  }
-  
-  .full-width {
-    width: 100%;
-  }
-  
-  mat-form-field {
-    display: block;
-  }
-  
-  input[type="file"] {
-    width: 100%;
-  }
-  
+  font-weight: bold; /* Aplica negrita al texto del título */
+  text-align: center; /* Centra el texto horizontalmente */
+}
+
+/* Estilo para las filas del formulario */
+.form-row {
+  display: flex; /* Utiliza un layout flexible para los elementos dentro */
+  justify-content: space-between; /* Distribuye los elementos con espacio entre ellos */
+  align-items: center; /* Alinea los elementos verticalmente al centro */
+  margin-bottom: 20px; /* Añade un margen inferior entre las filas */
+}
+
+/* Estilo para las columnas dentro de una fila */
+.form-column {
+  flex: 1; /* Hace que cada columna ocupe un espacio flexible */
+  padding: 0 10px; /* Añade un espacio lateral entre las columnas */
+}
+
+/* Estilo para elementos con ancho completo */
+.full-width {
+  width: 100%; /* Hace que el elemento ocupe todo el ancho disponible */
+}
+
+/* Estilo para los campos de formulario mat-form-field */
+mat-form-field {
+  display: block; /* Hace que el campo se muestre como bloque, ocupando toda la línea */
+}
+
+/* Estilo para el input de tipo archivo */
+input[type="file"] {
+  width: 100%; /* Hace que el input de archivo ocupe todo el ancho disponible */
+}

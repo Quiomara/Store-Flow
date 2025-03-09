@@ -29,21 +29,31 @@ export class ResetPasswordComponent {
   message: string = '';
   errorMessage: string = '';
 
+  /**
+   * Constructor del componente, obtiene el token de la URL.
+   * @param authService - Servicio de autenticación para resetear la contraseña.
+   * @param route - Proporciona acceso a los parámetros de la ruta.
+   * @param router - Permite la navegación a otras rutas.
+   */
   constructor(private authService: AuthService, private route: ActivatedRoute, private router: Router) {
     this.token = this.route.snapshot.queryParams['token'];
   }
 
+  /**
+   * Resetea la contraseña del usuario si los campos son válidos.
+   * Valida que las contraseñas coincidan y que los campos no estén vacíos.
+   */
   resetPassword() {
     if (!this.newPassword || !this.confirmPassword) {
       this.errorMessage = 'Todos los campos son necesarios.';
       return;
     }
-  
+
     if (this.newPassword !== this.confirmPassword) {
       this.errorMessage = 'Las contraseñas no coinciden.';
       return;
     }
-  
+
     this.authService.resetPassword(this.token, this.newPassword).subscribe({
       next: (response) => {
         this.message = response.message;
@@ -53,7 +63,6 @@ export class ResetPasswordComponent {
         }, 3000);
       },
       error: (error) => {
-        console.error('Error en resetPassword:', error);
         this.errorMessage = error.error?.message || 'Error desconocido.';
         this.message = '';
       }

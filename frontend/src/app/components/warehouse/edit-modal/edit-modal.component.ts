@@ -1,5 +1,5 @@
-import { Component, Inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, OnInit,} from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule,} from '@angular/material/dialog';
+import { Component, Inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -35,6 +35,16 @@ export class EditModalComponent implements OnInit, AfterViewInit {
   selectedFile: File | null = null; // Definir selectedFile
   readonly MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
+  /**
+   * Constructor del componente EditModal.
+   * @param dialogRef - Referencia al diálogo para cerrarlo.
+   * @param data - Datos inyectados que contienen el formulario y ubicaciones.
+   * @param ubicacionService - Servicio para manejar ubicaciones.
+   * @param authService - Servicio de autenticación.
+   * @param router - Router para la navegación.
+   * @param cdr - Referencia al ChangeDetectorRef para detectar cambios.
+   * @param http - Cliente HTTP para realizar solicitudes.
+   */
   constructor(
     public dialogRef: MatDialogRef<EditModalComponent>,
     @Inject(MAT_DIALOG_DATA)
@@ -58,40 +68,47 @@ export class EditModalComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Cierra el modal sin hacer cambios.
+   */
   onNoClick(): void {
     this.dialogRef.close();
   }
 
+  /**
+   * Maneja la selección de archivo de imagen, validando y redimensionando la imagen antes de cargarla.
+   * @param event - Evento de selección de archivo.
+   */
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
-  
+
     // Verificar que el archivo es válido y que es una imagen
     if (!file) {
       return;
     }
-  
+
     if (!file.type.startsWith('image/')) {
       alert('Solo se permiten archivos de imagen (JPG o PNG).');
       return;
     }
-  
+
     this.fileSelected = !!file;
     this.selectedFile = file;
-  
+
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.src = reader.result as string;
-  
+
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-  
+
         const MAX_WIDTH = 800;
         const MAX_HEIGHT = 800;
         let width = img.width;
         let height = img.height;
-  
+
         if (width > height) {
           if (width > MAX_WIDTH) {
             height *= MAX_WIDTH / width;
@@ -103,22 +120,25 @@ export class EditModalComponent implements OnInit, AfterViewInit {
             height = MAX_HEIGHT;
           }
         }
-  
+
         canvas.width = width;
         canvas.height = height;
         ctx?.drawImage(img, 0, 0, width, height);
-  
+
         const resizedImage = canvas.toDataURL('image/jpeg');
         this.data.form.patchValue({ ele_imagen: resizedImage });
       };
     };
     reader.readAsDataURL(file);
   }
-  
+
+  /**
+   * Actualiza el elemento con la información del formulario.
+   * @returns Un observable con la respuesta de la solicitud HTTP.
+   */
   actualizarElemento(): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
-      console.error('Token no encontrado');
       return of(null);
     }
 
@@ -138,10 +158,12 @@ export class EditModalComponent implements OnInit, AfterViewInit {
     return this.http.put('http://localhost:3000/api/elementos/actualizar', elemento, { headers });
   }
 
+  /**
+   * Obtiene las ubicaciones disponibles mediante el servicio.
+   */
   obtenerUbicaciones(): void {
     this.ubicacionService.getUbicaciones().subscribe(
       (data: Ubicacion[]) => {
-        console.log('Ubicaciones obtenidas en el modal de edición:', data);
         this.ubicaciones = data;
         this.cdr.detectChanges();
       },
@@ -151,10 +173,12 @@ export class EditModalComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Guarda los cambios realizados en el formulario y actualiza el elemento.
+   */
   guardar(): void {
     this.actualizarElemento().subscribe(
       (response: any) => {
-        console.log('Elemento actualizado con éxito:', response);
         this.dialogRef.close(this.data.form.value);
       },
       (error: any) => {

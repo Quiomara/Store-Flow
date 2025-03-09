@@ -3,9 +3,11 @@ const bcrypt = require('bcryptjs');
 /**
  * Genera un hash para una contraseña específica.
  * 
- * - Se define una contraseña (`adminpassword`).
- * - Se genera un hash con un factor de costo de 10.
- * - El hash generado puede ser utilizado para almacenamiento seguro de contraseñas.
+ * @returns {string} El hash generado a partir de la contraseña.
+ * 
+ * @description
+ * La función toma una contraseña (en este caso, 'adminpassword'), la encripta utilizando 
+ * el algoritmo bcrypt con un factor de costo de 10 y devuelve el hash generado.
  */
 const generarHash = () => {
   const contrasena = 'adminpassword'; // La contraseña que quieres encriptar

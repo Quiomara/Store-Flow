@@ -1,12 +1,15 @@
+/* Importar la fuente "Inria Serif" desde Google Fonts con pesos 400 y 700 */
 @import url('https://fonts.googleapis.com/css2?family=Inria+Serif:wght@400;700&display=swap');
-  
+
+/* Estilo para el título del diálogo */
 .dialog-title {
-  text-align: center; /* Centrar el texto */
-  width: 100%;        /* Asegurarse de que tome todo el ancho disponible */
-  margin: 0;          /* Eliminar márgenes adicionales */
+  text-align: center; /* Centra el texto horizontalmente en su contenedor */
+  width: 100%;        /* Hace que el título ocupe todo el ancho disponible de su contenedor */
+  margin: 0;          /* Elimina márgenes adicionales alrededor del título */
 }
+
+/* Estilo para un título centrado con texto en negrita */
 .centered-title {
-  text-align: center;
-  font-weight: bold;
+  text-align: center; /* Centra el texto horizontalmente en su contenedor */
+  font-weight: bold;  /* Aplica el peso de fuente en negrita al texto */
 }
-  

@@ -1,14 +1,16 @@
+/* Estilos para el título centrado y en negrita */
 .centered-title {
-    text-align: center;
-    font-weight: bold;
-  }
-  
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .half-width {
-    width: 48%;
-  }
-  
+  text-align: center;  /* Centra el texto horizontalmente */
+  font-weight: bold;   /* Aplica negrita al texto */
+}
+
+/* Estilos para el contenedor de las filas del formulario */
+.form-row {
+  display: flex;  /* Utiliza flexbox para disposición flexible */
+  justify-content: space-between; /* Distribuye el espacio entre los elementos de la fila */
+}
+
+/* Estilos para elementos de ancho reducido (48% del contenedor) */
+.half-width {
+  width: 48%;  /* Define un ancho de 48% para los elementos que usan esta clase */
+}

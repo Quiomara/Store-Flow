@@ -1,5 +1,6 @@
 const Elemento = require('../models/elementoModel');
 const PrestamoElemento = require('../models/prestamoElementoModel');
+const db = require('../config/db');
 
 /**
  * Controlador para crear un nuevo elemento.
@@ -82,11 +83,49 @@ const actualizarCantidadPrestado = async (req, res) => {
  */
 const eliminarElemento = async (req, res) => {
   const ele_id = req.params.ele_id;
+  
+  console.log('ID del elemento a eliminar:', ele_id); // Verifica el ID recibido
+  
+  if (!ele_id) {
+    console.error('El ID del elemento no está presente en la solicitud');
+    return res.status(400).json({ respuesta: false, mensaje: 'ID del elemento no proporcionado.' });
+  }
+
+  let connection;
   try {
-    await Elemento.eliminar(ele_id);
+    // Obtener conexión a la base de datos
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    // Eliminar los registros relacionados en la tabla `prestamoselementos`
+    console.log(`Eliminando registros relacionados en prestamoselementos para el elemento con ID: ${ele_id}`);
+    const deletePrestamosElementos = await connection.execute(
+      `DELETE FROM PrestamosElementos WHERE ele_id = ?`,
+      [ele_id]
+    );
+    console.log(`Registros eliminados de PrestamosElementos: ${deletePrestamosElementos.affectedRows}`);
+
+    // Ahora eliminar el elemento
+    const deleteElementoResult = await connection.execute(
+      `DELETE FROM Elementos WHERE ele_id = ?`,
+      [ele_id]
+    );
+    
+    if (deleteElementoResult.affectedRows === 0) {
+      console.error(`No se encontró el elemento con ID: ${ele_id}`);
+      return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado' });
+    }
+
+    // Confirmar la transacción
+    await connection.commit();
+    
     res.json({ respuesta: true, mensaje: '¡Elemento eliminado con éxito!' });
   } catch (err) {
-    res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el elemento.' });
+    if (connection) await connection.rollback();
+    console.error('Error al eliminar el elemento:', err.message);
+    res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el elemento.', error: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 

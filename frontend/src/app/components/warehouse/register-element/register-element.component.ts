@@ -10,6 +10,9 @@ import { Router } from '@angular/router';
 import { UbicacionService } from '../../../services/ubicacion.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+/**
+ * Componente para registrar un nuevo elemento en el inventario.
+ */
 @Component({
   selector: 'app-register-element',
   standalone: true,
@@ -58,32 +61,44 @@ export class RegisterElementComponent implements OnInit {
     });
   }
 
+  /**
+   * Obtiene las ubicaciones desde el servicio.
+   */
   obtenerUbicaciones(): void {
     this.ubicacionService.getUbicaciones().subscribe(
       (data: Ubicacion[]) => {
         this.ubicaciones = data;
       },
       (error: any) => {
-        console.error('Error al obtener ubicaciones:', error);
+        this.snackBar.open('Error al obtener ubicaciones', '', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['snack-bar-error'],
+        });
       }
     );
   }
-  
+
+  /**
+   * Maneja la selección de un archivo de imagen.
+   * @param event - El evento de selección de archivo.
+   */
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
-  
+
     // Validar que el archivo sea una imagen permitida
     if (!file || !file.type.match('image/(jpeg|png)')) {
       alert('Solo se permiten imágenes en formato JPG o PNG.');
       return;
     }
-  
+
     // Validar tamaño máximo del archivo
     if (file.size > this.MAX_FILE_SIZE) {
       alert('El archivo es demasiado grande. El tamaño máximo permitido es de 25 MB.');
       return;
     }
-  
+
     // Procesar la imagen
     const reader = new FileReader();
     reader.onload = () => {
@@ -94,11 +109,11 @@ export class RegisterElementComponent implements OnInit {
         const MAX_HEIGHT = 800;
         let width = img.width;
         let height = img.height;
-  
+
         if (width > MAX_WIDTH || height > MAX_HEIGHT) {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-  
+
           if (width > height) {
             height *= MAX_WIDTH / width;
             width = MAX_WIDTH;
@@ -106,11 +121,11 @@ export class RegisterElementComponent implements OnInit {
             width *= MAX_HEIGHT / height;
             height = MAX_HEIGHT;
           }
-  
+
           canvas.width = width;
           canvas.height = height;
           ctx?.drawImage(img, 0, 0, width, height);
-  
+
           // Convertir a base64 y actualizar el formulario
           this.formulario.patchValue({ ele_imagen: canvas.toDataURL('image/jpeg') });
         } else {
@@ -120,8 +135,10 @@ export class RegisterElementComponent implements OnInit {
     };
     reader.readAsDataURL(file);
   }
-  
 
+  /**
+   * Envía los datos del formulario para crear un nuevo elemento.
+   */
   onSubmit(): void {
     if (this.formulario.valid) {
       const elementoData = {
@@ -131,11 +148,8 @@ export class RegisterElementComponent implements OnInit {
         ele_imagen: this.formulario.get('ele_imagen')?.value,
       };
 
-      console.log('Datos enviados:', elementoData);
-
       this.elementoService.crearElemento(elementoData).subscribe(
         (response) => {
-          console.log('Elemento creado:', response);
           this.snackBar.open('Elemento registrado correctamente', '', {
             duration: 3000,
             horizontalPosition: 'right',
@@ -145,7 +159,6 @@ export class RegisterElementComponent implements OnInit {
           this.formulario.reset();
         },
         (error: any) => {
-          console.error('Error al crear elemento:', error);
           this.snackBar.open('Error al registrar el elemento', '', {
             duration: 3000,
             horizontalPosition: 'right',
@@ -164,3 +177,4 @@ export class RegisterElementComponent implements OnInit {
     }
   }
 }
+

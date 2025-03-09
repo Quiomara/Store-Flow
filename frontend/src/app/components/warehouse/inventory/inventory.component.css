@@ -1,163 +1,189 @@
+/* Contenedor principal del inventario. */
 .inventory-container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 20px;
-  border-radius: 8px;
+  max-width: 1000px; /* Limita el ancho máximo del contenedor */
+  margin: auto; /* Centra el contenedor */
+  padding: 20px; /* Añade espaciado interno */
+  border-radius: 8px; /* Bordes redondeados */
 }
 
+/* Estilo para los grupos de formularios. */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* Espaciado entre los campos del formulario */
 }
 
+/* Contenedor de la tabla con desplazamiento vertical en caso de overflow. */
 .user-table-container {
-  max-height: 570px;
-  overflow-y: auto;
-  position: relative;
+  max-height: 570px; /* Altura máxima del contenedor */
+  overflow-y: auto; /* Habilita desplazamiento vertical si es necesario */
+  position: relative; /* Posicionamiento relativo para control de elementos internos */
 }
 
+/* Estilos para la tabla principal. */
 .table {
-  width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
-  table-layout: fixed;
+  width: 100%; /* La tabla ocupa todo el ancho disponible */
+  margin-top: 20px; /* Espaciado superior */
+  border-collapse: collapse; /* Colapsa los bordes de las celdas */
+  table-layout: fixed; /* Fija el tamaño de las celdas */
 }
 
+/* Estilo común para las celdas de la tabla (tanto encabezados como celdas regulares). */
 .table th,
 .table td {
-  text-align: center;
-  vertical-align: middle;
-  word-wrap: break-word;
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
+  text-align: center; /* Centra el texto */
+  vertical-align: middle; /* Centra el texto verticalmente */
+  word-wrap: break-word; /* Permite el ajuste de palabra en caso de que sea necesario */
+  padding: 12px; /* Relleno interno */
+  border-bottom: 1px solid #ddd; /* Línea de borde inferior */
 }
 
+/* Estilo específico para los encabezados de la tabla. */
 .table th {
-  background-color: #2c2c2c;
-  color: #cccccc;
-  text-transform: uppercase;
-  font-weight: bold;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  background-color: #2c2c2c; /* Color de fondo oscuro */
+  color: #cccccc; /* Color del texto claro */
+  text-transform: uppercase; /* Convierte el texto a mayúsculas */
+  font-weight: bold; /* Aplica negrita */
+  position: sticky; /* Fija la posición del encabezado al hacer scroll */
+  top: 0; /* Asegura que quede en la parte superior */
+  z-index: 2; /* Apila el encabezado por encima de otras filas */
 }
 
+/* Estilo para las filas de la tabla al pasar el ratón sobre ellas. */
 .table tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f1f1f1; /* Cambia el color de fondo al pasar el ratón */
 }
 
+/* Estilo para el botón primario en estado hover (cuando el ratón pasa sobre él). */
 .btn-primary:hover {
-  background-color: #666;
+  background-color: #666; /* Cambia el color de fondo a gris oscuro */
 }
 
+/* Estilo general para el botón primario. */
 .btn-primary {
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
+  color: white; /* Color de texto blanco */
+  border: none; /* Sin borde */
+  padding: 10px 20px; /* Relleno interno */
+  border-radius: 5px; /* Bordes redondeados */
+  cursor: pointer; /* Muestra el cursor como puntero */
 }
 
+/* Estilo para el mensaje cuando no se encuentran resultados. */
 .no-results {
-  margin-top: 20px;
-  text-align: center;
-  color: #888888;
+  margin-top: 20px; /* Espaciado superior */
+  text-align: center; /* Centra el texto */
+  color: #888888; /* Color de texto gris claro */
 }
 
+/* Estilo para las celdas de encabezado de tabla cuando se usa Material Design. */
 .mat-mdc-header-cell,
 .mat-cell {
-  text-align: center;
+  text-align: center; /* Centra el texto */
 }
 
+/* Estilo específico para la cabecera de acciones en la tabla. */
 .acciones-header {
-  width: 100px;
+  width: 100px; /* Define un ancho específico para la columna de acciones */
 }
 
+/* Estilo para el botón de eliminación en la tabla. */
 .delete-button {
-  color: red !important;
-  margin-left: 8px; /* Añadir margen izquierdo para separar los iconos */
+  color: red !important; /* Color rojo */
+  margin-left: 8px; /* Añade margen izquierdo para separación */
 }
 
+/* Estilo para el botón de edición en la tabla. */
 .edit-button {
-  color: orange !important;
+  color: orange !important; /* Color naranja */
 }
 
+/* Estilo para los controles de formulario en una fila inline (horizontal). */
 .form-inline .form-control {
-  margin-right: 10px;
-  margin-bottom: 10px;
+  margin-right: 10px; /* Espaciado derecho */
+  margin-bottom: 10px; /* Espaciado inferior */
 }
 
+/* Centra el contenido en las celdas de la tabla. */
 .centered-cell {
-  text-align: center;
-  vertical-align: middle;
+  text-align: center; /* Centra el texto horizontalmente */
+  vertical-align: middle; /* Centra el texto verticalmente */
 }
 
+/* Estilo para los botones con íconos. */
 .icon-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: color 0.3s ease;
+  background: none; /* Sin fondo */
+  border: none; /* Sin borde */
+  padding: 0; /* Sin relleno */
+  cursor: pointer; /* Muestra el cursor como puntero */
+  transition: color 0.3s ease; /* Transición suave en el color */
 }
 
+/* Estilo para los botones con íconos al pasar el ratón. */
 .icon-btn:hover {
-  background: none;
+  background: none; /* Sin fondo en hover */
 }
 
+/* Estilo para los íconos dentro de los botones. */
 mat-icon {
-  font-size: 20px;
-  line-height: 24px;
-  transition: color 0.3s ease;
+  font-size: 20px; /* Tamaño de la fuente */
+  line-height: 24px; /* Altura de la línea */
+  transition: color 0.3s ease; /* Transición suave en el color */
 }
 
+/* Estilo para los íconos al pasar el ratón sobre ellos. */
 mat-icon:hover {
-  color: #0056b3;
+  color: #0056b3; /* Cambia el color al pasar el ratón */
 }
 
+/* Estilos para los selectores de formulario (desplegables). */
 select.form-control {
-  appearance: none;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Elimina el estilo por defecto del navegador */
+  background-color: white; /* Fondo blanco */
+  border: 1px solid #ccc; /* Borde gris claro */
+  border-radius: 4px; /* Bordes redondeados */
+  padding: 8px; /* Relleno interno */
+  cursor: pointer; /* Muestra el cursor como puntero */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
 }
 
+/* Estilo cuando el select tiene el foco. */
 select.form-control:focus {
-  outline: none;
+  outline: none; /* Elimina el borde de enfoque predeterminado */
 }
 
+/* Estilos responsivos para pantallas pequeñas. */
 @media (max-width: 768px) {
+  /* Ajustes en el contenedor principal del inventario en pantallas pequeñas. */
   .inventory-container {
-    padding: 10px;
+    padding: 10px; /* Menos relleno en pantallas pequeñas */
   }
 
+  /* Ajustes en las celdas de la tabla en pantallas pequeñas. */
   .table th,
   .table td {
-    padding: 8px;
-    font-size: 14px;
+    padding: 8px; /* Menos relleno en las celdas */
+    font-size: 14px; /* Tamaño de fuente más pequeño */
   }
 
+  /* Ajustes en el contenedor de la tabla de usuarios en pantallas pequeñas. */
   .user-table-container {
-    max-height: 400px;
+    max-height: 400px; /* Reducir altura máxima del contenedor */
   }
 }
 
+/* Estilos para la imagen dentro del contenedor. */
 .imagen-container {
-  width: 100px;  /* Ajusta según necesites */
-  height: 100px; /* Ajusta según necesites */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: #f3f3f3; /* Opcional, para fondo */
-  border-radius: 5px; /* Opcional */
+  width: 100px; /* Ancho fijo */
+  height: 100px; /* Altura fija */
+  display: flex; /* Usar flexbox para centrar */
+  align-items: center; /* Centrar verticalmente */
+  justify-content: center; /* Centrar horizontalmente */
+  overflow: hidden; /* Ocultar contenido que sobrepase el contenedor */
+  background-color: #f3f3f3; /* Color de fondo gris claro */
+  border-radius: 5px; /* Bordes redondeados */
 }
 
+/* Estilos para la imagen dentro del contenedor de imagen. */
 .imagen-preview {
-  max-width: 100%;  /* No sobrepasa el contenedor */
-  max-height: 100%; /* No sobrepasa el contenedor */
-  object-fit: contain; /* La imagen se ajusta sin recortarse */
+  max-width: 100%; /* Limitar el ancho al 100% del contenedor */
+  max-height: 100%; /* Limitar la altura al 100% del contenedor */
+  object-fit: contain; /* Ajustar la imagen sin recortarla */
 }
-
-

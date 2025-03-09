@@ -37,8 +37,18 @@ export class LoginComponent {
   errorMessage: string = '';
   isLoading: boolean = false;
 
+  /**
+   * Constructor del componente LoginComponent.
+   * @param authService Servicio para autenticar al usuario.
+   * @param router Servicio para la navegación de rutas.
+   * @param dialog Servicio para mostrar el popup de recuperación de contraseña.
+   */
   constructor(private authService: AuthService, private router: Router, public dialog: MatDialog) {}
 
+  /**
+   * Método para iniciar sesión.
+   * Valida los campos y realiza la autenticación.
+   */
   login() {
     // Validación básica
     if (!this.email || !this.password) {
@@ -52,7 +62,7 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (response: LoginResponse) => {
         this.isLoading = false;
-        console.log('Respuesta del login:', response);
+        // Se eliminó el console.log aquí
         if (!response?.token) {
           this.errorMessage = 'Error: No se recibió un token válido.';
           return;
@@ -69,7 +79,7 @@ export class LoginComponent {
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Error en el login:', error);
+        // Se eliminó el console.error aquí
         if (error.status === 401) {
           this.errorMessage = 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
         } else if (error.status === 404) {
@@ -86,6 +96,10 @@ export class LoginComponent {
     });
   }
 
+  /**
+   * Redirige al usuario a la página correspondiente según el tipo de usuario.
+   * @param userType Tipo de usuario (Administrador, Instructor, Almacén).
+   */
   redirectUser(userType: string) {
     switch(userType) {
       case 'Administrador':
@@ -103,6 +117,9 @@ export class LoginComponent {
     }
   }
 
+  /**
+   * Abre el diálogo para recuperar la contraseña.
+   */
   forgotPassword() {
     this.dialog.open(ForgotPasswordPopupComponent, {
       width: '400px'

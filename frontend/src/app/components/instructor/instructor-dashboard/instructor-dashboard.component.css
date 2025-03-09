@@ -1,144 +1,164 @@
+/* Estilo para el cuerpo de la página, ajustando el fondo, el alineamiento y el tamaño */
 body {
-  font-family: inherit;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  background-color: #f5f5f5;
+  font-family: inherit; /* Hereda la fuente de su elemento padre */
+  display: flex; /* Utiliza flexbox para alinear contenido */
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra el contenido verticalmente */
+  height: 100vh; /* Establece la altura del cuerpo al 100% de la ventana */
+  margin: 0; /* Elimina márgenes predeterminados */
+  background-color: #f5f5f5; /* Establece un color de fondo gris claro */
 }
 
+/* Contenedor principal del contenido */
 .content-container {
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 1200px;
+  background-color: white; /* Establece el fondo blanco */
+  border-radius: 8px; /* Bordes redondeados */
+  overflow: hidden; /* Oculta cualquier contenido que se desborde */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra ligera alrededor del contenedor */
+  width: 90%; /* Ancho del contenedor al 90% */
+  max-width: 1200px; /* Ancho máximo de 1200px */
 }
 
+/* Estilo para el encabezado */
 header {
-  padding-top: 1rem;
+  padding-top: 1rem; /* Espaciado superior de 1rem */
 }
 
+/* Estilo para las etiquetas del instructor */
 .instructor-label {
-  font-size: 1.2rem;
-  color: #333;
-  cursor: pointer;
+  font-size: 1.2rem; /* Tamaño de fuente de 1.2rem */
+  color: #333; /* Color de texto gris oscuro */
+  cursor: pointer; /* Cambio de cursor al pasar sobre la etiqueta */
 }
 
+/* Estilo para la barra lateral */
 .sidebar {
-  background-color: #e0e0e0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 150px;
+  background-color: #e0e0e0; /* Fondo gris claro */
+  padding: 20px; /* Relleno de 20px */
+  display: flex; /* Utiliza flexbox para la disposición */
+  flex-direction: column; /* Organiza los elementos en una columna */
+  align-items: center; /* Alinea los elementos al centro */
+  width: 100%; /* Ancho completo */
+  max-width: 150px; /* Ancho máximo de 150px */
 }
 
+/* Estilo para el logo en la barra lateral */
 .logo {
-  width: 100%;
-  margin-bottom: 20px;
+  width: 100%; /* Ancho completo */
+  margin-bottom: 20px; /* Espacio inferior de 20px */
 }
 
+/* Estilo para la lista de navegación en la barra lateral */
 .sidebar ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1;
+  list-style-type: none; /* Elimina los puntos de lista */
+  padding: 0; /* Elimina el relleno */
+  margin: 0; /* Elimina el margen */
+  width: 100%; /* Ancho completo */
+  display: flex; /* Utiliza flexbox para la disposición */
+  flex-direction: column; /* Organiza los elementos en una columna */
+  justify-content: center; /* Centra los elementos */
+  flex: 1; /* Ocupa todo el espacio disponible */
 }
 
+/* Estilo para cada elemento de la lista de navegación */
 .sidebar .nav-item {
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* Espacio inferior de 10px */
 }
 
-/* Botones del sidebar */
+/* Estilo para los botones de la barra lateral */
 .sidebar-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100px;
-  background-color: #b0b0b0;
-  color: black;
-  border-radius: 4px;
-  text-decoration: none;
-  text-align: center;
-  font-size: 0.8rem;
-  transition: background-color 0.3s ease;
+  display: flex; /* Utiliza flexbox para la disposición */
+  flex-direction: column; /* Organiza los elementos en una columna */
+  align-items: center; /* Alinea los elementos al centro */
+  justify-content: center; /* Centra los elementos */
+  width: 100%; /* Ancho completo */
+  height: 100px; /* Altura de 100px */
+  background-color: #b0b0b0; /* Fondo gris claro */
+  color: black; /* Color de texto negro */
+  border-radius: 4px; /* Bordes redondeados */
+  text-decoration: none; /* Elimina el subrayado */
+  text-align: center; /* Alinea el texto al centro */
+  font-size: 0.8rem; /* Tamaño de fuente pequeño */
+  transition: background-color 0.3s ease; /* Transición suave en el cambio de color */
 }
 
+/* Estilo para el icono dentro del botón de la barra lateral */
 .sidebar-btn i {
-  font-size: 2.5rem;
-  margin-bottom: 5px;
-  color: black;
+  font-size: 2.5rem; /* Tamaño de fuente grande para el icono */
+  margin-bottom: 5px; /* Espacio inferior de 5px */
+  color: black; /* Color negro para el icono */
 }
 
+/* Estilo para el botón de la barra lateral cuando se pasa el cursor por encima */
 .sidebar-btn:hover {
-  background-color: #8f8f8f;
+  background-color: #8f8f8f; /* Cambia el color de fondo a gris más oscuro */
 }
 
+/* Estilo para el contenido principal */
 .content {
-  flex: 1;
-  padding: 20px;
+  flex: 1; /* Ocupa todo el espacio disponible */
+  padding: 20px; /* Relleno de 20px */
 }
 
+/* Estilo para los encabezados h2 */
 h2 {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 0;
+  text-align: center; /* Centra el texto */
+  font-weight: bold; /* Texto en negrita */
+  margin-top: 0; /* Elimina el margen superior */
 }
 
+/* Estilo para el formulario */
 form {
-  padding: 2rem;
+  padding: 2rem; /* Relleno de 2rem */
 }
 
+/* Estilo para las filas del formulario */
 .form-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  display: flex; /* Utiliza flexbox para la disposición */
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en caso de necesidad */
+  justify-content: space-between; /* Distribuye los elementos con espacio entre ellos */
+  margin-bottom: 15px; /* Espacio inferior de 15px */
 }
 
+/* Estilo para los grupos de formulario */
 .form-group {
-  flex: 1;
-  margin-right: 10px;
+  flex: 1; /* Ocupa todo el espacio disponible */
+  margin-right: 10px; /* Espacio derecho de 10px */
 }
 
+/* Elimina el margen derecho en el último grupo del formulario */
 .form-group:last-child {
   margin-right: 0;
 }
 
+/* Estilo para las etiquetas del formulario */
 label {
-  display: block;
-  margin-bottom: 5px;
+  display: block; /* Hace que la etiqueta ocupe todo el ancho disponible */
+  margin-bottom: 5px; /* Espacio inferior de 5px */
 }
 
+/* Estilo para los campos de entrada y selección */
 input,
 select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+  width: 100%; /* Ancho completo */
+  padding: 8px; /* Relleno de 8px */
+  border: 1px solid #ccc; /* Borde gris claro */
+  border-radius: 4px; /* Bordes redondeados */
+  box-sizing: border-box; /* Incluye el relleno y el borde en el cálculo del tamaño */
 }
 
+/* Estilo para los botones */
 button {
-  background-color: #000;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  align-self: flex-end;
+  background-color: #000; /* Fondo negro */
+  color: white; /* Texto blanco */
+  padding: 10px 15px; /* Relleno de 10px arriba/abajo y 15px a los lados */
+  border: none; /* Elimina el borde */
+  border-radius: 4px; /* Bordes redondeados */
+  cursor: pointer; /* Cambio de cursor a puntero */
+  align-self: flex-end; /* Alinea el botón al final del contenedor */
 }
 
+/* Estilo para el botón al pasar el cursor por encima */
 button:hover {
-  background-color: #333;
+  background-color: #333; /* Cambia el fondo a un gris más oscuro */
 }

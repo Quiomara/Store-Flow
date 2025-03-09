@@ -14,6 +14,9 @@ import { Ubicacion } from '../../../models/ubicacion.model';
 import { ImageModalComponent } from '../image-modal/image-modal.component';
 import { EditModalComponent } from '../edit-modal/edit-modal.component';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { Observable } from 'rxjs';  // Importa Observable desde rxjs
+import { PrestamoService } from '../../../services/prestamo.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-inventory',
@@ -35,12 +38,15 @@ export class InventoryComponent implements OnInit {
   editForm: FormGroup;
   inventario: Elemento[] = [];
   ubicaciones: Ubicacion[] = [];
+  elementosPrestados: any[] = []; 
   filteredInventario: MatTableDataSource<Elemento>;
   displayedColumns: string[] = ['ele_id', 'ele_nombre', 'ele_cantidad_total', 'ele_cantidad_actual', 'ubi_nombre', 'ele_imagen', 'detalles'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
+    private prestamoService: PrestamoService,
+    private http: HttpClient,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
     private elementoService: ElementoService,
@@ -70,8 +76,18 @@ export class InventoryComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.obtenerUbicaciones();
     this.obtenerInventario();
+    this.obtenerUbicaciones();
+    // Suscribirse al BehaviorSubject para recibir actualizaciones en tiempo real
+    this.elementoService.inventario$.subscribe({
+      next: (data: Elemento[]) => {
+        this.inventario = data;
+        this.filteredInventario.data = data;
+      },
+      error: (error: any) => console.error('Error en la suscripción del inventario', error)
+    });
+    // Refrescar el inventario al iniciar el componente
+    this.elementoService.refreshInventario();
     this.filteredInventario.paginator = this.paginator;
   }
 

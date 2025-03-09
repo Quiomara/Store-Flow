@@ -10,5 +10,5 @@ import { CommonModule } from '@angular/common';
   imports: [RouterModule, CommonModule] // Importamos módulos necesarios
 })
 export class WarehouseDashboardComponent {
-  // Lógica del componente (si es necesaria)
+
 }

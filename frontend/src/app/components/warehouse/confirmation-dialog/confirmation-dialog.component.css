@@ -1,5 +1,7 @@
+/* Estilo para el título de eliminación */
 .titulo-eliminacion {
-    font-weight: bold;
-    text-align: center;
-  }
+  font-weight: bold; /* Aplica negrita al texto del título */
+  text-align: center; /* Centra el texto horizontalmente */
+}
+
   

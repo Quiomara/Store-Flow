@@ -1,10 +1,17 @@
+<!-- Contenedor principal del formulario de inicio de sesión -->
 <div class="login-container">
+  <!-- Título del formulario de inicio de sesión -->
   <h2 class="login-title">Inicio de Sesión</h2>
+  
+  <!-- Contenedor de contenido que incluye el formulario y el logo -->
   <div class="login-content">
+    
+    <!-- Contenedor del formulario de inicio de sesión -->
     <div class="login-form">
       <form (ngSubmit)="login()">
+        
+        <!-- Campo para ingresar el correo electrónico -->
         <div class="form-group">
-          <!-- Usamos mat-form-field con mat-label para que el input muestre "E-mail" internamente -->
           <mat-form-field appearance="fill" class="full-width">
             <mat-label>E-mail</mat-label>
             <input matInput type="email" id="email" name="email" 
@@ -12,8 +19,9 @@
                    class="large-input">
           </mat-form-field>
         </div>
+        
+        <!-- Campo para ingresar la contraseña -->
         <div class="form-group">
-          <!-- Similar para la contraseña -->
           <mat-form-field appearance="fill" class="full-width">
             <mat-label>Contraseña</mat-label>
             <input matInput type="password" id="password" name="password" 
@@ -21,14 +29,21 @@
                    class="large-input">
           </mat-form-field>
         </div>
+        
+        <!-- Mensaje de error que se muestra si existe un error -->
         <div *ngIf="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
-        <!-- Botón sin cambios -->
+        
+        <!-- Botón de envío del formulario -->
         <button type="submit" class="btn btn-dark">Ingresar</button>
+        
+        <!-- Enlace para recuperar la contraseña -->
         <a (click)="forgotPassword()" class="forgot-password">¿Olvidaste tu contraseña?</a>
       </form>
     </div>
+    
+    <!-- Contenedor del logo -->
     <div class="login-logo">
       <img src="/img/logoSena.png" alt="Sena Logo"> 
     </div>

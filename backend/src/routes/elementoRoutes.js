@@ -50,6 +50,6 @@ router.put('/actualizarCantidadPrestado', auth(['Instructor', 'Almacén']), elem
  * @description Actualiza el stock de un elemento en el inventario
  * @access Administrador, Almacén
  */
-router.put('/actualizar-stock', auth(['Administrador', 'Almacén']), elementoController.actualizarStock);
+router.put('/actualizar-stock', auth(['Administrador','Instructor','Almacén']), elementoController.actualizarStock);
 
 module.exports = router;

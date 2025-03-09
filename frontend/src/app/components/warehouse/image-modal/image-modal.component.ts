@@ -15,5 +15,9 @@ import { MatButtonModule } from '@angular/material/button'; // Añade este impor
   ]
 })
 export class ImageModalComponent {
+  /**
+   * Constructor del componente ImageModal.
+   * @param data - Datos inyectados que contienen la imagen y el nombre del elemento.
+   */
   constructor(@Inject(MAT_DIALOG_DATA) public data: { imagen: string, nombre: string }) {}
 }

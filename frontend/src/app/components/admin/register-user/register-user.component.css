@@ -1,101 +1,102 @@
+/* Contenedor principal del formulario de registro */
 .register-user-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 1rem;
-  border-radius: 5px;
+  max-width: 800px; /* Establece el ancho máximo */
+  margin: auto; /* Centra el contenedor horizontalmente */
+  padding: 1rem; /* Espaciado interno */
+  border-radius: 5px; /* Bordes redondeados */
 }
 
+/* Estilo para los grupos de formularios */
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; /* Espaciado inferior */
 }
 
+/* Configuración de la fila de formulario */
 .form-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: flex; /* Usar flexbox */
+  flex-wrap: wrap; /* Permite el salto de línea si es necesario */
 }
 
+/* Configuración de los elementos en columnas de 50% en pantallas grandes */
 .form-group.col-md-6 {
-  flex: 0 0 50%;
-  max-width: 50%;
+  flex: 0 0 50%; /* Toma el 50% del ancho */
+  max-width: 50%; /* Limita el ancho máximo a 50% */
 }
 
+/* Estilo para las etiquetas de los formularios */
 .form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
+  display: block; /* Bloque de visualización */
+  margin-bottom: 0.5rem; /* Espaciado inferior */
 }
 
+/* Estilo para los campos de entrada de texto */
 .form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  color: #000; /* Color del texto en el input */
+  width: 100%; /* Ancho completo */
+  padding: 0.5rem; /* Espaciado interno */
+  border: 1px solid #ccc; /* Borde gris */
+  border-radius: 5px; /* Bordes redondeados */
+  color: #000; /* Color de texto */
 }
 
-/* Estilo para el select */
+/* Estilo para el select (campo desplegable) */
 select {
-  background-color: white; /* Fondo del select */
-  color: black; /* Color del texto del select */
-  border: 1px solid #ccc; /* Borde del select */
-  padding: 0.5rem; /* Espaciado interior del select */
-  font-size: 16px; /* Tamaño de la fuente del select */
+  background-color: white; /* Fondo blanco */
+  color: black; /* Texto negro */
+  border: 1px solid #ccc; /* Borde gris */
+  padding: 0.5rem; /* Espaciado interno */
+  font-size: 16px; /* Tamaño de fuente */
 }
 
 /* Estilo para las opciones del select */
 select option {
-  background-color: white; /* Fondo de las opciones */
-  color: black; /* Color del texto de las opciones */
+  background-color: white; /* Fondo blanco */
+  color: black; /* Texto negro */
 }
 
-/* Estilo para la opción seleccionada */
+/* Estilo para la opción seleccionada del select */
 select option:checked {
-  background-color: white; /* Fondo de la opción seleccionada */
-  color: black; /* Color del texto de la opción seleccionada */
+  background-color: white; /* Fondo blanco */
+  color: black; /* Texto negro */
 }
 
+/* Estilo para los botones */
 .btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  background-color: #000;
-  color: white;
-  cursor: pointer;
+  display: inline-block; /* Mostrar como bloque en línea */
+  padding: 0.5rem 1rem; /* Espaciado interno */
+  border: none; /* Sin borde */
+  border-radius: 5px; /* Bordes redondeados */
+  background-color: #000; /* Fondo negro */
+  color: white; /* Texto blanco */
+  cursor: pointer; /* Cursor de mano */
 }
 
+/* Estilo del botón oscuro al pasar el ratón */
 .btn-dark:hover {
-  background-color: #333;
+  background-color: #333; /* Fondo gris oscuro */
 }
 
+/* Alineación del texto a la derecha */
 .text-right {
-  text-align: right;
+  text-align: right; /* Alineación derecha */
 }
 
-/* Nuevo estilo para mantener la misma gama de colores */
-input:focus {
-  outline: none;
+/* Estilo de enfoque en los campos de entrada */
+input:focus, .form-control:focus {
+  outline: none; /* Elimina el borde de enfoque predeterminado */
 }
 
-.form-control:focus {
-  outline: none; 
-}
-
+/* Estilo para los mensajes de snack bar (notificaciones) */
 .snack-bar-success {
-  background-color: #4CAF50 !important; /* Verde */
-  color: white !important;
+  background-color: #4CAF50 !important; /* Verde para éxito */
+  color: white !important; /* Texto blanco */
 }
 
 .snack-bar-error {
-  background-color: #F44336 !important; /* Rojo */
-  color: white !important;
+  background-color: #F44336 !important; /* Rojo para error */
+  color: white !important; /* Texto blanco */
 }
 
 .snack-bar-warning {
-  background-color: #FF9800 !important; /* Naranja */
-  color: white !important;
+  background-color: #FF9800 !important; /* Naranja para advertencia */
+  color: white !important; /* Texto blanco */
 }
-
-
-
-
-  

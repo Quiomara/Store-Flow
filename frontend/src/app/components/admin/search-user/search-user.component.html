@@ -1,68 +1,90 @@
 <div>
+  <!-- Título de la sección de búsqueda de usuarios -->
   <h2 class="text-center font-weight-bold mb-4">Buscar Usuarios</h2>
-  
+
+  <!-- Formulario de búsqueda con controles para cédula, nombre, centro de formación y correo -->
   <form [formGroup]="searchForm" class="form-inline mb-4">
-    <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />   
+    <!-- Campo de entrada para la cédula -->
+    <input type="text" formControlName="cedula" placeholder="Cédula" class="form-control mr-2" />
+    <!-- Campo de entrada para el nombre completo -->
     <input type="text" formControlName="nombre" placeholder="Nombre Completo" class="form-control mr-2" />
+    <!-- Desplegable para seleccionar un centro de formación -->
     <select formControlName="centroFormacion" class="form-control mr-2">
       <option value="">Seleccione un Centro de Formación</option>
+      <!-- Opciones generadas dinámicamente desde la lista de centros -->
       <option *ngFor="let centro of centros" [value]="centro.cen_id">{{ centro.cen_nombre }}</option>
     </select>
+    <!-- Campo de entrada para el correo electrónico -->
     <input type="email" formControlName="email" placeholder="Correo Electrónico" class="form-control mr-2" />
   </form>
-  
+
+  <!-- Contenedor de la tabla de usuarios -->
   <div class="user-table-container">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      
+      <!-- Definición de columna para la cédula -->
       <ng-container matColumnDef="cedula">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CÉDULA </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.cedula || 'N/A' }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para el nombre -->
       <ng-container matColumnDef="nombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> NOMBRE </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.primerNombre }} {{ user.segundoNombre }} {{ user.primerApellido }} {{ user.segundoApellido }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para el centro de formación -->
       <ng-container matColumnDef="centroFormacion">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CENTRO DE FORMACIÓN </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.centroFormacion || 'N/A' }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para el correo electrónico -->
       <ng-container matColumnDef="email">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> CORREO ELECTRÓNICO </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.email || 'N/A' }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para el teléfono -->
       <ng-container matColumnDef="telefono">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> TELÉFONO </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.telefono || 'N/A' }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para el tipo de usuario -->
       <ng-container matColumnDef="tipoUsuario">
         <th mat-header-cell *matHeaderCellDef class="header-cell"> TIPO DE USUARIO </th>
         <td mat-cell *matCellDef="let user" class="centered-cell"> {{ user.tipoUsuario || 'N/A' }} </td>
       </ng-container>
-  
+
+      <!-- Definición de columna para las acciones -->
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header"> ACCIONES </th>
         <td mat-cell *matCellDef="let user" class="centered-cell">
+          <!-- Botón para editar el usuario -->
           <button mat-button color="primary" (click)="onEdit(user)">
             <i class="fas fa-edit"></i>
           </button>
+          <!-- Botón para eliminar el usuario -->
           <button mat-button color="warn" class="delete-button" (click)="onDelete(user)">
             <i class="fas fa-trash"></i>
           </button>
         </td>
       </ng-container>
 
+      <!-- Filas de encabezado y datos -->
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      
+      <!-- Mensaje si no hay resultados -->
       <tr *ngIf="filteredResults.length === 0">
         <td colspan="7" class="text-center">No se encontraron usuarios.</td>
       </tr>
     </table>
   </div>
 
+  <!-- Paginación para la tabla -->
   <mat-paginator [length]="dataSource.data.length"
                  [pageSize]="10"
                  [pageSizeOptions]="[5, 10, 25, 100]"

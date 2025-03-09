@@ -1,8 +1,16 @@
+<!-- Título del diálogo (mostrará el valor de 'titulo') -->
 <h2 mat-dialog-title class="titulo-eliminacion">{{ titulo }}</h2>
+
+<!-- Contenido del diálogo (mostrará el mensaje dinámico) -->
 <mat-dialog-content>
   {{ mensaje }}
 </mat-dialog-content>
+
+<!-- Acciones del diálogo, alineadas a la derecha -->
 <mat-dialog-actions align="end">
+  <!-- Botón para cancelar la acción (llama a 'onCancel') -->
   <button mat-button (click)="onCancel()">{{ textoBotonCancelar }}</button>
+  
+  <!-- Botón para confirmar la acción (llama a 'onConfirm') con color de advertencia -->
   <button mat-button color="warn" (click)="onConfirm()">{{ textoBotonConfirmar }}</button>
 </mat-dialog-actions>

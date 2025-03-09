@@ -1,7 +1,9 @@
+<!-- Notificación Toast que se muestra solo si isVisible es verdadero -->
 <div class="notification-toast" *ngIf="isVisible">
-    <div class="toast-message">
-      {{ message }}
-    </div>
-    <button class="close-btn" (click)="closeToast()">×</button>
+  <!-- Contenedor del mensaje de la notificación -->
+  <div class="toast-message">
+    {{ message }} <!-- Mensaje de la notificación que se muestra dinámicamente -->
   </div>
-  
+  <!-- Botón de cierre para ocultar la notificación -->
+  <button class="close-btn" (click)="closeToast()">×</button>
+</div>

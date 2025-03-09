@@ -1,14 +1,20 @@
+<!-- Título del formulario de registro -->
 <h2 class="text-center font-weight-bold mb-4">Registro</h2>
+
+<!-- Contenedor principal del formulario -->
 <div class="register-user-container">
-  <form (ngSubmit)="onSubmit()">
+  <form (ngSubmit)="onSubmit()"> <!-- Enviar formulario al ejecutar ngSubmit -->
+
+    <!-- Fila para el campo de cédula -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="cedula">Cédula</label>
-        <input type="number" id="cedula" [(ngModel)]="user.cedula" name="cedula" class="form-control" required>
-        <div *ngIf="errores.cedula" class="text-danger">{{ errores.cedula }}</div>
+        <input type="number" id="cedula" [(ngModel)]="user.cedula" name="cedula" class="form-control" required> <!-- Campo de entrada para la cédula -->
+        <div *ngIf="errores.cedula" class="text-danger">{{ errores.cedula }}</div> <!-- Mensaje de error si hay -->
       </div>
     </div>
 
+    <!-- Fila para Primer Nombre y Segundo Nombre -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="primerNombre">Primer Nombre</label>
@@ -20,6 +26,7 @@
       </div>
     </div>
 
+    <!-- Fila para Primer Apellido y Segundo Apellido -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="primerApellido">Primer Apellido</label>
@@ -31,36 +38,38 @@
       </div>
     </div>
 
+    <!-- Fila para E-mail y Confirmar E-mail -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="email">E-mail</label>
         <input type="email" id="email" [(ngModel)]="user.email" name="email" class="form-control" required>
-        <div *ngIf="errores.email" class="text-danger">{{ errores.email }}</div>
+        <div *ngIf="errores.email" class="text-danger">{{ errores.email }}</div> <!-- Error para email -->
       </div>
       <div class="form-group col-md-6">
         <label for="confirmarEmail">Confirmar E-mail</label>
         <input type="email" id="confirmarEmail" [(ngModel)]="user.confirmarEmail" name="confirmarEmail" class="form-control" required>
-        <div *ngIf="errores.confirmarEmail" class="text-danger">{{ errores.confirmarEmail }}</div>
+        <div *ngIf="errores.confirmarEmail" class="text-danger">{{ errores.confirmarEmail }}</div> <!-- Error para confirmar email -->
       </div>
     </div>
 
+    <!-- Fila para Centro de Formación y Teléfono -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="centroFormacion">Centro de Formación</label>
         <select id="centroFormacion" [(ngModel)]="user.centroFormacion" name="centroFormacion" class="form-control" required>
-          <option value="">Selecciona un centro</option>
-          <option *ngFor="let centro of centros" [value]="centro.cen_id">{{ centro.cen_nombre }}</option>
+          <option value="">Selecciona un centro</option> <!-- Opción predeterminada -->
+          <option *ngFor="let centro of centros" [value]="centro.cen_id">{{ centro.cen_nombre }}</option> <!-- Opciones dinámicas -->
         </select>
-        <div *ngIf="errores.centroFormacion" class="text-danger">{{ errores.centroFormacion }}</div> <!-- Mensaje de error -->
+        <div *ngIf="errores.centroFormacion" class="text-danger">{{ errores.centroFormacion }}</div> <!-- Error para centro de formación -->
       </div>
-    
       <div class="form-group col-md-6">
         <label for="telefono">Teléfono</label>
         <input type="tel" id="telefono" [(ngModel)]="user.telefono" name="telefono" class="form-control">
-        <div *ngIf="errores.telefono" class="text-danger">{{ errores.telefono }}</div>
+        <div *ngIf="errores.telefono" class="text-danger">{{ errores.telefono }}</div> <!-- Error para teléfono -->
       </div>
     </div>
 
+    <!-- Fila para Contraseña y Confirmar Contraseña -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="contrasena">Contraseña</label>
@@ -69,24 +78,26 @@
       <div class="form-group col-md-6">
         <label for="confirmarContrasena">Confirmar Contraseña</label>
         <input type="password" id="confirmarContrasena" [(ngModel)]="user.confirmarContrasena" name="confirmarContrasena" class="form-control" required>
-        <div *ngIf="errores.confirmarContrasena" class="text-danger">{{ errores.confirmarContrasena }}</div>
+        <div *ngIf="errores.confirmarContrasena" class="text-danger">{{ errores.confirmarContrasena }}</div> <!-- Error para confirmar contraseña -->
       </div>
     </div>
 
+    <!-- Fila para Tipo de Usuario -->
     <div class="form-row">
       <div class="form-group col-md-6">
         <label for="tipoUsuario">Tipo de Usuario</label>
         <select id="tipoUsuario" [(ngModel)]="user.tipoUsuario" name="tipoUsuario" class="form-control" required>
           <option value="">Selecciona un tipo de usuario</option>
-          <option *ngFor="let tipo of tiposUsuario" [value]="tipo.id">{{ tipo.nombre }}</option>
+          <option *ngFor="let tipo of tiposUsuario" [value]="tipo.id">{{ tipo.nombre }}</option> <!-- Opciones dinámicas para tipo de usuario -->
         </select>
-        <div *ngIf="errores.tipoUsuario" class="text-danger">{{ errores.tipoUsuario }}</div>
+        <div *ngIf="errores.tipoUsuario" class="text-danger">{{ errores.tipoUsuario }}</div> <!-- Error para tipo de usuario -->
       </div>
     </div>
 
+    <!-- Botón de envío y notificación -->
     <div class="form-group text-right">
-      <button type="submit" class="btn btn-dark">Registrar</button>
-      <app-notification-toast></app-notification-toast>
-    </div>   
+      <button type="submit" class="btn btn-dark">Registrar</button> <!-- Botón de registrar usuario -->
+      <app-notification-toast></app-notification-toast> <!-- Componente de notificación -->
+    </div>
   </form>
 </div>

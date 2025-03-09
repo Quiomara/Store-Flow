@@ -1,17 +1,25 @@
+<!-- Título del diálogo para editar información del elemento -->
 <h2 mat-dialog-title class="modal-title">Editar Información del Elemento</h2>
+
+<!-- Contenido del diálogo con un formulario reactivo -->
 <mat-dialog-content [formGroup]="data.form">
+  <!-- Fila del formulario para el nombre del elemento -->
   <div class="form-row">
     <mat-form-field class="full-width">
       <mat-label>Nombre del Elemento</mat-label>
       <input matInput formControlName="ele_nombre" #nombreInput>
     </mat-form-field>
   </div>
+
+  <!-- Fila del formulario para la cantidad del elemento -->
   <div class="form-row">
     <mat-form-field class="full-width">
       <mat-label>Cantidad</mat-label>
       <input matInput type="number" formControlName="ele_cantidad_total">
     </mat-form-field>
   </div>
+
+  <!-- Fila del formulario para seleccionar la ubicación -->
   <div class="form-row">
     <mat-form-field class="full-width">
       <mat-label>Ubicación</mat-label>
@@ -23,17 +31,24 @@
       </mat-select>
     </mat-form-field>
   </div>
+
+  <!-- Fila del formulario para elegir la imagen -->
   <div class="form-row">
     <label for="ele_imagen" class="font-weight-bold">Elige la imagen a subir:</label>
     <input 
-    type="file" 
-    (change)="onFileSelected($event)" 
-    accept="image/png, image/jpeg, image/jpg"
-  />  
+      type="file" 
+      (change)="onFileSelected($event)" 
+      accept="image/png, image/jpeg, image/jpg"
+    />
     <small *ngIf="!fileSelected" class="form-text text-muted">Ningún archivo seleccionado</small>
   </div>
 </mat-dialog-content>
+
+<!-- Acciones del diálogo con botones para cancelar o guardar -->
 <mat-dialog-actions>
+  <!-- Botón para cancelar y cerrar el diálogo -->
   <button mat-button (click)="onNoClick()">Cancelar</button>
-  <button mat-button (click)="guardar()">Guardar</button> <!-- Llamar al método guardar -->
+
+  <!-- Botón para guardar los cambios realizados en el formulario -->
+  <button mat-button (click)="guardar()">Guardar</button>
 </mat-dialog-actions>

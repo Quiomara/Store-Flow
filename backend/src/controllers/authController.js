@@ -82,7 +82,7 @@ const forgotPassword = async (req, res) => {
     );
 
     await sendResetEmail(correo, resetToken);
-    res.send({ 
+    res.send({
       message: `Se ha enviado un enlace de restablecimiento a ${correo}.`,
     });
   } catch (error) {

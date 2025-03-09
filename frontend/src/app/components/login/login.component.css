@@ -101,7 +101,6 @@
   text-decoration: underline !important;
 }
 
-
 /* Contenedor del logo */
 .login-logo {
   text-align: center; /* Centrar el contenido */
@@ -113,19 +112,22 @@
   height: auto; /* Altura automática */
 }
 
+/* Estilo para el mensaje de error */
 .error-message {
-  color: #d9534f;
-  margin-bottom: 15px;
-  border-radius: 4px;
-  text-align: center;
+  color: #d9534f; /* Color rojo para los mensajes de error */
+  margin-bottom: 15px; /* Espacio inferior */
+  border-radius: 4px; /* Bordes redondeados */
+  text-align: center; /* Centrar el texto */
   font-family: 'Inria Serif', serif; /* Fuente Inria Serif */
-  font-weight: bold;
+  font-weight: bold; /* Texto en negrita */
 }
 
 /* Nuevo estilo para mantener la misma gama de colores */
 input:focus {
-  outline: none;
+  outline: none; /* Eliminar el borde de enfoque */
 }
+
+/* Clase para asegurar que un elemento tenga el ancho completo */
 .full-width {
-  width: 100%;
+  width: 100%; /* Ancho completo */
 }

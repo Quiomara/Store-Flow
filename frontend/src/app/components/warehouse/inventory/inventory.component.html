@@ -1,44 +1,47 @@
+<!-- Contenedor principal del inventario -->
 <div class="inventory-container">
+  
+  <!-- Título principal -->
   <h1 class="text-center font-weight-bold mb-4">Inventario</h1>
 
+  <!-- Formulario de búsqueda con dos campos -->
   <form [formGroup]="searchForm" class="search-form form-inline">
     <input type="text" formControlName="searchId" placeholder="ID" class="form-control mr-2" />
     <input type="text" formControlName="searchElemento" placeholder="Elemento" class="form-control mr-2" />
   </form>
 
+  <!-- Contenedor de la tabla de inventario -->
   <div class="user-table-container">
+    
+    <!-- Tabla de inventario con columnas definidas -->
     <table mat-table [dataSource]="filteredInventario" class="mat-elevation-z8 table">
-      <!-- Columna: ID -->
+      
+      <!-- Definición de columnas: ID, Elemento, Cantidad Total, Cantidad Actual, Ubicación, Imagen, Detalles -->
       <ng-container matColumnDef="ele_id">
         <th mat-header-cell *matHeaderCellDef class="header-cell">ID</th>
         <td mat-cell *matCellDef="let elemento">{{ elemento.ele_id }}</td>
       </ng-container>
 
-      <!-- Columna: Elemento -->
       <ng-container matColumnDef="ele_nombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Elemento</th>
         <td mat-cell *matCellDef="let elemento">{{ elemento.ele_nombre }}</td>
       </ng-container>
 
-      <!-- Columna: Cantidad Total -->
       <ng-container matColumnDef="ele_cantidad_total">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad Total</th>
         <td mat-cell *matCellDef="let elemento">{{ elemento.ele_cantidad_total }}</td>
       </ng-container>
 
-      <!-- Columna: Cantidad Actual -->
       <ng-container matColumnDef="ele_cantidad_actual">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Cantidad Actual</th>
         <td mat-cell *matCellDef="let elemento">{{ elemento.ele_cantidad_actual }}</td>
       </ng-container>
 
-      <!-- Columna: Ubicación -->
       <ng-container matColumnDef="ubi_nombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Ubicación</th>
         <td mat-cell *matCellDef="let elemento">{{ elemento.ubi_nombre }}</td>
       </ng-container>
 
-      <!-- Columna: Imagen -->
       <ng-container matColumnDef="ele_imagen">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Imagen</th>
         <td mat-cell *matCellDef="let elemento">
@@ -49,11 +52,10 @@
         </td>
       </ng-container>
 
-
-      <!-- Columna: Detalles -->
       <ng-container matColumnDef="detalles">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Detalles</th>
         <td mat-cell *matCellDef="let elemento">
+          <!-- Botones de edición y eliminación -->
           <button mat-icon-button (click)="editarElemento(elemento)" class="icon-btn edit-button">
             <mat-icon>edit</mat-icon>
           </button>
@@ -68,7 +70,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
 
-    <!-- Paginador -->
+    <!-- Paginador para controlar las páginas de la tabla -->
     <mat-paginator [length]="filteredInventario.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
       aria-label="Seleccionar página">
     </mat-paginator>

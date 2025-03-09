@@ -1,57 +1,59 @@
 /* Contenedor principal del diálogo - Asegura modo flex */
 .mat-mdc-dialog-container {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    height: 100%;
-    padding: 20px; /* Opcional: espacio alrededor del modal en mobile */
-  }
-  
-  /* Contenedores intermedios de Angular Material */
-  .mat-mdc-dialog-container > div {
-    display: flex !important;
-    width: 100%;
-    min-height: 100%;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  /* Contenedor específico de tu modal */
-  .modal-content {
-    width: 400px;
-    max-width: 90%;
-    margin: auto; /* Fallback para navegadores antiguos */
-    position: relative;
-
-    border-radius: 8px;
-    padding: 20px;
-
-  }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center; /* Centrar el texto */
-    width: 100%; /* Asegurar que el header ocupe todo el ancho del modal */
-    margin-bottom: 20px; /* Añadir espacio debajo del header */
-  }
-  
-  .modal-header h2 {
-    flex: 1;
-    margin: 0;
-    font-weight: bold; /* <- Añade esta línea */
+  display: flex !important; /* Utiliza flexbox para el contenedor principal */
+  justify-content: center !important; /* Centra el contenido horizontalmente */
+  align-items: center !important; /* Centra el contenido verticalmente */
+  height: 100%; /* Asegura que el contenedor ocupe toda la altura de la ventana */
+  padding: 20px; /* Opcional: espacio alrededor del modal en dispositivos móviles */
 }
-  
-  .close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .imagen-elemento {
-    max-width: 80%; /* Hacer la imagen más pequeña */
-    height: auto;
-    margin: 20px auto; /* Centrar la imagen y añadir espacio alrededor */
-    display: block; /* Asegurar que la imagen se muestre como bloque */
-  }
-  
+
+/* Contenedores intermedios de Angular Material */
+.mat-mdc-dialog-container > div {
+  display: flex !important; /* Utiliza flexbox para los contenedores internos */
+  width: 100%; /* Hace que el contenedor ocupe todo el ancho disponible */
+  min-height: 100%; /* Asegura que el contenedor tenga una altura mínima del 100% */
+  justify-content: center; /* Centra los elementos horizontalmente */
+  align-items: center; /* Centra los elementos verticalmente */
+}
+
+/* Contenedor específico de tu modal */
+.modal-content {
+  width: 400px; /* Define un ancho fijo para el modal */
+  max-width: 90%; /* Permite que el modal se ajuste hasta un 90% del ancho de la pantalla */
+  margin: auto; /* Centra el modal en la pantalla */
+  position: relative; /* Establece la posición relativa para permitir un posicionamiento absoluto de los elementos internos */
+  border-radius: 8px; /* Aplica bordes redondeados al modal */
+  padding: 20px; /* Añade espacio interno alrededor del contenido del modal */
+}
+
+/* Estilo para el header del modal */
+.modal-header {
+  display: flex; /* Utiliza flexbox para organizar los elementos del header */
+  justify-content: space-between; /* Distribuye el espacio entre los elementos */
+  align-items: center; /* Centra los elementos verticalmente en el header */
+  text-align: center; /* Centra el texto dentro del header */
+  width: 100%; /* Hace que el header ocupe todo el ancho del modal */
+  margin-bottom: 20px; /* Añade espacio debajo del header */
+}
+
+/* Estilo para el título dentro del header */
+.modal-header h2 {
+  flex: 1; /* Hace que el título ocupe todo el espacio disponible en el header */
+  margin: 0; /* Elimina el margen del título */
+  font-weight: bold; /* Aplica negrita al título */
+}
+
+/* Estilo para el botón de cerrar */
+.close-btn {
+  background: none; /* Elimina el fondo del botón */
+  border: none; /* Elimina el borde del botón */
+  cursor: pointer; /* Cambia el cursor a mano cuando pasa por encima */
+}
+
+/* Estilo para la imagen dentro del modal */
+.imagen-elemento {
+  max-width: 80%; /* Limita el ancho de la imagen al 80% del ancho disponible */
+  height: auto; /* Mantiene la proporción de la imagen */
+  margin: 20px auto; /* Centra la imagen y añade espacio alrededor */
+  display: block; /* Asegura que la imagen se muestre como un bloque */
+}

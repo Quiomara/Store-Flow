@@ -80,4 +80,8 @@ router.put('/cancelar/:pre_id', auth(['Instructor']), prestamoController.cancela
  */
 router.get('/:pre_id/historial-estado', auth(['Instructor', 'Almacén']), prestamoController.obtenerHistorialEstado);
 
+
+router.put('/entregar/:pre_id', auth(['Almacén']), prestamoController.entregarPrestamo);
+
+
 module.exports = router;

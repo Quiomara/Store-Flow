@@ -1,11 +1,13 @@
+<!-- Contenedor principal para el historial de préstamos -->
 <div class="instructor-history-container">
+
+  <!-- Título principal de la sección -->
   <h1 class="text-center font-weight-bold mb-4">Historial de Préstamos</h1>
 
+  <!-- Formulario de búsqueda con campos para ID, Fecha y Estado -->
   <form [formGroup]="searchForm" class="search-form form-inline">
     <input type="text" formControlName="searchId" placeholder="ID del Préstamo" class="form-control mr-2" />
     <input type="date" formControlName="searchFecha" placeholder="Fecha" class="form-control mr-2" />
-
-    <!-- Menú desplegable para los estados -->
     <select formControlName="searchEstado" class="form-control mr-2" (change)="seleccionarEstado($event)">
       <option value="">Todos los estados</option>
       <option *ngFor="let estado of estados" [value]="estado.est_nombre">
@@ -14,15 +16,17 @@
     </select>
   </form>
 
+  <!-- Contenedor de la tabla de préstamos -->
   <div class="user-table-container">
     <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table">
-      <!-- Columna: ID del Préstamo -->
+
+      <!-- Columna: ID del préstamo -->
       <ng-container matColumnDef="idPrestamo">
         <th mat-header-cell *matHeaderCellDef class="header-cell">ID del Préstamo</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.idPrestamo }}</td>
       </ng-container>
 
-      <!-- Columna: Fecha Inicio -->
+      <!-- Columna: Fecha de inicio -->
       <ng-container matColumnDef="fechaHora">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Inicial</th>
         <td mat-cell *matCellDef="let prestamo">
@@ -30,7 +34,7 @@
         </td>
       </ng-container>
 
-      <!-- Columna: Fecha Final -->
+      <!-- Columna: Fecha de entrega -->
       <ng-container matColumnDef="fechaEntrega">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Final</th>
         <td mat-cell *matCellDef="let prestamo">
@@ -38,31 +42,32 @@
         </td>
       </ng-container>
 
-
       <!-- Columna: Estado -->
       <ng-container matColumnDef="estado">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Estado</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.estado }}</td>
       </ng-container>
 
-      <!-- Columna: Acciones (Detalles y Cancelar) -->
+      <!-- Columna: Acciones -->
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">Acciones</th>
         <td mat-cell *matCellDef="let prestamo">
-          <!-- Botón para ver detalles -->
-          <button mat-icon-button (click)="verDetalles(prestamo)" class="icon-btn">
-            <mat-icon>visibility</mat-icon>
-          </button>
+          <div class="acciones-container">
+            <!-- Botón para ver detalles (Siempre visible) -->
+            <button mat-icon-button (click)="verDetalles(prestamo)" class="icon-btn" matTooltip="Ver detalles">
+              <mat-icon>visibility</mat-icon>
+            </button>
 
-          <!-- Botón para cancelar préstamo, visible solo si el estado es 'Creado' -->
-          <button *ngIf="prestamo.estado === 'Creado'" mat-icon-button (click)="cancelarPrestamo(prestamo)"
-            class="icon-btn cancel-btn">
-            <mat-icon>cancel</mat-icon>
-          </button>
+            <!-- Botón para cancelar préstamo (Siempre visible si es cancelable) -->
+            <button *ngIf="esCancelable(prestamo)" mat-icon-button (click)="cancelarPrestamo(prestamo)"
+              class="icon-btn cancel-btn" matTooltip="Cancelar préstamo">
+              <mat-icon>cancel</mat-icon>
+            </button>
 
+
+          </div>
         </td>
       </ng-container>
-
 
       <!-- Filas de la tabla -->
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

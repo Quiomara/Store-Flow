@@ -1,142 +1,164 @@
+/* Contenedor principal para solicitudes de instructor */
 .instructor-request-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 1rem;
-  border-radius: 5px;
-  background-color: white;
+  max-width: 800px; /* Establece un ancho máximo para el contenedor */
+  margin: auto; /* Centra el contenedor en la página */
+  padding: 1rem; /* Agrega espacio interno alrededor del contenido */
+  border-radius: 5px; /* Bordes redondeados */
+  background-color: white; /* Fondo blanco */
 }
 
+/* Estilo para centrar texto */
 .text-center {
   text-align: center;
 }
 
+/* Estilos para filas de formulario con flexbox */
 .form-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+  display: flex; /* Habilita el uso de flexbox */
+  justify-content: center; /* Centra los elementos dentro de la fila */
+  flex-wrap: wrap; /* Permite que los elementos se ajusten en varias filas */
+  margin-bottom: 1rem; /* Espacio debajo de la fila */
 }
 
+/* Estilos para grupos de formulario */
 .form-group {
   margin: 0 10px; /* Espaciado entre los inputs */
 }
 
+/* Estilo para grupos de formulario en pantallas medianas con ancho del 30% */
 .form-group.col-md-3 {
   flex: 0 0 30%;
   max-width: 30%;
 }
 
+/* Estilo para grupos de formulario en pantallas medianas con ancho del 45% */
 .form-group.col-md-6 {
   flex: 0 0 45%;
   max-width: 45%;
 }
 
+/* Estilo para las etiquetas de formulario */
 label {
-  font-weight: bold;
-  margin-bottom: 15px;
-  text-align: center; /* Centrar el texto de las etiquetas */
+  font-weight: bold; /* Hace que las etiquetas sean negritas */
+  margin-bottom: 15px; /* Agrega espacio debajo de las etiquetas */
+  text-align: center; /* Centra el texto de las etiquetas */
 }
 
+/* Estilo para los controles de formulario */
 .form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  color: #000; /* Color del texto en el input */
+  width: 100%; /* Hace que los inputs ocupen todo el ancho disponible */
+  padding: 0.5rem; /* Espacio interno dentro del input */
+  border: 1px solid #ccc; /* Borde gris claro */
+  border-radius: 5px; /* Bordes redondeados */
+  color: #000; /* Color del texto en los inputs */
 }
 
+/* Estilo para tablas */
 .table {
-  width: 100%;
-  margin-top: 1rem;
-  border-collapse: collapse;
-  table-layout: fixed;
+  width: 100%; /* Hace que la tabla ocupe todo el ancho disponible */
+  margin-top: 1rem; /* Espacio encima de la tabla */
+  border-collapse: collapse; /* Elimina espacios entre bordes de celdas */
+  table-layout: fixed; /* Fija el tamaño de las celdas */
 }
 
+/* Estilo para las celdas de la tabla */
 .table th,
 .table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-  vertical-align: middle; /* Centra verticalmente el contenido de las celdas */
+  border: 1px solid #ddd; /* Borde gris claro */
+  padding: 8px; /* Espacio interno en las celdas */
+  text-align: center; /* Centra el contenido de las celdas */
+  vertical-align: middle; /* Centra el contenido verticalmente */
 }
 
+/* Estilo para las cabeceras de la tabla */
 .table th {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Fondo gris claro para las cabeceras */
 }
 
+/* Estilo para listas desplegables */
 .list-group {
-  position: absolute;
-  z-index: 1000;
-  background: white;
-  width: 100%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: absolute; /* Posiciona la lista de manera absoluta */
+  z-index: 1000; /* Asegura que la lista esté por encima de otros elementos */
+  background: white; /* Fondo blanco */
+  width: 100%; /* Hace que la lista ocupe todo el ancho disponible */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave debajo de la lista */
 }
 
+/* Estilo para los elementos de la lista */
 .list-group-item {
-  padding: 10px;
-  cursor: pointer;
+  padding: 10px; /* Espacio interno dentro de cada elemento de la lista */
+  cursor: pointer; /* Cambia el cursor al pasar sobre el elemento */
 }
 
+/* Estilo para el hover en los elementos de la lista */
 .list-group-item:hover {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Fondo gris claro al pasar el cursor sobre el elemento */
 }
 
+/* Estilo general para los botones */
 .btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  background-color: #000;
-  color: white;
-  cursor: pointer;
+  display: inline-block; /* Hace que el botón se comporte como un bloque en línea */
+  padding: 0.5rem 1rem; /* Espaciado interno */
+  border: none; /* Elimina el borde del botón */
+  border-radius: 5px; /* Bordes redondeados */
+  background-color: #000; /* Fondo negro */
+  color: white; /* Texto blanco */
+  cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
 }
 
+/* Estilo para el hover en los botones de clase .btn-dark */
 .btn-dark:hover {
-  background-color: #333;
+  background-color: #333; /* Fondo gris oscuro al pasar el cursor */
 }
 
+/* Estilo para los botones de tipo peligro (rojos) */
 .btn-danger {
-  background-color: red;
-  color: white;
+  background-color: red; /* Fondo rojo */
+  color: white; /* Texto blanco */
 }
 
+/* Estilo para el hover en los botones de clase .btn-danger */
 .btn-danger:hover {
-  background-color: darkred;
+  background-color: darkred; /* Fondo rojo oscuro al pasar el cursor */
 }
 
-/* Nuevo estilo para mantener la misma gama de colores */
+/* Estilo para los inputs al tener el foco */
 input:focus {
-  outline: none;
+  outline: none; /* Elimina el borde por defecto cuando el input tiene el foco */
 }
 
+/* Estilo para los controles de formulario al tener el foco */
 .form-control:focus {
-  outline: none;
+  outline: none; /* Elimina el borde por defecto cuando el input tiene el foco */
 }
 
+/* Estilo para contenedores de listas con mucho contenido */
 .elemento-lista {
-  max-height: 150px; /* Ajustar según sea necesario */
-  overflow-y: auto;
+  max-height: 150px; /* Establece una altura máxima */
+  overflow-y: auto; /* Permite el desplazamiento vertical si el contenido excede la altura */
 }
 
+/* Estilo para los elementos de la lista dentro de .elemento-lista */
 .elemento-lista .list-group-item {
-  cursor: pointer;
+  cursor: pointer; /* Cambia el cursor al pasar sobre el elemento */
 }
 
-/* Estilo para el icono de eliminar */
+/* Estilo específico para el icono de eliminar dentro de botones */
 button[mat-icon-button] {
-  background: none; /* Quita el borde del botón */
+  background: none; /* Quita el fondo del botón */
   border: none; /* Quita el borde del botón */
-  padding: 0;
+  padding: 0; /* Elimina el padding */
   color: #f44336; /* Color rojo para el icono de eliminar */
 }
 
-/* Centrado de la tabla */
+/* Estilo para centrar la tabla */
 .table {
-  margin: auto;
-  text-align: center;
+  margin: auto; /* Centra la tabla horizontalmente */
+  text-align: center; /* Centra el texto de las celdas */
 }
 
+/* Estilo para las celdas de la tabla al estar centradas */
 .table th, .table td {
-  text-align: center;
+  text-align: center; /* Centra el texto en las celdas */
   vertical-align: middle; /* Centra verticalmente el contenido de las celdas */
 }

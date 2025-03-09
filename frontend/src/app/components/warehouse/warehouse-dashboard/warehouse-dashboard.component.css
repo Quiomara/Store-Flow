@@ -1,144 +1,162 @@
+/* Estilos generales para el cuerpo de la página */
 body {
-  font-family: inherit;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  background-color: #f5f5f5;
+  font-family: inherit; /* Hereda la fuente del contenedor principal */
+  display: flex; /* Usa Flexbox para organizar los elementos */
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra el contenido verticalmente */
+  height: 100vh; /* Asegura que el cuerpo ocupe toda la altura de la ventana */
+  margin: 0; /* Elimina el margen por defecto */
+  background-color: #f5f5f5; /* Color de fondo claro */
 }
 
+/* Contenedor principal que envuelve el contenido */
 .content-container {
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: white; /* Fondo blanco para el contenido */
+  border-radius: 8px; /* Bordes redondeados */
+  overflow: hidden; /* El contenido no se desbordará del contenedor */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra sutil para dar profundidad */
 }
 
+/* Estilo para el header (cabecera) del contenido */
 header {
-  padding-top: 1rem;
+  padding-top: 1rem; /* Espaciado superior */
 }
 
+/* Estilo de la etiqueta del almacén */
 .warehouse-label {
-  font-size: 1.2rem;
-  color:  #333;
-  cursor: pointer;
+  font-size: 1.2rem; /* Tamaño de fuente ligeramente mayor */
+  color: #333; /* Color de texto oscuro */
+  cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
 }
 
+/* Estilo de la barra lateral */
 .sidebar {
-  background-color: #e0e0e0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 150px; /* Ajusta si quieres la barra más ancha o más angosta */
+  background-color: #e0e0e0; /* Fondo gris claro */
+  padding: 20px; /* Relleno interno */
+  display: flex; /* Usa Flexbox para organizar los elementos */
+  flex-direction: column; /* Organiza los elementos en columna */
+  align-items: center; /* Centra los elementos dentro del sidebar */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  max-width: 150px; /* Ancho máximo del sidebar */
 }
 
-/* Logo */
+/* Estilo para el logo dentro de la barra lateral */
 .logo {
-  width: 100%;
-  margin-bottom: 20px;
+  width: 100%; /* El logo ocupa todo el ancho disponible */
+  margin-bottom: 20px; /* Espaciado debajo del logo */
 }
 
-/* Ajustamos el ul para que ocupe el alto completo y centre verticalmente sus elementos */
+/* Estilo para la lista de navegación en la barra lateral */
 .sidebar ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centra verticalmente los li */
-  flex: 1; /* Ocupa todo el alto disponible en el sidebar */
+  list-style-type: none; /* Elimina los puntos de lista */
+  padding: 0; /* Elimina el relleno */
+  margin: 0; /* Elimina el margen */
+  width: 100%; /* El ul ocupa todo el ancho */
+  display: flex; /* Usa Flexbox para organizar los elementos */
+  flex-direction: column; /* Organiza los elementos en columna */
+  justify-content: center; /* Centra los elementos verticalmente */
+  flex: 1; /* Ocupa el alto completo disponible */
 }
 
+/* Estilo de los elementos de navegación dentro de la barra lateral */
 .sidebar .nav-item {
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* Espaciado entre los items de navegación */
 }
 
-/* Botones del sidebar con tamaño fijo y centrado de contenido */
+/* Estilo para los botones dentro de la barra lateral */
 .sidebar-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;       /* Centra icono y texto verticalmente */
-  width: 100%;                   /* Ocupa todo el ancho de la barra lateral */
-  height: 100px;                 /* Ajusta la altura deseada */
-  background-color: #b0b0b0;
-  color: black;
-  border-radius: 4px;
-  text-decoration: none;
-  text-align: center;
-  font-size: 0.8rem;
-  transition: background-color 0.3s ease;
+  display: flex; /* Usa Flexbox para alinear el contenido */
+  flex-direction: column; /* Organiza icono y texto en columna */
+  align-items: center; /* Centra icono y texto horizontalmente */
+  justify-content: center; /* Centra icono y texto verticalmente */
+  width: 100%; /* El botón ocupa todo el ancho de la barra lateral */
+  height: 100px; /* Altura fija para el botón */
+  background-color: #b0b0b0; /* Fondo gris para los botones */
+  color: black; /* Color de texto negro */
+  border-radius: 4px; /* Bordes redondeados */
+  text-decoration: none; /* Elimina subrayado en el enlace */
+  text-align: center; /* Centra el texto dentro del botón */
+  font-size: 0.8rem; /* Tamaño de fuente pequeño */
+  transition: background-color 0.3s ease; /* Transición suave para el cambio de color */
 }
 
+/* Estilo para los iconos dentro de los botones */
 .sidebar-btn i {
-  font-size: 2.5rem;
-  margin-bottom: 5px;
-  color:  black;
+  font-size: 2.5rem; /* Tamaño grande para los iconos */
+  margin-bottom: 5px; /* Espaciado debajo del icono */
+  color: black; /* Color negro para los iconos */
 }
 
+/* Estilo para los botones al hacer hover (pasar el cursor sobre ellos) */
 .sidebar-btn:hover {
-  background-color: #8f8f8f;
+  background-color: #8f8f8f; /* Cambia el fondo a un gris más oscuro */
 }
 
+/* Estilo para el contenido principal */
 .content {
-  flex: 1;
-  padding: 20px;
+  flex: 1; /* Ocupa el espacio restante */
+  padding: 20px; /* Relleno alrededor del contenido */
 }
 
+/* Estilo para los encabezados (h2) dentro del contenido */
 h2 {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 0;
+  text-align: center; /* Centra el texto */
+  font-weight: bold; /* Aplica negrita */
+  margin-top: 0; /* Elimina el margen superior */
 }
 
+/* Estilo para el formulario */
 form {
-  padding: 2rem;
+  padding: 2rem; /* Relleno interno para el formulario */
 }
 
+/* Estilo para las filas dentro del formulario */
 .form-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  display: flex; /* Usa Flexbox para organizar los campos */
+  flex-wrap: wrap; /* Permite que los elementos se ajusten en múltiples líneas */
+  justify-content: space-between; /* Distribuye el espacio entre los elementos */
+  margin-bottom: 15px; /* Espaciado inferior */
 }
 
+/* Estilo para los grupos de campos dentro del formulario */
 .form-group {
-  flex: 1;
-  margin-right: 10px;
+  flex: 1; /* Cada grupo ocupa el mismo espacio disponible */
+  margin-right: 10px; /* Espaciado a la derecha */
 }
 
+/* Elimina el margen derecho del último grupo de campos */
 .form-group:last-child {
   margin-right: 0;
 }
 
+/* Estilo para las etiquetas dentro del formulario */
 label {
-  display: block;
-  margin-bottom: 5px;
+  display: block; /* Asegura que las etiquetas se muestren por encima de los campos */
+  margin-bottom: 5px; /* Espaciado debajo de las etiquetas */
 }
 
+/* Estilo para los campos de entrada y select dentro del formulario */
 input,
 select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+  width: 100%; /* Los campos ocupan todo el ancho disponible */
+  padding: 8px; /* Relleno interno */
+  border: 1px solid #ccc; /* Borde gris claro */
+  border-radius: 4px; /* Bordes redondeados */
+  box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
 }
 
+/* Estilo para los botones dentro del formulario */
 button {
-  background-color: #000;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  align-self: flex-end;
+  background-color: #000; /* Fondo negro para el botón */
+  color: white; /* Texto blanco */
+  padding: 10px 15px; /* Relleno interno */
+  border: none; /* Elimina el borde */
+  border-radius: 4px; /* Bordes redondeados */
+  cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
+  align-self: flex-end; /* Alinea el botón al final de la fila */
 }
 
+/* Estilo para los botones al hacer hover */
 button:hover {
-  background-color: #333;
+  background-color: #333; /* Cambia el fondo a un gris oscuro */
 }

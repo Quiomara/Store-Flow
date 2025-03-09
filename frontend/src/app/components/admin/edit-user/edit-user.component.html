@@ -1,14 +1,17 @@
+<!-- Título del diálogo de edición de usuario -->
 <h2 mat-dialog-title class="centered-title">Editar Usuario</h2>
+
+<!-- Formulario de edición del usuario -->
 <form [formGroup]="editForm" (ngSubmit)="onSave()">
   <mat-dialog-content>
 
-    <!-- Cédula arriba -->
+    <!-- Cédula del usuario (campo solo lectura) -->
     <mat-form-field class="full-width">
       <mat-label>Cédula</mat-label>
       <input matInput formControlName="cedula" [attr.disabled]="true">
     </mat-form-field>
 
-    <!-- Primer Nombre y Segundo Nombre en la misma fila -->
+    <!-- Campos para el primer y segundo nombre en una misma fila -->
     <div class="form-row">
       <mat-form-field class="half-width">
         <mat-label>Primer Nombre</mat-label>
@@ -20,7 +23,7 @@
       </mat-form-field>
     </div>
 
-    <!-- Primer Apellido y Segundo Apellido en la misma fila -->
+    <!-- Campos para el primer y segundo apellido en una misma fila -->
     <div class="form-row">
       <mat-form-field class="half-width">
         <mat-label>Primer Apellido</mat-label>
@@ -32,7 +35,7 @@
       </mat-form-field>
     </div>
 
-    <!-- Correo Electrónico y Teléfono en la misma fila -->
+    <!-- Campos para correo electrónico y teléfono en una misma fila -->
     <div class="form-row">
       <mat-form-field class="half-width">
         <mat-label>Correo Electrónico</mat-label>
@@ -44,7 +47,7 @@
       </mat-form-field>
     </div>
 
-    <!-- Centro de Formación y Tipo de Usuario en la misma fila -->
+    <!-- Campos para centro de formación y tipo de usuario en una misma fila -->
     <div class="form-row">
       <mat-form-field class="half-width">
         <mat-label>Centro de Formación</mat-label>
@@ -65,6 +68,8 @@
     </div>
 
   </mat-dialog-content>
+
+  <!-- Botones de acción: cancelar y guardar -->
   <mat-dialog-actions align="end">
     <button mat-button type="button" (click)="onCancel()">Cancelar</button>
     <button mat-button color="primary" type="submit">Guardar</button>

@@ -1,8 +1,14 @@
+<!-- Contenedor principal para el registro de un nuevo elemento -->
 <div class="registrar-elemento-container">
+  
+  <!-- Título principal -->
   <h1 class="text-center mb-5"><strong>Registrar Elemento</strong></h1>
 
+  <!-- Formulario para registrar el elemento -->
   <div class="registrar-elemento bg-white p-4">
     <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+      
+      <!-- Fila para los campos "Nombre Elemento" y "Cantidad Total" -->
       <div class="form-row mb-3">
         <div class="form-group col-md-6">
           <label for="ele_nombre" class="font-weight-bold">Nombre Elemento</label>
@@ -14,6 +20,7 @@
         </div>
       </div>
 
+      <!-- Fila para los campos "Ubicación" y "Imagen" -->
       <div class="form-row mb-3">
         <div class="form-group col-md-6">
           <label for="ubi_ele_id" class="font-weight-bold">Ubicación</label>
@@ -31,6 +38,7 @@
         </div>
       </div>
 
+      <!-- Botón para enviar el formulario -->
       <div class="text-right">
         <button type="submit" class="btn btn-primary btn-sm">Registrar</button>
       </div>
