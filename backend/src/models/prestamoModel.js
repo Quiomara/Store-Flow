@@ -380,76 +380,35 @@ const Prestamo = {
    * @param {number} pre_id - ID del préstamo a cancelar.
    * @returns {Promise<Object>} - Resultado de la cancelación.
    */
-  cancelarPrestamo: async (pre_id) => {
-    const connection = await db.getConnection();
+  cancelarPrestamo: async (pre_id, usr_cedula) => {
+    if (!usr_cedula) {
+      return { success: false, message: "El usuario que cancela el préstamo no está definido." };
+    }
+  
+    let connection;
     try {
+      connection = await db.getConnection();
       await connection.beginTransaction();
-
-      // Verificar si el préstamo existe y su estado
-      const [rows] = await connection.query(
-        "SELECT est_id FROM prestamos WHERE pre_id = ?",
+  
+      // Obtener el préstamo actual (incluyendo el historial) para verificar el estado
+      const [rows] = await connection.execute(
+        "SELECT est_id, historial_estados FROM prestamos WHERE pre_id = ?",
         [pre_id]
       );
       if (rows.length === 0) {
         throw new Error("No se encontró el préstamo");
       }
       const estadoActual = rows[0].est_id;
+      const historialEstados = rows[0].historial_estados
+        ? JSON.parse(rows[0].historial_estados)
+        : [];
+  
       const ESTADO_CREADO = 1;
       const ESTADO_CANCELADO = 5;
       if (estadoActual !== ESTADO_CREADO) {
         throw new Error("Solo se pueden cancelar préstamos en estado 'Creado'");
       }
-
-      // Obtener los elementos asociados al préstamo
-      const [prestamoElementos] = await connection.query(
-        `SELECT ele_id, pre_ele_cantidad_prestado
-         FROM PrestamosElementos
-         WHERE pre_id = ?`,
-        [pre_id]
-      );
-      if (prestamoElementos.length === 0) {
-        throw new Error("No se encontraron elementos asociados al préstamo.");
-      }
-
-      // Restaurar la cantidad de cada elemento prestado (sumar la cantidad devuelta)
-      for (const elemento of prestamoElementos) {
-        await connection.query(
-          `UPDATE Elementos
-           SET ele_cantidad_actual = ele_cantidad_actual + ?
-           WHERE ele_id = ?`,
-          [elemento.pre_ele_cantidad_prestado, elemento.ele_id]
-        );
-      }
-
-      // Actualizar el estado del préstamo a "Cancelado"
-      const [result] = await connection.query(
-        "UPDATE prestamos SET est_id = ? WHERE pre_id = ?",
-        [ESTADO_CANCELADO, pre_id]
-      );
-      if (result.affectedRows === 0) {
-        throw new Error("No se pudo cancelar el préstamo");
-      }
-      await connection.commit();
-      return { success: true, message: "Préstamo cancelado y cantidades restauradas correctamente." };
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
-  },
-
-  /**
-   * Marca un préstamo como entregado y restaura la cantidad de los elementos prestados.
-   * @param {number} pre_id - ID del préstamo a entregar.
-   * @returns {Promise<Object>} - Resultado de la entrega del préstamo.
-   */
-  entregarPrestamo: async (pre_id) => {
-    let connection;
-    try {
-      connection = await db.getConnection();
-      await connection.beginTransaction();
-
+  
       // Obtener los elementos asociados al préstamo
       const [prestamoElementos] = await connection.execute(
         `SELECT ele_id, pre_ele_cantidad_prestado
@@ -460,7 +419,7 @@ const Prestamo = {
       if (prestamoElementos.length === 0) {
         throw new Error("No se encontraron elementos asociados al préstamo.");
       }
-
+  
       // Restaurar la cantidad de cada elemento prestado
       await Promise.all(prestamoElementos.map(async (elemento) => {
         await connection.execute(
@@ -470,28 +429,49 @@ const Prestamo = {
           [elemento.pre_ele_cantidad_prestado, elemento.ele_id]
         );
       }));
-
-      // Actualizar el estado del préstamo a "Entregado" (ID 4) y registrar la fecha de entrega
-      const ESTADO_ENTREGADO = 4;
+  
+      // Obtener el nombre completo del usuario que cancela el préstamo
+      const [rowsUser] = await connection.execute(
+        `SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
+         FROM usuarios WHERE usr_cedula = ?`,
+        [usr_cedula]
+      );
+      if (rowsUser.length === 0) {
+        throw new Error("No se encontró un usuario con esa cédula.");
+      }
+      const u = rowsUser[0];
+      const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
+      const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
+      const nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+  
+      // Generar la fecha de cancelación
+      const fechaCancelacion = new Date().toISOString().slice(0, 19).replace("T", " ");
+  
+      // Agregar la acción "Cancelado" al historial
+      historialEstados.push({
+        estado: "Cancelado",
+        usuario: nombreCompleto,
+        fecha: fechaCancelacion
+      });
+  
+      // Actualizar el estado del préstamo a "Cancelado", registrar la fecha de cancelación y guardar el historial actualizado
       const [result] = await connection.execute(
-        `UPDATE Prestamos
-         SET est_id = ?, pre_actualizacion = NOW(), pre_fin = NOW()
-         WHERE pre_id = ?`,
-        [ESTADO_ENTREGADO, pre_id]
+        "UPDATE prestamos SET est_id = ?, pre_fin = ?, historial_estados = ? WHERE pre_id = ?",
+        [ESTADO_CANCELADO, fechaCancelacion, JSON.stringify(historialEstados), pre_id]
       );
       if (result.affectedRows === 0) {
-        throw new Error("No se pudo marcar el préstamo como entregado.");
+        throw new Error("No se pudo cancelar el préstamo");
       }
+  
       await connection.commit();
-
-      // (Opcional) Obtener datos actualizados después de la entrega
+  
+      // Obtener datos actualizados después de la cancelación
       const datosActualizados = await Prestamo.obtenerElementosPrestamo(pre_id);
-      return {
-        success: true,
-        message: "Préstamo entregado y cantidades restauradas.",
-        estadoPrestamo: "Entregado",
-        fechaEntrega: new Date().toISOString(),
-        data: datosActualizados,
+  
+      return { 
+        success: true, 
+        message: "Préstamo cancelado y cantidades restauradas correctamente.", 
+        data: datosActualizados 
       };
     } catch (error) {
       if (connection) await connection.rollback();
@@ -499,7 +479,115 @@ const Prestamo = {
     } finally {
       if (connection) connection.release();
     }
+  },
+  
+
+  /**
+   * Marca un préstamo como entregado y restaura la cantidad de los elementos prestados.
+   * @param {number} pre_id - ID del préstamo a entregar.
+   * @returns {Promise<Object>} - Resultado de la entrega del préstamo.
+   */
+  entregarPrestamo: async (pre_id, usr_cedula) => {
+    if (!usr_cedula) {
+      return { success: false, message: "El usuario que entrega el préstamo no está definido." };
+    }
+  
+    let connection;
+    try {
+      connection = await db.getConnection();
+      await connection.beginTransaction();
+  
+      // Obtener el préstamo actual para extraer el historial y el estado
+      const [prestamoRows] = await connection.execute(
+        "SELECT est_id, historial_estados FROM prestamos WHERE pre_id = ?",
+        [pre_id]
+      );
+      if (prestamoRows.length === 0) {
+        throw new Error("El préstamo no existe.");
+      }
+      // Si hay historial, se parsea; de lo contrario, se inicia como arreglo vacío
+      const historialEstados = prestamoRows[0].historial_estados
+        ? JSON.parse(prestamoRows[0].historial_estados)
+        : [];
+  
+      // Obtener los elementos asociados al préstamo
+      const [prestamoElementos] = await connection.execute(
+        `SELECT ele_id, pre_ele_cantidad_prestado
+         FROM PrestamosElementos
+         WHERE pre_id = ?`,
+        [pre_id]
+      );
+      if (prestamoElementos.length === 0) {
+        throw new Error("No se encontraron elementos asociados al préstamo.");
+      }
+  
+      // Restaurar la cantidad de cada elemento prestado
+      await Promise.all(prestamoElementos.map(async (elemento) => {
+        await connection.execute(
+          `UPDATE Elementos
+           SET ele_cantidad_actual = ele_cantidad_actual + ?
+           WHERE ele_id = ?`,
+          [elemento.pre_ele_cantidad_prestado, elemento.ele_id]
+        );
+      }));
+  
+      // Obtener el nombre completo del usuario que entrega el préstamo
+      const [rowsUser] = await connection.execute(
+        `SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
+         FROM usuarios WHERE usr_cedula = ?`,
+        [usr_cedula]
+      );
+      if (rowsUser.length === 0) {
+        throw new Error("No se encontró un usuario con esa cédula.");
+      }
+      const u = rowsUser[0];
+      const segNombre = u.usr_segundo_nombre ? ` ${u.usr_segundo_nombre}` : '';
+      const segApellido = u.usr_segundo_apellido ? ` ${u.usr_segundo_apellido}` : '';
+      const nombreCompleto = `${u.usr_primer_nombre}${segNombre} ${u.usr_primer_apellido}${segApellido}`.trim();
+  
+      // Generar la fecha de entrega
+      const fechaEntrega = new Date().toISOString().slice(0, 19).replace("T", " ");
+  
+      // Agregar la acción "Entregado" al historial
+      historialEstados.push({
+        estado: "Entregado",
+        usuario: nombreCompleto,
+        fecha: fechaEntrega
+      });
+  
+      // Actualizar el estado del préstamo a "Entregado" (ID 4), registrar la fecha de entrega y guardar el historial actualizado
+      const ESTADO_ENTREGADO = 4;
+      const [result] = await connection.execute(
+        `UPDATE prestamos 
+         SET est_id = ?, pre_actualizacion = NOW(), pre_fin = ?, historial_estados = ?
+         WHERE pre_id = ?`,
+        [ESTADO_ENTREGADO, fechaEntrega, JSON.stringify(historialEstados), pre_id]
+      );
+      if (result.affectedRows === 0) {
+        throw new Error("No se pudo marcar el préstamo como entregado.");
+      }
+  
+      await connection.commit();
+  
+      // (Opcional) Obtener datos actualizados después de la entrega
+      const datosActualizados = await Prestamo.obtenerElementosPrestamo(pre_id);
+      return {
+        success: true,
+        message: "Préstamo entregado y cantidades restauradas.",
+        estadoPrestamo: "Entregado",
+        fechaEntrega: fechaEntrega,
+        data: datosActualizados,
+      };
+    } catch (error) {
+      if (connection) await connection.rollback();
+      console.error("Error en entregarPrestamo:", error);
+      return { success: false, message: "Error al entregar el préstamo", error: error.message };
+    } finally {
+      if (connection) connection.release();
+    }
   }
+  
+  
 };
 
 module.exports = Prestamo;

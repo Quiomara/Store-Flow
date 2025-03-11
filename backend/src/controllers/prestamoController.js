@@ -521,65 +521,25 @@ const actualizarEstadoPrestamo = async (req, res) => {
 
 const cancelarPrestamo = async (req, res) => {
   const pre_id = Number(req.params.pre_id);
-
   if (!pre_id) {
     return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
-  let connection;
+  // Extraer la cédula del usuario autenticado
+  const usrCedula = req.user && req.user.usr_cedula;
+  if (!usrCedula) {
+    return res.status(400).json({ success: false, message: "El usuario que cancela el préstamo no está definido." });
+  }
 
   try {
-    connection = await db.getConnection();
-    await connection.beginTransaction();
-
-    // Obtener los elementos asociados al préstamo
-    const [prestamoElementos] = await connection.execute(
-      `SELECT ele_id, pre_ele_cantidad_prestado
-       FROM PrestamosElementos
-       WHERE pre_id = ?`,
-      [pre_id]
-    );
-
-    // Restaurar la cantidad de cada elemento prestado
-    await Promise.all(prestamoElementos.map(async (elemento) => {
-      await connection.execute(
-        `UPDATE Elementos
-         SET ele_cantidad_actual = ele_cantidad_actual + ?
-         WHERE ele_id = ?`,
-        [elemento.pre_ele_cantidad_prestado, elemento.ele_id]
-      );
-    }));
-
-    // Actualizar el estado del préstamo a "Cancelado" y asignar la fecha de cancelación en la base de datos
-    const ESTADO_CANCELADO = 5;
-    await connection.execute(
-      `UPDATE Prestamos
-       SET est_id = ?, pre_actualizacion = NOW(), pre_fin = NOW()
-       WHERE pre_id = ?`,
-      [ESTADO_CANCELADO, pre_id]
-    );
-
-    // Confirmar la transacción
-    await connection.commit();
-
-    // 🔄 Obtener datos actualizados después de la cancelación
-    const datosActualizados = await Prestamo.obtenerElementosPrestamo(pre_id);
-
-    return res.status(200).json({
-      success: true,
-      message: "Préstamo cancelado y cantidades restauradas.",
-      estadoPrestamo: "Cancelado",
-      fechaCancelacion: new Date().toISOString(), // Para confirmar la fecha en la respuesta
-      data: datosActualizados,
-    });
-
+    // Se delega la lógica de cancelar al modelo, pasando pre_id y usrCedula
+    const result = await Prestamo.cancelarPrestamo(pre_id, usrCedula);
+    return res.status(200).json(result);
   } catch (error) {
-    if (connection) await connection.rollback();
     return res.status(500).json({ success: false, message: "Error al cancelar el préstamo", error: error.message });
-  } finally {
-    if (connection) connection.release();
   }
 };
+
 
 
 /**
@@ -611,19 +571,24 @@ const obtenerHistorialEstado = async (req, res) => {
  */
 const entregarPrestamo = async (req, res) => {
   const pre_id = Number(req.params.pre_id);
-
   if (!pre_id) {
     return res.status(400).json({ success: false, message: "ID del préstamo es requerido" });
   }
 
+  // Extraer la cédula del usuario autenticado (suponiendo que el middleware asigna req.user)
+  const usrCedula = req.user && req.user.usr_cedula;
+  if (!usrCedula) {
+    return res.status(400).json({ success: false, message: "El usuario que entrega el préstamo no está definido." });
+  }
+
   try {
-    const result = await Prestamo.entregarPrestamo(pre_id);
+    const result = await Prestamo.entregarPrestamo(pre_id, usrCedula);
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ success: false, message: "Error al entregar el préstamo", error: error.message });
   }
-
 };
+
 
 module.exports = {
   crearPrestamo,
