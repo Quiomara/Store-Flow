@@ -9,21 +9,46 @@ import { PrestamoUpdate } from '../models/prestamo-update.model';
 
 /**
  * Servicio encargado de manejar las operaciones relacionadas con los préstamos.
+ *
+ * @remarks
+ * Este servicio proporciona métodos para crear, obtener, actualizar y cancelar préstamos, así como para gestionar el stock y los estados de los préstamos.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class PrestamoService {
+  /**
+   * URL base del backend.
+   */
   private readonly baseUrl = 'http://localhost:3000/api';
+
+  /**
+   * URL para las operaciones relacionadas con préstamos.
+   */
   private readonly prestamosUrl = `${this.baseUrl}/prestamos`;
+
+  /**
+   * URL para las operaciones relacionadas con los estados.
+   */
   private readonly estadosUrl = `${this.baseUrl}/estados`;
+
+  /**
+   * URL para las operaciones relacionadas con el stock.
+   */
   private readonly stockUrl = `${this.baseUrl}/stock`;
 
-  constructor(private http: HttpClient, private authService: AuthService) { }
+  /**
+   * Crea una instancia del servicio de préstamos.
+   *
+   * @param http - Cliente HTTP para realizar peticiones al backend.
+   * @param authService - Servicio de autenticación para el manejo de la autorización.
+   */
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   /**
    * Obtiene los encabezados de la solicitud, incluyendo el token de autenticación.
-   * @returns {HttpHeaders} Los encabezados de la solicitud con el token de autenticación.
+   *
+   * @returns Los encabezados de la solicitud con el token de autenticación.
    */
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
@@ -39,6 +64,7 @@ export class PrestamoService {
 
   /**
    * Maneja los errores que ocurren durante las solicitudes HTTP.
+   *
    * @param error - El error recibido en la respuesta HTTP.
    * @returns Un observable que emite el error procesado.
    */
@@ -52,16 +78,16 @@ export class PrestamoService {
     } else {
       errorMessage = `Error ${error.status}: ${error.error?.message || error.statusText}`;
     }
-    console.error('Error en PrestamoService:', errorMessage, error);
     return throwError(() => new Error(errorMessage));
   }
 
   /**
    * Realiza una solicitud HTTP de tipo dinámico.
+   *
    * @param method - El método HTTP a utilizar (GET, POST, PUT, DELETE, etc.).
    * @param url - La URL a la que se realiza la solicitud.
    * @param body - El cuerpo de la solicitud (opcional).
-   * @returns Un observable con el tipo genérico de respuesta esperada.
+   * @returns Un observable con la respuesta del tipo genérico esperado.
    */
   private request<T>(method: string, url: string, body?: any): Observable<T> {
     const headers = this.getHeaders();
@@ -72,6 +98,7 @@ export class PrestamoService {
 
   /**
    * Crea un nuevo préstamo en el sistema.
+   *
    * @param prestamo - El objeto de préstamo a crear.
    * @returns Un observable con la respuesta de la creación del préstamo.
    */
@@ -80,11 +107,11 @@ export class PrestamoService {
       .pipe(catchError(this.handleError));
   }
 
-
   /**
- * Obtiene todos los préstamos disponibles en el sistema.
- * @returns Un observable que emite un arreglo de préstamos.
- */
+   * Obtiene todos los préstamos disponibles en el sistema.
+   *
+   * @returns Un observable que emite un arreglo de préstamos.
+   */
   getPrestamos(): Observable<Prestamo[]> {
     return this.http.get<{ respuesta: boolean; mensaje: string; data: Prestamo[] }>(this.prestamosUrl, { headers: this.getHeaders() })
       .pipe(
@@ -95,6 +122,7 @@ export class PrestamoService {
 
   /**
    * Actualiza el stock de un artículo.
+   *
    * @param item - Objeto que contiene el ID del artículo y su cantidad actual.
    * @returns Un observable con la respuesta de la actualización.
    */
@@ -104,6 +132,7 @@ export class PrestamoService {
 
   /**
    * Obtiene todos los estados disponibles en el sistema.
+   *
    * @returns Un observable que emite un arreglo de estados.
    */
   getEstados(): Observable<Estado[]> {
@@ -114,6 +143,7 @@ export class PrestamoService {
 
   /**
    * Obtiene los préstamos asociados a una cédula de usuario.
+   *
    * @param usr_cedula - La cédula del usuario para buscar los préstamos.
    * @returns Un observable que emite un arreglo de préstamos asociados al usuario.
    */
@@ -129,10 +159,11 @@ export class PrestamoService {
   }
 
   /**
- * Obtiene los detalles de un préstamo por su ID.
- * @param prestamoId - El ID del préstamo para obtener sus detalles.
- * @returns Un observable que emite los detalles del préstamo.
- */
+   * Obtiene los detalles de un préstamo por su ID.
+   *
+   * @param prestamoId - El ID del préstamo para obtener sus detalles.
+   * @returns Un observable que emite los detalles del préstamo.
+   */
   getPrestamoDetalles(prestamoId: number): Observable<any> {
     return this.request('GET', `${this.prestamosUrl}/${prestamoId}/detalles`).pipe(
       map(response => response)
@@ -141,6 +172,7 @@ export class PrestamoService {
 
   /**
    * Actualiza la cantidad prestada de un artículo en un préstamo.
+   *
    * @param data - Objeto que contiene el ID del préstamo, el ID del artículo y la cantidad prestada.
    * @returns Un observable con la respuesta de la actualización.
    */
@@ -150,6 +182,7 @@ export class PrestamoService {
 
   /**
    * Actualiza los detalles de un préstamo.
+   *
    * @param data - Objeto que contiene la información para actualizar el préstamo.
    * @returns Un observable con la respuesta de la actualización.
    */
@@ -159,24 +192,24 @@ export class PrestamoService {
 
   /**
    * Actualiza el estado de un préstamo, su fecha de entrega y el usuario que realiza el cambio.
+   *
    * @param idPrestamo - El ID del préstamo a actualizar.
    * @param data - Objeto que contiene el nuevo estado, la fecha de entrega y la cédula del usuario.
    * @returns Un observable con la respuesta de la actualización.
    */
   actualizarEstadoPrestamo(idPrestamo: number, data: { estado: number; fechaEntrega: Date; usr_cedula: string }): Observable<any> {
     const url = `${this.prestamosUrl}/${idPrestamo}/actualizar-estado`;
-
     const body = {
-      est_id: data.estado, // Enviar el estado correctamente
-      fechaEntrega: data.fechaEntrega.toISOString(), // Convierte la fecha a string ISO antes de enviarla
+      est_id: data.estado,
+      fechaEntrega: data.fechaEntrega.toISOString(),
       usr_cedula: data.usr_cedula
     };
-
     return this.request('PUT', url, body);
   }
 
   /**
    * Obtiene la URL base para los préstamos.
+   *
    * @returns La URL para acceder a los préstamos.
    */
   getPrestamosUrl(): string {
@@ -185,35 +218,29 @@ export class PrestamoService {
 
   /**
    * Cancela un préstamo y devuelve los elementos prestados al stock.
-   * @param pre_id - ID del préstamo.
-   * @param ele_id - ID del elemento.
-   * @param cantidad - Cantidad prestada a devolver.
-   * @returns Observable con la respuesta del backend.
+   *
+   * @param prestamoId - ID del préstamo a cancelar.
+   * @returns Un observable con la respuesta del backend.
    */
   cancelarPrestamo(prestamoId: number): Observable<any> {
     return this.http.put(`${this.prestamosUrl}/cancelar/${prestamoId}`, {})
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
-  
-  
+
   /**
    * Marca un préstamo como entregado y devuelve los elementos al stock.
-   * @param pre_id - ID del préstamo.
-   * @param ele_id - ID del elemento.
-   * @param cantidad - Cantidad prestada a devolver.
-   * @returns Observable con la respuesta del backend.
+   *
+   * @param pre_id - ID del préstamo a marcar como entregado.
+   * @returns Un observable con la respuesta del backend.
    */
   entregarPrestamo(pre_id: number): Observable<any> {
-    return this.http.put(`${this.prestamosUrl}/entregar/${pre_id}`, {}).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.put(`${this.prestamosUrl}/entregar/${pre_id}`, {})
+      .pipe(catchError(this.handleError));
   }
-  
 
   /**
    * Obtiene el historial de estados de un préstamo.
+   *
    * @param pre_id - El ID del préstamo para obtener su historial de estados.
    * @returns Un observable con el historial de estados del préstamo.
    */

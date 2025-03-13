@@ -3,6 +3,7 @@ const db = require('../config/db');
 
 /**
  * Normaliza el texto eliminando tildes y convirtiéndolo a minúsculas.
+ *
  * @param {string} text - Texto a normalizar.
  * @returns {string} Texto normalizado.
  */
@@ -10,8 +11,12 @@ const normalizeText = (text) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").to
 
 /**
  * Middleware de autenticación y autorización.
- * Verifica si el usuario tiene un token válido y permisos adecuados.
- * @param {string[]} requiredRoles - Lista de roles permitidos para acceder al recurso.
+ *
+ * Este middleware verifica que el usuario tenga un token JWT válido en el header "Authorization".
+ * Además, consulta en la base de datos el rol del usuario y, si se especifican roles requeridos,
+ * compara el rol del usuario con la lista de roles permitidos para autorizar el acceso al recurso.
+ *
+ * @param {string[]} [requiredRoles=[]] - Lista de roles permitidos para acceder al recurso.
  * @returns {Function} Middleware de autenticación.
  */
 const auth = (requiredRoles = []) => {

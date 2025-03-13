@@ -23,10 +23,12 @@ import { InventoryComponent } from './components/warehouse/inventory/inventory.c
 import { AuthGuard } from './guards/auth.guard';
 
 /**
- * Definición de rutas de la aplicación.
- * - Se definen rutas públicas como `login`, `forgot-password-popup` y `reset-password`.
- * - Se protegen rutas con `canActivate: [AuthGuard]` para restringir el acceso a usuarios autenticados.
- * - Se utilizan `children` para organizar rutas dentro de paneles administrativos.
+ * Rutas de la aplicación.
+ *
+ * @remarks
+ * Se definen rutas públicas como `login`, `forgot-password-popup` y `reset-password`.
+ * Las rutas protegidas se indican con `canActivate: [AuthGuard]` para restringir el acceso a usuarios autenticados.
+ * Además, se organizan rutas hijas para los paneles de administrador, instructor y almacén, definiendo redirecciones por defecto en cada uno.
  */
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -37,11 +39,11 @@ export const routes: Routes = [
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,
-    canActivate: [AuthGuard], // Protección de ruta
+    canActivate: [AuthGuard],
     children: [
       { path: 'register-user', component: RegisterUserComponent },
       { path: 'search-user', component: SearchUserComponent },
-      { path: '', redirectTo: 'register-user', pathMatch: 'full' } // Redirección por defecto
+      { path: '', redirectTo: 'register-user', pathMatch: 'full' }
     ]
   },
 
@@ -78,6 +80,13 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 
+/**
+ * Módulo de enrutamiento de la aplicación.
+ *
+ * @remarks
+ * Configura las rutas de la aplicación utilizando `RouterModule.forRoot(routes)` y habilita `HttpClientModule`
+ * para el manejo de peticiones HTTP. Este módulo se exporta para ser importado en el módulo principal de la aplicación.
+ */
 @NgModule({
   imports: [RouterModule.forRoot(routes), HttpClientModule],
   exports: [RouterModule]

@@ -10,6 +10,18 @@ import { User } from '../../../models/user.model';
 import { UserService } from '../../../services/user.service';
 import { CentroService } from '../../../services/centro.service';
 
+/**
+ * Componente que muestra un diálogo para editar un usuario.
+ *
+ * @remarks
+ * Este componente utiliza formularios reactivos para permitir la edición de la información de un usuario.
+ * Se inyectan servicios para obtener los centros de formación y tipos de usuario.
+ *
+ * @example
+ * ```html
+ * <app-edit-user></app-edit-user>
+ * ```
+ */
 @Component({
   selector: 'app-edit-user',
   standalone: true,
@@ -26,16 +38,28 @@ import { CentroService } from '../../../services/centro.service';
   styleUrls: ['./edit-user.component.css']
 })
 export class EditUserComponent implements OnInit {
-  editForm: FormGroup; // Formulario reactivo para editar los datos del usuario
-  centros: any[] = []; // Lista de centros de formación obtenida desde el servicio
-  tiposUsuario: any[] = []; // Lista de tipos de usuario obtenida desde el servicio
+  /**
+   * Formulario reactivo para editar los datos del usuario.
+   */
+  editForm: FormGroup;
 
   /**
-   * Constructor del componente.
-   * @param dialogRef Referencia al diálogo para cerrar el componente.
-   * @param data Datos del usuario que se van a editar.
-   * @param userService Servicio para obtener tipos de usuario.
-   * @param centroService Servicio para obtener centros de formación.
+   * Lista de centros de formación obtenida desde el servicio.
+   */
+  centros: any[] = [];
+
+  /**
+   * Lista de tipos de usuario obtenida desde el servicio.
+   */
+  tiposUsuario: any[] = [];
+
+  /**
+   * Crea una instancia del componente.
+   *
+   * @param dialogRef - Referencia al diálogo para cerrar el componente.
+   * @param data - Datos del usuario que se van a editar.
+   * @param userService - Servicio para obtener tipos de usuario.
+   * @param centroService - Servicio para obtener centros de formación.
    */
   constructor(
     public dialogRef: MatDialogRef<EditUserComponent>,
@@ -58,8 +82,11 @@ export class EditUserComponent implements OnInit {
   }
 
   /**
-   * Inicializa los datos cuando el componente se carga.
-   * Llama a los métodos para obtener los centros de formación y tipos de usuario.
+   * Inicializa el componente.
+   *
+   * Llama a los métodos para obtener los centros de formación y los tipos de usuario.
+   *
+   * @returns {void}
    */
   ngOnInit(): void {
     this.obtenerCentrosFormacion();
@@ -68,6 +95,9 @@ export class EditUserComponent implements OnInit {
 
   /**
    * Obtiene la lista de centros de formación desde el servicio.
+   *
+   * Actualiza la propiedad `centros` y establece el valor de `centroFormacion` en el formulario.
+   *
    * @returns {void}
    */
   obtenerCentrosFormacion(): void {
@@ -86,6 +116,9 @@ export class EditUserComponent implements OnInit {
 
   /**
    * Obtiene la lista de tipos de usuario desde el servicio.
+   *
+   * Actualiza la propiedad `tiposUsuario` si la respuesta es un arreglo.
+   *
    * @returns {void}
    */
   obtenerTiposUsuario(): void {
@@ -104,8 +137,11 @@ export class EditUserComponent implements OnInit {
   }
 
   /**
-   * Guarda los cambios realizados en el formulario si es válido.
-   * Envía los datos actualizados y cierra el diálogo.
+   * Guarda los cambios realizados en el formulario.
+   *
+   * Si el formulario es válido, combina los datos originales con los datos actualizados
+   * y cierra el diálogo retornando el usuario actualizado.
+   *
    * @returns {void}
    */
   onSave(): void {
@@ -116,11 +152,13 @@ export class EditUserComponent implements OnInit {
   }
 
   /**
-   * Cancela la edición y cierra el diálogo sin realizar cambios.
+   * Cancela la edición del usuario.
+   *
+   * Cierra el diálogo sin realizar cambios.
+   *
    * @returns {void}
    */
   onCancel(): void {
     this.dialogRef.close();
   }
 }
-

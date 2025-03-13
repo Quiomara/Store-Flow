@@ -1,56 +1,58 @@
 <!-- Contenedor principal del historial de préstamos -->
 <div class="warehouse-history-container">
-  
+
   <!-- Título de la sección -->
   <h1 class="text-center font-weight-bold mb-4">Historial de Préstamos</h1>
-  
+
   <!-- Formulario de búsqueda con filtros -->
   <form [formGroup]="searchForm" class="search-form form-inline">
     <!-- Filtros de búsqueda por ID de préstamo, fecha, estado e instructor -->
     <input type="text" formControlName="searchId" placeholder="ID del Préstamo" class="form-control mr-2" />
     <input type="date" formControlName="searchFecha" placeholder="Fecha" class="form-control mr-2" />
-    
+
     <!-- Menú desplegable para seleccionar el estado -->
-    <select id="estado-select" formControlName="searchEstado" class="form-control mr-2" (change)="seleccionarEstado($event)">
+    <select id="estado-select" formControlName="searchEstado" class="form-control mr-2"
+      (change)="seleccionarEstado($event)">
       <option value="">Todos los estados</option>
       <option *ngFor="let estado of estados" [value]="estado.est_nombre">
         {{ estado.est_nombre }}
       </option>
     </select>
-    
+
     <!-- Campo de búsqueda por nombre del instructor -->
-    <input type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor" class="form-control mr-2" />
+    <input type="text" formControlName="searchInstructor" placeholder="Nombre del Instructor"
+      class="form-control mr-2" />
   </form>
 
   <!-- Contenedor de la tabla de préstamos -->
   <div class="user-table-container">
     <table mat-table [dataSource]="filteredPrestamos" class="mat-elevation-z8 table">
-      
+
       <!-- Columnas de la tabla -->
       <!-- ID del Préstamo -->
       <ng-container matColumnDef="idPrestamo">
         <th mat-header-cell *matHeaderCellDef class="header-cell">ID del Préstamo</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.idPrestamo }}</td>
       </ng-container>
-      
+
       <!-- Instructor -->
       <ng-container matColumnDef="instructorNombre">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Instructor</th>
         <td mat-cell *matCellDef="let prestamo">{{ prestamo.instructorNombre }}</td>
       </ng-container>
-      
+
       <!-- Fecha de inicio -->
       <ng-container matColumnDef="fechaHora">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Inicial</th>
         <td mat-cell *matCellDef="let prestamo">{{ formatearFecha(prestamo.fechaInicio) }}</td>
       </ng-container>
-      
+
       <!-- Fecha de entrega -->
       <ng-container matColumnDef="fechaEntrega">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Fecha Final</th>
         <td mat-cell *matCellDef="let prestamo">{{ formatearFecha(prestamo.fechaEntrega) }}</td>
       </ng-container>
-      
+
       <!-- Estado del préstamo -->
       <ng-container matColumnDef="estado">
         <th mat-header-cell *matHeaderCellDef class="header-cell">Estado</th>
@@ -60,7 +62,7 @@
           </span>
         </td>
       </ng-container>
-      
+
       <!-- Acciones (Historial) -->
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef class="header-cell acciones-header">Historial</th>
@@ -83,6 +85,7 @@
   </div>
 
   <!-- Paginador -->
-  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Seleccionar página">
+  <mat-paginator [length]="filteredPrestamos.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
+    aria-label="Seleccionar página">
   </mat-paginator>
 </div>

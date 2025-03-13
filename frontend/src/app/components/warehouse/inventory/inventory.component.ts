@@ -14,10 +14,16 @@ import { Ubicacion } from '../../../models/ubicacion.model';
 import { ImageModalComponent } from '../image-modal/image-modal.component';
 import { EditModalComponent } from '../edit-modal/edit-modal.component';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
-import { Observable } from 'rxjs';  // Importa Observable desde rxjs
+import { Observable } from 'rxjs';
 import { PrestamoService } from '../../../services/prestamo.service';
 import { HttpClient } from '@angular/common/http';
 
+/**
+ * Componente que administra el inventario de elementos.
+ *
+ * @remarks
+ * Permite buscar, filtrar, visualizar detalles, editar y eliminar elementos del inventario.
+ */
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -34,16 +40,36 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./inventory.component.css'],
 })
 export class InventoryComponent implements OnInit {
+  /** Formulario para búsqueda de elementos. */
   searchForm: FormGroup;
+  /** Formulario para edición de un elemento. */
   editForm: FormGroup;
+  /** Lista de elementos del inventario. */
   inventario: Elemento[] = [];
+  /** Lista de ubicaciones disponibles. */
   ubicaciones: Ubicacion[] = [];
-  elementosPrestados: any[] = []; 
+  /** Lista de elementos prestados (no se usa en este ejemplo pero se mantiene para referencia). */
+  elementosPrestados: any[] = [];
+  /** Fuente de datos para la tabla de inventario filtrado. */
   filteredInventario: MatTableDataSource<Elemento>;
+  /** Columnas a mostrar en la tabla de inventario. */
   displayedColumns: string[] = ['ele_id', 'ele_nombre', 'ele_cantidad_total', 'ele_cantidad_actual', 'ubi_nombre', 'ele_imagen', 'detalles'];
 
+  /** Paginador para la tabla de inventario. */
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  /**
+   * Crea una instancia del componente InventoryComponent.
+   *
+   * @param prestamoService - Servicio para gestionar préstamos.
+   * @param http - Cliente HTTP para realizar peticiones.
+   * @param fb - Servicio para la creación de formularios.
+   * @param snackBar - Servicio para mostrar notificaciones.
+   * @param elementoService - Servicio para gestionar elementos.
+   * @param ubicacionService - Servicio para gestionar ubicaciones.
+   * @param dialog - Servicio para abrir diálogos modales.
+   * @param router - Servicio para la navegación de rutas.
+   */
   constructor(
     private prestamoService: PrestamoService,
     private http: HttpClient,
@@ -75,28 +101,42 @@ export class InventoryComponent implements OnInit {
     });
   }
 
+  /**
+   * ngOnInit - Inicializa el componente obteniendo el inventario y las ubicaciones.
+   *
+   * @returns void
+   */
   ngOnInit(): void {
     this.obtenerInventario();
     this.obtenerUbicaciones();
-    // Suscribirse al BehaviorSubject para recibir actualizaciones en tiempo real
+    // Suscribirse al BehaviorSubject para recibir actualizaciones en tiempo real.
     this.elementoService.inventario$.subscribe({
       next: (data: Elemento[]) => {
         this.inventario = data;
         this.filteredInventario.data = data;
       },
-      error: (error: any) => console.error('Error en la suscripción del inventario', error)
+      error: (error: any) => {
+        // Manejo de error en la suscripción del inventario.
+        console.error('Error en la suscripción del inventario', error);
+      }
     });
-    // Refrescar el inventario al iniciar el componente
+    // Refrescar el inventario al iniciar el componente.
     this.elementoService.refreshInventario();
     this.filteredInventario.paginator = this.paginator;
   }
 
+  /**
+   * obtenerUbicaciones - Obtiene las ubicaciones disponibles a través del servicio.
+   *
+   * @returns void
+   */
   obtenerUbicaciones(): void {
     this.ubicacionService.getUbicaciones().subscribe({
       next: (data: Ubicacion[]) => {
         this.ubicaciones = data;
       },
       error: (error: any) => {
+        // Manejo de error al obtener ubicaciones.
         console.error('Error al obtener ubicaciones:', error);
         this.snackBar.open('Error al obtener ubicaciones', '', {
           duration: 3000,
@@ -111,19 +151,25 @@ export class InventoryComponent implements OnInit {
     });
   }
 
+  /**
+   * obtenerInventario - Obtiene el inventario de elementos desde el backend.
+   *
+   * @returns void
+   */
   obtenerInventario(): void {
     this.elementoService.getElementos().subscribe({
       next: (data: Elemento[]) => {
-        console.log('Datos obtenidos del backend:', data); // Verificar que los datos incluyan ele_id
+        // Procesa los datos obtenidos del backend y asocia el nombre de la ubicación.
         this.inventario = data.map(elemento => ({
           ...elemento,
           ubi_nombre: this.ubicaciones.find(ubicacion => ubicacion.ubi_ele_id === elemento.ubi_ele_id)?.ubi_nombre || ''
         }));
+        // Ordena el inventario por ID.
         this.inventario.sort((a, b) => a.ele_id - b.ele_id);
         this.filteredInventario.data = this.inventario;
-        console.log('Inventario procesado:', this.inventario); // Verificar que ele_id esté presente
       },
       error: (error: any) => {
+        // Manejo de error al obtener inventario.
         console.error('Error al obtener inventario:', error);
         this.snackBar.open('Error al obtener inventario', '', {
           duration: 3000,
@@ -137,32 +183,44 @@ export class InventoryComponent implements OnInit {
       }
     });
   }
-  
-  
-  
 
+  /**
+   * applyFilter - Filtra el inventario según los criterios del formulario de búsqueda.
+   *
+   * @returns void
+   */
   applyFilter(): void {
     const { searchId, searchElemento } = this.searchForm.value;
-
     let filteredData = this.inventario;
 
     if (searchId) {
       filteredData = filteredData.filter(elemento => elemento.ele_id.toString().includes(searchId));
     }
-
     if (searchElemento) {
       filteredData = filteredData.filter(elemento => elemento.ele_nombre.toLowerCase().includes(searchElemento.toLowerCase()));
     }
-
     this.filteredInventario.data = filteredData;
   }
 
+  /**
+   * verImagen - Abre un modal para visualizar la imagen del elemento.
+   *
+   * @param imagen - URL o cadena de la imagen.
+   * @param nombre - Nombre del elemento.
+   * @returns void
+   */
   verImagen(imagen: string, nombre: string): void {
     this.dialog.open(ImageModalComponent, {
       data: { imagen, nombre }
     });
   }
 
+  /**
+   * editarElemento - Abre un modal para editar la información de un elemento.
+   *
+   * @param elemento - Elemento a editar.
+   * @returns void
+   */
   editarElemento(elemento: Elemento): void {
     this.editForm.setValue({
       ele_id: elemento.ele_id,
@@ -211,6 +269,12 @@ export class InventoryComponent implements OnInit {
     });
   }
 
+  /**
+   * actualizarElemento - Envía una solicitud para actualizar la información de un elemento.
+   *
+   * @param elemento - Elemento con la información actualizada.
+   * @returns void
+   */
   actualizarElemento(elemento: Elemento): void {
     this.elementoService.actualizarElemento(elemento).subscribe({
       next: (res) => {
@@ -230,16 +294,20 @@ export class InventoryComponent implements OnInit {
           verticalPosition: 'bottom',
           panelClass: ['snack-bar-error']
         });
-        // Continúa desde aquí
         if (error.status === 401 || error.status === 403) {
-          this.router.navigate(['/login']); // Redirigir al login si el token es inválido
+          this.router.navigate(['/login']);
         }
       }
     });
   }
 
+  /**
+   * eliminarElemento - Elimina un elemento del inventario después de confirmar la acción.
+   *
+   * @param elemento - Elemento a eliminar.
+   * @returns void
+   */
   eliminarElemento(elemento: Elemento): void {
-    console.log('Elemento a eliminar:', elemento);
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
       data: {
@@ -249,10 +317,9 @@ export class InventoryComponent implements OnInit {
         textoBotonCancelar: 'Cancelar'
       }
     });
-  
+
     dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) {
-        console.log('ID del elemento para eliminar:', elemento.ele_id);
         this.elementoService.eliminarElemento(elemento.ele_id).subscribe(
           (response: any) => {
             this.inventario = this.inventario.filter(e => e.ele_id !== elemento.ele_id);
@@ -278,10 +345,7 @@ export class InventoryComponent implements OnInit {
             }
           }
         );
-      } else {
-        console.log('Eliminación cancelada. El diálogo se cerró sin confirmar.');
       }
     });
   }
-
 }

@@ -5,6 +5,7 @@
  */
 class ErrorHandler extends Error {
     /**
+     * Crea una instancia de ErrorHandler.
      * @constructor
      * @param {string} message - Mensaje de error.
      * @param {number} statusCode - Código de estado HTTP asociado al error.

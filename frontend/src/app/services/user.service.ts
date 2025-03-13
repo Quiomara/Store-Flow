@@ -6,33 +6,61 @@ import { User, UserBackend } from '../models/user.model';
 import { AuthService } from './auth.service';
 import { Prestamo } from '../models/prestamo.model';
 
+/**
+ * Interfaz que representa la respuesta del API.
+ *
+ * @template T - Tipo de datos contenidos en la respuesta.
+ */
 interface ApiResponse<T> {
   respuesta: boolean;
   mensaje: string;
   data: T[];
 }
 
+/**
+ * Interfaz que representa un centro de formación.
+ */
 interface Centro {
   id: number;
   nombre: string;
 }
 
+/**
+ * Interfaz que representa un tipo de usuario.
+ */
 interface TipoUsuario {
   id: number;
   nombre: string;
 }
 
+/**
+ * Servicio encargado de gestionar las operaciones relacionadas con los usuarios.
+ *
+ * @remarks
+ * Este servicio proporciona métodos para obtener centros, tipos de usuario, usuarios, realizar búsquedas,
+ * actualizaciones, eliminaciones y registros de usuarios, además de obtener la lista de préstamos.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  /**
+   * URL base del API.
+   */
   private apiUrl = 'http://localhost:3000/api';
 
+  /**
+   * Crea una instancia del servicio de usuarios.
+   *
+   * @param http - Cliente HTTP para realizar peticiones al backend.
+   * @param authService - Servicio de autenticación para gestionar el token de acceso.
+   */
   constructor(private http: HttpClient, private authService: AuthService) { }
 
   /**
    * Obtiene los headers con el token de autenticación.
-   * @returns {HttpHeaders} - Headers con el token de autenticación.
+   *
+   * @returns Headers con el token de autenticación o headers vacíos si no existe token.
    */
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
@@ -44,7 +72,8 @@ export class UserService {
 
   /**
    * Obtiene todos los centros.
-   * @returns {Observable<Centro[]>} - Lista de centros.
+   *
+   * @returns Un observable que emite una lista de centros.
    */
   getCentros(): Observable<Centro[]> {
     return this.http.get<ApiResponse<Centro>>(`${this.apiUrl}/centros`, { headers: this.getHeaders() })
@@ -53,7 +82,8 @@ export class UserService {
 
   /**
    * Obtiene todos los tipos de usuario.
-   * @returns {Observable<TipoUsuario[]>} - Lista de tipos de usuario.
+   *
+   * @returns Un observable que emite una lista de tipos de usuario.
    */
   getTiposUsuario(): Observable<TipoUsuario[]> {
     return this.http.get<ApiResponse<TipoUsuario>>(`${this.apiUrl}/tipos-usuario`)
@@ -61,9 +91,10 @@ export class UserService {
   }
 
   /**
-   * Obtiene un centro de formación por ID.
-   * @param {string} id - ID del centro de formación.
-   * @returns {Observable<Centro>} - Centro de formación.
+   * Obtiene un centro de formación por su ID.
+   *
+   * @param id - ID del centro de formación.
+   * @returns Un observable que emite el centro de formación.
    */
   getCentroDeFormacionPorID(id: string): Observable<Centro> {
     return this.http.get<Centro>(`${this.apiUrl}/centros/${id}`);
@@ -71,7 +102,12 @@ export class UserService {
 
   /**
    * Obtiene todos los usuarios.
-   * @returns {Observable<User[]>} - Lista de usuarios.
+   *
+   * @returns Un observable que emite una lista de usuarios.
+   *
+   * @remarks
+   * Se utiliza forkJoin para combinar la respuesta de los centros y la lista de usuarios del backend,
+   * y se mapea cada usuario utilizando la función {@link mapUser}.
    */
   getUsers(): Observable<User[]> {
     return forkJoin([
@@ -90,9 +126,10 @@ export class UserService {
 
   /**
    * Mapea un usuario del backend a un usuario del frontend.
-   * @param {UserBackend} user - Usuario del backend.
-   * @param {Centro[]} centros - Lista de centros.
-   * @returns {User} - Usuario mapeado.
+   *
+   * @param user - Usuario recibido del backend.
+   * @param centros - Lista de centros de formación.
+   * @returns El usuario mapeado.
    */
   private mapUser(user: UserBackend, centros: Centro[]): User {
     const centroFormacion = centros.find(centro => centro.id === Number(user.cen_id))?.nombre || user.cen_nombre || 'N/A';
@@ -117,9 +154,10 @@ export class UserService {
   }
 
   /**
-   * Busca usuarios por query.
-   * @param {string} query - Término de búsqueda.
-   * @returns {Observable<User[]>} - Lista de usuarios encontrados.
+   * Busca usuarios por un término de búsqueda.
+   *
+   * @param query - Término de búsqueda.
+   * @returns Un observable que emite una lista de usuarios que coinciden con la búsqueda.
    */
   searchUsers(query: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/usuarios?search=${query}`, { headers: this.getHeaders() });
@@ -127,8 +165,9 @@ export class UserService {
 
   /**
    * Elimina un usuario por cédula.
-   * @param {string} userCedula - Cédula del usuario.
-   * @returns {Observable<any>} - Respuesta del servidor.
+   *
+   * @param userCedula - Cédula del usuario a eliminar.
+   * @returns Un observable con la respuesta del servidor.
    */
   deleteUser(userCedula: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/usuarios/${userCedula}`, { headers: this.getHeaders() });
@@ -136,9 +175,10 @@ export class UserService {
 
   /**
    * Actualiza un usuario.
-   * @param {string} userCedula - Cédula del usuario.
-   * @param {Partial<UserBackend>} userData - Datos del usuario a actualizar.
-   * @returns {Observable<any>} - Respuesta del servidor.
+   *
+   * @param userCedula - Cédula del usuario a actualizar.
+   * @param userData - Datos parciales del usuario para actualizar.
+   * @returns Un observable con la respuesta del servidor.
    */
   updateUser(userCedula: string, userData: Partial<UserBackend>): Observable<any> {
     return this.http.put(`${this.apiUrl}/usuarios/actualizar`, userData, {
@@ -148,9 +188,10 @@ export class UserService {
   }
 
   /**
-   * Registra un usuario.
-   * @param {UserBackend} user - Datos del usuario.
-   * @returns {Observable<any>} - Respuesta del servidor.
+   * Registra un nuevo usuario.
+   *
+   * @param user - Datos del usuario a registrar.
+   * @returns Un observable con la respuesta del servidor.
    */
   registerUser(user: UserBackend): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/registrar`, user, { headers: this.getHeaders() });
@@ -158,8 +199,13 @@ export class UserService {
 
   /**
    * Obtiene un usuario por cédula.
-   * @param {number} cedula - Cédula del usuario.
-   * @returns {Observable<User>} - Usuario obtenido.
+   *
+   * @param cedula - Cédula del usuario.
+   * @returns Un observable que emite el usuario obtenido.
+   *
+   * @remarks
+   * Se espera que la respuesta contenga un arreglo con un único usuario. Si la respuesta es negativa,
+   * se lanza un error con el mensaje proporcionado.
    */
   getUsuarioByCedula(cedula: number): Observable<User> {
     return this.http.get<ApiResponse<UserBackend>>(`${this.apiUrl}/usuarios/${cedula}`, { headers: this.getHeaders() })
@@ -190,7 +236,8 @@ export class UserService {
 
   /**
    * Obtiene la lista de préstamos.
-   * @returns {Observable<Prestamo[]>} - Lista de préstamos.
+   *
+   * @returns Un observable que emite una lista de préstamos.
    */
   getPrestamos(): Observable<Prestamo[]> {
     return this.http.get<Prestamo[]>(`${this.apiUrl}/prestamos`);

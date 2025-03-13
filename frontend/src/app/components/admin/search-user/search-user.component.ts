@@ -18,6 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 /**
  * Componente para la búsqueda, visualización y gestión de usuarios.
+ *
  * @component
  */
 @Component({
@@ -73,11 +74,12 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   /**
    * Constructor del componente.
-   * @param userService Servicio para obtener los usuarios
-   * @param centroService Servicio para obtener los centros de formación
-   * @param fb Instancia de FormBuilder para crear formularios reactivos
-   * @param dialog Instancia de MatDialog para manejar los diálogos modales
-   * @param snackBar Instancia de MatSnackBar para mostrar notificaciones
+   *
+   * @param userService - Servicio para obtener los usuarios.
+   * @param centroService - Servicio para obtener los centros de formación.
+   * @param fb - Instancia de FormBuilder para crear formularios reactivos.
+   * @param dialog - Instancia de MatDialog para manejar los diálogos modales.
+   * @param snackBar - Instancia de MatSnackBar para mostrar notificaciones.
    */
   constructor(
     private userService: UserService,
@@ -96,9 +98,12 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   /**
    * Inicializa el componente y carga los centros de formación.
+   *
    * Configura la suscripción para filtrar usuarios al cambiar los valores del formulario.
+   *
+   * @returns void
    */
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadCentros();
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
@@ -110,14 +115,19 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   /**
    * Configura la paginación para la tabla después de que la vista se haya inicializado.
+   *
+   * @returns void
    */
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
   }
 
   /**
    * Carga los usuarios desde el servicio `UserService`.
-   * Asigna el centro de formación y tipo de usuario a los usuarios obtenidos.
+   *
+   * Asigna el centro de formación y el tipo de usuario a cada usuario obtenido y actualiza la fuente de datos de la tabla.
+   *
+   * @returns void
    */
   loadUsers(): void {
     this.userService.getUsers().subscribe(
@@ -127,7 +137,6 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
           user.tipoUsuario = user.tip_usr_nombre || 'N/A';
           return user;
         });
-
         this.filteredResults = this.searchResults;
         this.dataSource.data = this.filteredResults;
         this.sortUsersAlphabetically();
@@ -141,7 +150,10 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
 
   /**
    * Carga los centros de formación desde el servicio `CentroService`.
-   * Una vez cargados, se llaman a los usuarios.
+   *
+   * Una vez cargados, se invoca la carga de usuarios.
+   *
+   * @returns void
    */
   loadCentros(): void {
     this.centroService.getCentros().subscribe(
@@ -156,80 +168,95 @@ export class SearchUserComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Filtra los usuarios en base a los valores del formulario de búsqueda.
-   * @param {any} values Los valores del formulario de búsqueda
-   */
-  filterUsers(values: any): void {
-    this.filteredResults = this.searchResults.filter(user => {
-      const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
-      const nombreFiltrado = values.nombre.toLowerCase();
-      const centroFiltrado = this.centros.find(c => c.cen_id === Number(values.centroFormacion))?.cen_nombre;
+ * Filtra los usuarios en base a los valores del formulario de búsqueda.
+ *
+ * @param values - Los valores del formulario de búsqueda.
+ * @returns void
+ */
+filterUsers(values: any): void {
+  this.filteredResults = this.searchResults.filter(user => {
+    const nombreCompleto = `${user.primerNombre} ${user.segundoNombre} ${user.primerApellido} ${user.segundoApellido}`.toLowerCase();
+    const nombreFiltrado = values.nombre.toLowerCase();
+    const centroFiltrado = this.centros.find(c => c.cen_id === Number(values.centroFormacion))?.cen_nombre;
 
-      return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
-             (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
-             (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
-             (values.cedula === '' || user.cedula.toString().includes(values.cedula));
-    });
+    return (values.nombre === '' || nombreCompleto.includes(nombreFiltrado)) &&
+           (values.centroFormacion === '' || user.centroFormacion === centroFiltrado) &&
+           (values.email === '' || user.email.toLowerCase().includes(values.email.toLowerCase())) &&
+           (values.cedula === '' || user.cedula.toString().includes(values.cedula));
+  });
 
-    this.dataSource.data = this.filteredResults;
-    this.sortUsersAlphabetically();
-    this.updatePaginator();
-  }
+  this.dataSource.data = this.filteredResults;
+  this.sortUsersAlphabetically();
+  this.updatePaginator();
+}
 
-  /**
-   * Actualiza el paginador de la tabla después de filtrar los usuarios.
-   */
-  updatePaginator(): void {
-    this.dataSource.paginator = this.paginator;
-    this.paginator.length = this.filteredResults.length;
-  }
+/**
+ * Actualiza el paginador de la tabla después de filtrar los usuarios.
+ *
+ * Asigna la longitud de los resultados filtrados al paginador.
+ *
+ * @returns void
+ */
+updatePaginator(): void {
+  this.dataSource.paginator = this.paginator;
+  this.paginator.length = this.filteredResults.length;
+}
 
-  /**
-   * Ordena los usuarios alfabéticamente por nombre.
-   */
-  sortUsersAlphabetically(): void {
-    this.filteredResults.sort((a, b) => `${a.primerNombre} ${a.primerApellido}`.localeCompare(`${b.primerNombre} ${b.primerApellido}`));
-  }
+/**
+ * Ordena los usuarios alfabéticamente por nombre.
+ *
+ * @returns void
+ */
+sortUsersAlphabetically(): void {
+  this.filteredResults.sort((a, b) =>
+    `${a.primerNombre} ${a.primerApellido}`.localeCompare(`${b.primerNombre} ${b.primerApellido}`)
+  );
+}
 
-  /**
-   * Abre un diálogo para editar un usuario.
-   * @param {User} user El usuario a editar
-   */
-  onEdit(user: User): void {
-    const centroNombre = this.centros.find(c => c.cen_id === user.centroFormacion)?.cen_nombre || user.centroFormacion;
-    const dialogRef = this.dialog.open(EditUserComponent, {
-      width: '600px',
-      data: {
-        ...user,
-        centroFormacion: centroNombre
-      }
-    });
+/**
+ * Abre un diálogo para editar un usuario.
+ *
+ * Se abre un diálogo modal con los datos del usuario seleccionado para editar. Una vez cerrado el diálogo,
+ * si se confirman los cambios, se actualiza el usuario a través del servicio y se recargan los usuarios.
+ *
+ * @param user - El usuario a editar.
+ * @returns void
+ */
+onEdit(user: User): void {
+  const centroNombre = this.centros.find(c => c.cen_id === user.centroFormacion)?.cen_nombre || user.centroFormacion;
+  const dialogRef = this.dialog.open(EditUserComponent, {
+    width: '600px',
+    data: {
+      ...user,
+      centroFormacion: centroNombre
+    }
+  });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const userBackend: Partial<UserBackend> = {
-          usr_cedula: result.cedula,
-          usr_primer_nombre: result.primerNombre,
-          usr_segundo_nombre: result.segundoNombre,
-          usr_primer_apellido: result.primerApellido,
-          usr_segundo_apellido: result.segundoApellido,
-          usr_correo: result.email,
-          usr_telefono: result.telefono,
-          cen_id: this.centros.find(centro => centro.cen_nombre === result.centroFormacion)?.cen_id,
-          tip_usr_id: this.tiposUsuario.find(tipo => tipo.nombre === result.tipoUsuario)?.id
-        };
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      const userBackend: Partial<UserBackend> = {
+        usr_cedula: result.cedula,
+        usr_primer_nombre: result.primerNombre,
+        usr_segundo_nombre: result.segundoNombre,
+        usr_primer_apellido: result.primerApellido,
+        usr_segundo_apellido: result.segundoApellido,
+        usr_correo: result.email,
+        usr_telefono: result.telefono,
+        cen_id: this.centros.find(centro => centro.cen_nombre === result.centroFormacion)?.cen_id,
+        tip_usr_id: this.tiposUsuario.find(tipo => tipo.nombre === result.tipoUsuario)?.id
+      };
 
-        this.userService.updateUser(result.cedula.toString(), userBackend).subscribe(
-          (response: any) => {
-            this.loadUsers();
-          },
-          (error: any) => {
-            console.error('Error al actualizar usuario', error);
-          }
-        );
-      }
-    });
-  }
+      this.userService.updateUser(result.cedula.toString(), userBackend).subscribe(
+        (response: any) => {
+          this.loadUsers();
+        },
+        (error: any) => {
+          // Manejo de errores (sin usar console.log)
+        }
+      );
+    }
+  });
+}
 
   /**
    * Abre un diálogo de confirmación para eliminar un usuario.

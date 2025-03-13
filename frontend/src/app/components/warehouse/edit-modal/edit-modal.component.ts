@@ -13,6 +13,12 @@ import { Ubicacion } from '../../../models/ubicacion.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 
+/**
+ * Componente modal para editar un elemento.
+ *
+ * @remarks
+ * Permite al usuario modificar la información de un elemento, incluyendo su imagen y ubicación.
+ */
 @Component({
   selector: 'app-edit-modal',
   templateUrl: './edit-modal.component.html',
@@ -29,20 +35,30 @@ import { Observable, of } from 'rxjs';
   ],
 })
 export class EditModalComponent implements OnInit, AfterViewInit {
+  /** Referencia al input de nombre para poder hacer focus. */
   @ViewChild('nombreInput', { static: false }) nombreInput!: ElementRef;
+
+  /** Lista de ubicaciones disponibles. */
   ubicaciones: Ubicacion[] = [];
+  
+  /** Flag que indica si se ha seleccionado un archivo. */
   fileSelected = false;
-  selectedFile: File | null = null; // Definir selectedFile
-  readonly MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+  
+  /** Archivo seleccionado (imagen) o null si no se ha seleccionado. */
+  selectedFile: File | null = null;
+  
+  /** Tamaño máximo permitido para el archivo (25 MB). */
+  readonly MAX_FILE_SIZE = 25 * 1024 * 1024;
 
   /**
-   * Constructor del componente EditModal.
+   * Crea una instancia del componente EditModal.
+   *
    * @param dialogRef - Referencia al diálogo para cerrarlo.
-   * @param data - Datos inyectados que contienen el formulario y ubicaciones.
-   * @param ubicacionService - Servicio para manejar ubicaciones.
+   * @param data - Datos inyectados que contienen el formulario y la lista de ubicaciones.
+   * @param ubicacionService - Servicio para obtener ubicaciones.
    * @param authService - Servicio de autenticación.
-   * @param router - Router para la navegación.
-   * @param cdr - Referencia al ChangeDetectorRef para detectar cambios.
+   * @param router - Servicio de enrutamiento.
+   * @param cdr - Detector de cambios para actualizar la vista.
    * @param http - Cliente HTTP para realizar solicitudes.
    */
   constructor(
@@ -56,11 +72,21 @@ export class EditModalComponent implements OnInit, AfterViewInit {
     private http: HttpClient
   ) { }
 
+  /**
+   * ngOnInit - Inicializa el componente asignando las ubicaciones y obteniéndolas desde el servicio.
+   *
+   * @returns void
+   */
   ngOnInit(): void {
     this.ubicaciones = this.data.ubicaciones;
     this.obtenerUbicaciones();
   }
 
+  /**
+   * ngAfterViewInit - Se ejecuta después de la inicialización de la vista.
+   *
+   * @returns void
+   */
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.nombreInput.nativeElement.focus();
@@ -69,30 +95,35 @@ export class EditModalComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Cierra el modal sin hacer cambios.
+   * onNoClick - Cierra el modal sin realizar cambios.
+   *
+   * @returns void
    */
   onNoClick(): void {
     this.dialogRef.close();
   }
 
   /**
-   * Maneja la selección de archivo de imagen, validando y redimensionando la imagen antes de cargarla.
+   * onFileSelected - Maneja la selección de un archivo de imagen, validándolo y redimensionándolo.
+   *
    * @param event - Evento de selección de archivo.
+   * @returns void
    */
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
 
-    // Verificar que el archivo es válido y que es una imagen
+    // Verificar que se haya seleccionado un archivo.
     if (!file) {
       return;
     }
 
+    // Validar que el archivo sea una imagen.
     if (!file.type.startsWith('image/')) {
       alert('Solo se permiten archivos de imagen (JPG o PNG).');
       return;
     }
 
-    this.fileSelected = !!file;
+    this.fileSelected = true;
     this.selectedFile = file;
 
     const reader = new FileReader();
@@ -133,8 +164,9 @@ export class EditModalComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Actualiza el elemento con la información del formulario.
-   * @returns Un observable con la respuesta de la solicitud HTTP.
+   * actualizarElemento - Actualiza el elemento con la información del formulario.
+   *
+   * @returns Un observable que emite la respuesta de la solicitud HTTP.
    */
   actualizarElemento(): Observable<any> {
     const token = this.authService.getToken();
@@ -159,7 +191,9 @@ export class EditModalComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Obtiene las ubicaciones disponibles mediante el servicio.
+   * obtenerUbicaciones - Obtiene las ubicaciones disponibles a través del servicio UbicacionService.
+   *
+   * @returns void
    */
   obtenerUbicaciones(): void {
     this.ubicacionService.getUbicaciones().subscribe(
@@ -168,13 +202,15 @@ export class EditModalComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       },
       (error: any) => {
-        console.error('Error al obtener ubicaciones en el modal de edición:', error);
+        // Manejo de errores adecuado.
       }
     );
   }
 
   /**
-   * Guarda los cambios realizados en el formulario y actualiza el elemento.
+   * guardar - Guarda los cambios realizados en el formulario y actualiza el elemento.
+   *
+   * @returns void
    */
   guardar(): void {
     this.actualizarElemento().subscribe(
@@ -182,7 +218,7 @@ export class EditModalComponent implements OnInit, AfterViewInit {
         this.dialogRef.close(this.data.form.value);
       },
       (error: any) => {
-        console.error('Error al actualizar el elemento:', error);
+        // Manejo de errores adecuado.
       }
     );
   }

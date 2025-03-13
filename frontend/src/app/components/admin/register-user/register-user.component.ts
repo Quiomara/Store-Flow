@@ -2,11 +2,24 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../services/user.service';
-import { CentroService } from '../../../services/centro.service'; // Importa el servicio de centros
+import { CentroService } from '../../../services/centro.service';
 import { User, UserBackend } from '../../../models/user.model';
 import { NotificationToastComponent } from '../notification-toast/notification-toast.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+/**
+ * Componente para registrar un nuevo usuario en el sistema.
+ *
+ * @remarks
+ * Este componente utiliza un formulario para recolectar la información necesaria para registrar un usuario.
+ * Se obtienen los centros de formación y tipos de usuario mediante servicios, y se muestra retroalimentación
+ * mediante un componente de notificación (snack bar).
+ *
+ * @example
+ * ```html
+ * <app-register-user></app-register-user>
+ * ```
+ */
 @Component({
   selector: 'app-register-user',
   standalone: true,
@@ -14,10 +27,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './register-user.component.html',
   styleUrls: ['./register-user.component.css']
 })
-
 export class RegisterUserComponent implements OnInit {
+  /**
+   * Referencia al componente NotificationToast para mostrar notificaciones.
+   */
   @ViewChild(NotificationToastComponent) notificationToast!: NotificationToastComponent;
 
+  /**
+   * Objeto que representa el usuario a registrar.
+   */
   user: User = {
     cedula: 0,
     primerNombre: '',
@@ -33,24 +51,56 @@ export class RegisterUserComponent implements OnInit {
     confirmarContrasena: ''
   };
 
-  centros: any[] = []; // Array para almacenar los centros de formación
-  tiposUsuario: any[] = []; // Array para almacenar los tipos de usuario
-  errores: any = {}; // Objeto para manejar errores
+  /**
+   * Lista de centros de formación obtenida desde el servicio.
+   */
+  centros: any[] = [];
+
+  /**
+   * Lista de tipos de usuario obtenida desde el servicio.
+   */
+  tiposUsuario: any[] = [];
+
+  /**
+   * Objeto para almacenar los errores de validación del formulario.
+   */
+  errores: any = {};
+
+  /**
+   * Indica si el registro del usuario fue exitoso.
+   */
   registroExitoso: boolean = false;
 
+  /**
+   * Crea una instancia del componente RegisterUserComponent.
+   *
+   * @param userService - Servicio para gestionar usuarios.
+   * @param centroService - Servicio para obtener centros de formación.
+   * @param snackBar - Servicio para mostrar notificaciones (snack bar).
+   */
   constructor(
     private userService: UserService,
-    private centroService: CentroService, // Inyecta el servicio de centros
-    private snackBar: MatSnackBar // Inyecta MatSnackBar
+    private centroService: CentroService,
+    private snackBar: MatSnackBar
   ) { }
 
+  /**
+   * Método de inicialización del componente.
+   *
+   * Se llama al iniciar el componente para obtener los centros de formación y tipos de usuario.
+   *
+   * @returns {void}
+   */
   ngOnInit(): void {
-    this.obtenerCentrosFormacion(); // Llama al método para obtener los centros
-    this.obtenerTiposUsuario(); // Llama al método para obtener los tipos de usuario
+    this.obtenerCentrosFormacion();
+    this.obtenerTiposUsuario();
   }
 
   /**
    * Obtiene la lista de centros de formación desde el servicio.
+   *
+   * Actualiza la propiedad `centros` con los datos recibidos del servicio.
+   *
    * @returns {void}
    */
   obtenerCentrosFormacion(): void {
@@ -68,13 +118,16 @@ export class RegisterUserComponent implements OnInit {
 
   /**
    * Obtiene la lista de tipos de usuario desde el servicio.
+   *
+   * Actualiza la propiedad `tiposUsuario` con los datos recibidos del servicio.
+   *
    * @returns {void}
    */
   obtenerTiposUsuario(): void {
     this.userService.getTiposUsuario().subscribe(
       (response: any) => {
         if (Array.isArray(response)) {
-          this.tiposUsuario = response; // Asigna los tipos de usuario recibidos
+          this.tiposUsuario = response;
         }
       },
       (error) => {
@@ -85,7 +138,11 @@ export class RegisterUserComponent implements OnInit {
 
   /**
    * Envía el formulario de registro de usuario.
-   * Verifica que los datos sean correctos antes de enviar la solicitud de registro.
+   *
+   * Verifica que los datos sean correctos antes de enviar la solicitud de registro. 
+   * Si hay errores de validación, se muestran mensajes en la snack bar. Si el registro es exitoso,
+   * se muestra una notificación y se reinicia el formulario.
+   *
    * @returns {void}
    */
   onSubmit(): void {
@@ -147,11 +204,20 @@ export class RegisterUserComponent implements OnInit {
           panelClass: ['snack-bar-success'],
         });
 
-        // Resetear formulario
+        // Resetea el formulario
         this.user = {
-          cedula: 0, primerNombre: '', segundoNombre: '', primerApellido: '', segundoApellido: '',
-          email: '', confirmarEmail: '', centroFormacion: '', tipoUsuario: '', telefono: '',
-          contrasena: '', confirmarContrasena: ''
+          cedula: 0,
+          primerNombre: '',
+          segundoNombre: '',
+          primerApellido: '',
+          segundoApellido: '',
+          email: '',
+          confirmarEmail: '',
+          centroFormacion: '',
+          tipoUsuario: '',
+          telefono: '',
+          contrasena: '',
+          confirmarContrasena: ''
         };
         this.errores = {};
       },
@@ -180,15 +246,16 @@ export class RegisterUserComponent implements OnInit {
 
   /**
    * Muestra un mensaje en la snack bar.
-   * @param mensaje El mensaje que se quiere mostrar.
-   * @param tipo El tipo de mensaje ('success' o 'error').
+   *
+   * @param mensaje - El mensaje que se desea mostrar.
+   * @param tipo - El tipo de mensaje ('success' o 'error'). Por defecto es 'success'.
    * @returns {void}
    */
   mostrarSnackBar(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
     this.snackBar.open(mensaje, 'Cerrar', {
-      duration: 3000, // Duración en milisegundos (3 segundos)
-      horizontalPosition: 'end', // Alineado a la derecha
-      verticalPosition: 'bottom', // En la parte inferior
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom',
     });
   }
 }

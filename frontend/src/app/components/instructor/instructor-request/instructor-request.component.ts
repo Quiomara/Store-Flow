@@ -12,13 +12,23 @@ import { Prestamo } from '../../../models/prestamo.model';
 import { Elemento } from '../../../models/elemento.model';
 import { NgIf, NgForOf } from '@angular/common';
 
+/**
+ * Interfaz que representa un elemento agregado con sus propiedades principales.
+ */
 interface ElementoAgregado {
-  ele_id: number;
-  ele_nombre: string;
-  pre_ele_cantidad_prestado: number;
-  ele_cantidad_actual: number;
+  ele_id: number;                    // Identificador del elemento.
+  ele_nombre: string;                // Nombre del elemento.
+  pre_ele_cantidad_prestado: number; // Cantidad prestada del elemento.
+  ele_cantidad_actual: number;       // Cantidad actual disponible del elemento.
 }
 
+/**
+ * Componente que gestiona la solicitud de préstamos para instructores.
+ *
+ * @remarks
+ * Permite a los instructores seleccionar elementos del inventario, agregarlos a una solicitud de préstamo,
+ * y enviar dicha solicitud al backend. También proporciona funcionalidades para filtrar y seleccionar elementos.
+ */
 @Component({
   selector: 'app-instructor-request',
   templateUrl: './instructor-request.component.html',
@@ -35,16 +45,30 @@ interface ElementoAgregado {
   ]
 })
 export class InstructorRequestComponent implements OnInit {
-  fechaActual: string = new Date().toLocaleDateString();
-  nombreCurso: string = '';
-  idSolicitud: number | null = null;
-  nuevoElemento: { nombre: string, cantidad: number | null } = { nombre: '', cantidad: null };
-  elementos: Elemento[] = [];
-  elementosFiltrados: Elemento[] = [];
-  elementoSeleccionado: Elemento | null = null;
-  mostrarElementos: boolean = false;
-  elementosAgregados: ElementoAgregado[] = [];
+  fechaActual: string = new Date().toLocaleDateString(); // Fecha actual en formato local.
+  nombreCurso: string = '';                                // Nombre del curso asociado a la solicitud.
+  idSolicitud: number | null = null;                       // Identificador de la solicitud de préstamo.
+  nuevoElemento: { nombre: string, cantidad: number | null } = { nombre: '', cantidad: null }; // Datos del nuevo elemento a agregar.
+  elementos: Elemento[] = [];                              // Lista de elementos disponibles en el inventario.
+  elementosFiltrados: Elemento[] = [];                     // Lista de elementos filtrados según la búsqueda.
+  elementoSeleccionado: Elemento | null = null;            // Elemento actualmente seleccionado.
+  mostrarElementos: boolean = false;                       // Bandera que indica si se debe mostrar la lista de elementos.
+  elementosAgregados: ElementoAgregado[] = [];             // Lista de elementos agregados a la solicitud.
 
+  /**
+   * Crea una referencia al paginador (si se utiliza en otros contextos).
+   */
+  // Se importa HttpClientModule para permitir el uso de HttpClient en componentes standalone.
+  
+  /**
+   * Crea una instancia del componente InstructorRequestComponent.
+   *
+   * @param elementoService - Servicio para gestionar los elementos.
+   * @param prestamoService - Servicio para gestionar los préstamos.
+   * @param authService - Servicio de autenticación para obtener datos del usuario.
+   * @param dialog - Servicio para abrir diálogos modales.
+   * @param http - Cliente HTTP para realizar peticiones al backend.
+   */
   constructor(
     private elementoService: ElementoService,
     private prestamoService: PrestamoService,
@@ -53,17 +77,24 @@ export class InstructorRequestComponent implements OnInit {
     private http: HttpClient
   ) { }
 
+  /**
+   * ngOnInit - Inicializa el componente obteniendo la lista de elementos.
+   *
+   * @returns void
+   */
   ngOnInit(): void {
     this.obtenerElementos();
   }
 
   /**
-   * Obtiene los elementos disponibles desde el servicio de Elemento.
-   * @returns {void}
+   * obtenerElementos - Obtiene los elementos disponibles desde el servicio de Elemento.
+   *
+   * @returns void
    */
   obtenerElementos(): void {
     this.elementoService.getElementos().subscribe(
       (data: Elemento[]) => {
+        // Ordena los elementos por nombre de forma ascendente.
         this.elementos = data.sort((a, b) => a.ele_nombre.localeCompare(b.ele_nombre));
         this.elementosFiltrados = this.elementos;
       },
@@ -76,16 +107,18 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Muestra la lista de elementos filtrados.
-   * @returns {void}
+   * mostrarListaElementos - Muestra la lista de elementos filtrados.
+   *
+   * @returns void
    */
   mostrarListaElementos(): void {
     this.mostrarElementos = true;
   }
 
   /**
-   * Oculta la lista de elementos después de un pequeño retraso.
-   * @returns {void}
+   * ocultarListaElementos - Oculta la lista de elementos después de un pequeño retraso.
+   *
+   * @returns void
    */
   ocultarListaElementos(): void {
     setTimeout(() => {
@@ -94,8 +127,9 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Filtra los elementos por el nombre del nuevo elemento.
-   * @returns {void}
+   * filtrarElementos - Filtra los elementos disponibles según el nombre ingresado.
+   *
+   * @returns void
    */
   filtrarElementos(): void {
     const query = this.nuevoElemento.nombre.toLowerCase();
@@ -103,9 +137,10 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Selecciona un elemento de la lista filtrada.
-   * @param {Elemento} elemento El elemento seleccionado.
-   * @returns {void}
+   * seleccionarElemento - Selecciona un elemento de la lista filtrada.
+   *
+   * @param elemento - El elemento seleccionado.
+   * @returns void
    */
   seleccionarElemento(elemento: Elemento): void {
     this.nuevoElemento.nombre = elemento.ele_nombre;
@@ -114,18 +149,19 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Agrega un nuevo elemento a la lista de elementos agregados.
-   * @returns {void}
+   * agregarElemento - Agrega un elemento a la lista de elementos agregados para la solicitud.
+   *
+   * @returns void
    */
   agregarElemento(): void {
     if (this.nuevoElemento.cantidad && this.nuevoElemento.cantidad > 0 && this.elementoSeleccionado) {
-      // Buscar si el elemento ya ha sido agregado
+      // Verifica si el elemento ya fue agregado previamente.
       const elementoExistente = this.elementosAgregados.find(elemento => elemento.ele_id === this.elementoSeleccionado?.ele_id);
   
       if (elementoExistente) {
-        // Si el elemento ya existe, solo sumamos la cantidad
+        // Si ya existe, suma la cantidad nueva a la cantidad prestada.
         elementoExistente.pre_ele_cantidad_prestado += this.nuevoElemento.cantidad;
-        // Actualizamos la cantidad disponible en el inventario
+        // Actualiza la cantidad disponible en el inventario.
         this.elementos = this.elementos.map(elemento => {
           if (elemento.ele_id === this.elementoSeleccionado!.ele_id) {
             return {
@@ -136,7 +172,7 @@ export class InstructorRequestComponent implements OnInit {
           return elemento;
         });
       } else {
-        // Si el elemento no está en el pedido, lo agregamos como nuevo
+        // Si el elemento no está en el pedido, lo agrega como nuevo.
         const elementoAgregado: ElementoAgregado = {
           ele_id: this.elementoSeleccionado.ele_id,
           ele_nombre: this.elementoSeleccionado.ele_nombre,
@@ -145,7 +181,7 @@ export class InstructorRequestComponent implements OnInit {
         };
         this.elementosAgregados.push(elementoAgregado);
   
-        // Actualizamos la cantidad del inventario
+        // Actualiza la cantidad disponible en el inventario.
         this.elementos = this.elementos.map(elemento => {
           if (elemento.ele_id === this.elementoSeleccionado!.ele_id) {
             return {
@@ -157,7 +193,7 @@ export class InstructorRequestComponent implements OnInit {
         });
       }
   
-      // Resetear valores de entrada
+      // Reinicia los valores de entrada.
       this.nuevoElemento = { nombre: '', cantidad: null };
       this.elementoSeleccionado = null;
     } else {
@@ -166,13 +202,15 @@ export class InstructorRequestComponent implements OnInit {
   }  
 
   /**
-   * Elimina un elemento de la lista de elementos agregados.
-   * @param {ElementoAgregado} elemento El elemento a eliminar.
-   * @returns {void}
+   * eliminarElemento - Elimina un elemento de la lista de elementos agregados.
+   *
+   * @param elemento - El elemento a eliminar.
+   * @returns void
    */
   eliminarElemento(elemento: ElementoAgregado): void {
+    // Remueve el elemento de la lista de elementos agregados.
     this.elementosAgregados = this.elementosAgregados.filter(e => e.ele_id !== elemento.ele_id);
-
+    // Restaura la cantidad disponible en el inventario.
     this.elementos = this.elementos.map(e => {
       if (e.ele_id === elemento.ele_id) {
         return {
@@ -185,9 +223,10 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Obtiene la cantidad disponible de un elemento.
-   * @param {number} id El ID del elemento.
-   * @returns {number} La cantidad disponible del elemento.
+   * obtenerCantidadDisponible - Retorna la cantidad disponible de un elemento dado su ID.
+   *
+   * @param id - El ID del elemento.
+   * @returns La cantidad disponible del elemento.
    */
   obtenerCantidadDisponible(id: number): number {
     const elemento = this.elementos.find(e => e.ele_id === id);
@@ -195,8 +234,9 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Envía la solicitud de préstamo con los elementos seleccionados.
-   * @returns {void}
+   * enviarSolicitud - Envía la solicitud de préstamo con los elementos agregados.
+   *
+   * @returns void
    */
   enviarSolicitud(): void {
     const cedulaSolicitante = this.authService.getCedula();
@@ -244,13 +284,13 @@ export class InstructorRequestComponent implements OnInit {
         alert('Error al enviar la solicitud. Por favor, inténtalo de nuevo.');
       }
     );
-
   }
 
   /**
-   * Muestra un modal de éxito con el ID de la solicitud creada.
-   * @param {number} idPrestamo El ID del préstamo creado.
-   * @returns {void}
+   * mostrarModalExito - Abre un modal para mostrar un mensaje de éxito tras crear la solicitud.
+   *
+   * @param idPrestamo - El ID del préstamo creado.
+   * @returns void
    */
   mostrarModalExito(idPrestamo: number): void {
     this.dialog.open(SuccessModalComponent, {
@@ -261,8 +301,9 @@ export class InstructorRequestComponent implements OnInit {
   }
 
   /**
-   * Limpia el formulario de solicitud.
-   * @returns {void}
+   * limpiarFormulario - Reinicia el formulario de solicitud y los elementos agregados.
+   *
+   * @returns void
    */
   limpiarFormulario(): void {
     this.nombreCurso = '';

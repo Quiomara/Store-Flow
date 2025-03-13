@@ -1,6 +1,7 @@
 /**
+ * Maneja los errores en las respuestas HTTP, enviando un mensaje adecuado al cliente.
+ *
  * @function manejarError
- * @description Maneja los errores en las respuestas HTTP, enviando un mensaje adecuado al cliente.
  * @param {Object} res - Objeto de respuesta de Express.
  * @param {string} mensaje - Mensaje personalizado para la respuesta.
  * @param {Error} error - Objeto de error capturado.

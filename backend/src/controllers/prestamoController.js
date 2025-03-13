@@ -9,7 +9,13 @@ const { iniciarTransaccion, confirmarTransaccion, revertirTransaccion } = requir
 const winston = require("winston");
 const manejarError = require("../utils/manejarError");
 
-// Configuración de logs
+/**
+ * Configuración de logs utilizando Winston.
+ *
+ * Se crea una instancia de logger que registra mensajes a la consola y en un archivo.
+ *
+ * @constant {winston.Logger} logger - Instancia de logger configurada.
+ */
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -19,7 +25,18 @@ const logger = winston.createLogger({
   ],
 });
 
-// Esquema de validación con Joi
+/**
+ * Esquema de validación para un préstamo utilizando Joi.
+ *
+ * Valida que se provean los siguientes campos:
+ * - usr_cedula: número entero requerido.
+ * - est_id: número entero requerido.
+ * - elementos: array de objetos, que debe contener al menos un elemento, donde cada objeto requiere:
+ *   - ele_id: número entero requerido.
+ *   - pre_ele_cantidad_prestado: número entero (mínimo 1) requerido.
+ *
+ * @constant {Joi.ObjectSchema} prestamoSchema - Esquema de validación para préstamos.
+ */
 const prestamoSchema = Joi.object({
   usr_cedula: Joi.number().integer().required(),
   est_id: Joi.number().integer().required(),
@@ -35,10 +52,28 @@ const prestamoSchema = Joi.object({
 });
 
 /**
- * Crear un nuevo préstamo con manejo de transacciones
- * 
- * @param {Object} req - Objeto de solicitud HTTP con los datos del préstamo
- * @param {Object} res - Objeto de respuesta HTTP
+ * Crea un nuevo préstamo con manejo de transacciones.
+ *
+ * Este controlador recibe los datos del préstamo a través del cuerpo de la solicitud y realiza los siguientes pasos:
+ * 1. Valida que se hayan proporcionado la cédula del usuario (usr_cedula), el estado (est_id) y al menos un elemento.
+ * 2. Inicia una transacción para insertar el préstamo en la base de datos.
+ * 3. Inserta el préstamo y obtiene su ID.
+ * 4. Inserta cada elemento relacionado al préstamo en la tabla PrestamosElementos y actualiza el stock en la tabla Elementos.
+ * 5. Obtiene el nombre completo del usuario a partir de su cédula.
+ * 6. Registra en el historial del préstamo el evento "Creado" y lo guarda en la base de datos.
+ * 7. Confirma la transacción y envía una respuesta exitosa con el ID del préstamo y el historial.
+ *
+ * @async
+ * @function crearPrestamo
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Cuerpo de la solicitud.
+ * @param {number} req.body.usr_cedula - Cédula del usuario que realiza el préstamo.
+ * @param {number} req.body.est_id - ID del estado asociado al préstamo.
+ * @param {Array<Object>} req.body.elementos - Array de elementos a prestar.
+ * @param {number} req.body.elementos[].ele_id - ID del elemento a prestar.
+ * @param {number} req.body.elementos[].pre_ele_cantidad_prestado - Cantidad del elemento a prestar.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor, pero envía una respuesta HTTP.
  */
 const crearPrestamo = async (req, res) => {
   const { usr_cedula, est_id, elementos } = req.body;
@@ -79,8 +114,11 @@ const crearPrestamo = async (req, res) => {
     }));
 
     // Buscar el nombre completo del usuario (a partir de la cédula)
-    const [rowsUser] = await connection.execute(`SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
-                                                  FROM usuarios WHERE usr_cedula = ?`, [usr_cedula]);
+    const [rowsUser] = await connection.execute(
+      `SELECT usr_primer_nombre, usr_segundo_nombre, usr_primer_apellido, usr_segundo_apellido
+       FROM usuarios WHERE usr_cedula = ?`,
+      [usr_cedula]
+    );
 
     let nombreCompleto = usr_cedula;
     if (rowsUser.length > 0) {
@@ -127,9 +165,23 @@ const crearPrestamo = async (req, res) => {
 
 /**
  * Actualiza un préstamo existente.
- * 
- * @param {Object} req - Objeto de solicitud HTTP con los datos de actualización.
+ *
+ * Este controlador actualiza la información de un préstamo a partir de los datos enviados en la solicitud.
+ * Verifica los permisos del usuario, el estado actual del préstamo y actualiza ciertos campos en función del rol del usuario.
+ *
+ * @async
+ * @function actualizarPrestamo
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Datos de actualización del préstamo.
+ * @param {number} req.body.pre_id - ID del préstamo a actualizar.
+ * @param {number} req.body.usr_cedula - Cédula del usuario asociado al préstamo.
+ * @param {number} [req.body.pre_fin] - Fecha fin del préstamo (actualizable solo por almacén).
+ * @param {number} [req.body.est_id] - Estado del préstamo (actualizable solo por almacén).
+ * @param {Object} req.user - Información del usuario autenticado.
+ * @param {number} req.user.tip_usr_id - Rol del usuario.
+ * @param {number} req.user.usr_cedula - Cédula del usuario autenticado.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
  */
 const actualizarPrestamo = async (req, res) => {
   const data = req.body;
@@ -187,10 +239,19 @@ const actualizarPrestamo = async (req, res) => {
 };
 
 /**
- * Eliminar Préstamo junto con sus elementos asociados. (Control de stock)
- * 
- * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
+ * Elimina un préstamo junto con sus elementos asociados. (Control de stock)
+ *
+ * Este controlador elimina un préstamo y sus elementos asociados en una transacción. 
+ * Primero elimina los elementos asociados al préstamo, luego elimina el préstamo en sí, 
+ * y confirma la transacción. En caso de error, revierte la transacción.
+ *
+ * @async
+ * @function eliminarPrestamo
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {number} req.params.pre_id - ID del préstamo a eliminar.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
  */
 const eliminarPrestamo = async (req, res) => {
   const { pre_id } = req.params;
@@ -206,7 +267,7 @@ const eliminarPrestamo = async (req, res) => {
   try {
     // Log de entrada
     console.log(`Intentando eliminar el préstamo con ID: ${pre_id}`);
-    
+
     // Obtener conexión a la base de datos
     connection = await db.getConnection();
     await connection.beginTransaction();
@@ -238,7 +299,7 @@ const eliminarPrestamo = async (req, res) => {
 
     // Confirmar la transacción
     await connection.commit();
-    
+
     console.log(`Préstamo con ID: ${pre_id} eliminado correctamente.`);
     res.json({ success: true, message: "Préstamo eliminado correctamente" });
 
@@ -253,12 +314,20 @@ const eliminarPrestamo = async (req, res) => {
   }
 };
 
-
 /**
  * Obtiene la lista de todos los préstamos disponibles.
- * 
+ *
+ * Este controlador valida que el usuario tenga permisos (Rol Almacén o Administrador)
+ * y, en caso afirmativo, consulta la base de datos para obtener todos los préstamos.
+ *
+ * @async
+ * @function obtenerTodosPrestamos
  * @param {Object} req - Objeto de solicitud HTTP con información del usuario.
+ * @param {Object} req.user - Objeto que contiene la información del usuario autenticado.
+ * @param {number} req.user.tip_usr_id - Rol del usuario.
+ * @param {number} req.user.usr_cedula - Cédula del usuario.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
  */
 const obtenerTodosPrestamos = async (req, res) => {
   try {
@@ -279,9 +348,18 @@ const obtenerTodosPrestamos = async (req, res) => {
 
 /**
  * Obtiene la información de un préstamo por su ID.
- * 
- * @param {Object} req - Objeto de solicitud HTTP con el ID del préstamo.
+ *
+ * Este controlador consulta la base de datos para obtener la información del préstamo
+ * especificado por el ID proporcionado en los parámetros de la solicitud. Además, intenta
+ * parsear el campo 'historial_estados' si es un string y agrega los elementos asociados.
+ *
+ * @async
+ * @function obtenerPrestamoPorId
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {number} req.params.pre_id - ID del préstamo a obtener.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
  */
 const obtenerPrestamoPorId = async (req, res) => {
   const pre_id = req.params.pre_id;
@@ -315,9 +393,17 @@ const obtenerPrestamoPorId = async (req, res) => {
 
 /**
  * Obtiene los préstamos asociados a una cédula de usuario.
- * 
- * @param {Object} req - Objeto de solicitud HTTP con la cédula del usuario.
+ *
+ * Este controlador valida que se proporcione la cédula en los parámetros de la solicitud,
+ * consulta la base de datos para obtener los préstamos asociados a dicha cédula y envía la respuesta.
+ *
+ * @async
+ * @function obtenerPrestamosPorCedula
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {string} req.params.usr_cedula - Cédula del usuario.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
  */
 const obtenerPrestamosPorCedula = async (req, res) => {
   const { usr_cedula } = req.params;
@@ -345,9 +431,23 @@ const obtenerPrestamosPorCedula = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene los elementos asociados a un préstamo.
+ *
+ * Este controlador busca y formatea la lista de elementos asociados a un préstamo específico,
+ * identificado por el ID proporcionado en los parámetros de la solicitud.
+ *
+ * @async
+ * @function obtenerElementoPrestamos
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {number} req.params.pre_id - ID del préstamo cuyos elementos se desean obtener.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito, pero envía una respuesta HTTP.
+ */
 const obtenerElementoPrestamos = async (req, res) => {
   const pre_id = req.params.pre_id;
-  
+
   console.log(`🔍 Buscando elementos del préstamo con ID: ${pre_id}`);
 
   try {
@@ -382,15 +482,27 @@ const obtenerElementoPrestamos = async (req, res) => {
 
 /**
  * Actualiza la cantidad de un elemento en un préstamo y ajusta el stock correspondiente.
- * @param {Object} req - Objeto de solicitud con pre_id, ele_id, pre_ele_cantidad_prestado, cancelar y entregado.
+ *
+ * Este controlador recibe el ID del préstamo, el ID del elemento y la nueva cantidad prestada del elemento,
+ * luego calcula la diferencia entre la cantidad nueva y la original, actualiza la cantidad en la tabla
+ * PrestamosElementos, ajusta el stock en la tabla Elementos y devuelve el stock actualizado.
+ *
+ * @async
+ * @function actualizarCantidadElemento
+ * @param {Object} req - Objeto de solicitud.
+ * @param {Object} req.body - Datos enviados en el cuerpo de la solicitud.
+ * @param {number} req.body.pre_id - ID del préstamo.
+ * @param {number} req.body.ele_id - ID del elemento.
+ * @param {number} req.body.pre_ele_cantidad_prestado - Nueva cantidad prestada del elemento.
  * @param {Object} res - Objeto de respuesta para el cliente.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP.
  */
 const actualizarCantidadElemento = async (req, res) => {
   const { pre_id, ele_id, pre_ele_cantidad_prestado } = req.body; // Este valor es la nueva cantidad deseada
   if (!pre_id || !ele_id || pre_ele_cantidad_prestado === undefined) {
     return res.status(400).json({ respuesta: false, mensaje: 'Faltan campos obligatorios.' });
   }
-  
+
   try {
     // Obtener la cantidad actual prestada para este elemento en el préstamo
     const [rows] = await db.execute(
@@ -402,7 +514,7 @@ const actualizarCantidadElemento = async (req, res) => {
     }
     const cantidadOriginal = Number(rows[0].pre_ele_cantidad_prestado);
     const cantidadNueva = Number(pre_ele_cantidad_prestado);
-    const diferencia = cantidadNueva - cantidadOriginal; 
+    const diferencia = cantidadNueva - cantidadOriginal;
     // Si diferencia > 0, se aumenta la cantidad prestada y se debe reducir el stock en esa diferencia.
     // Si diferencia < 0, se reduce la cantidad prestada y se debe aumentar el stock en esa diferencia.
 
@@ -429,27 +541,38 @@ const actualizarCantidadElemento = async (req, res) => {
       [ele_id]
     );
 
-    return res.status(200).json({ 
-      respuesta: true, 
-      mensaje: "Cantidad actualizada con éxito.", 
+    return res.status(200).json({
+      respuesta: true,
+      mensaje: "Cantidad actualizada con éxito.",
       data: elementoRows[0] // Devuelve, por ejemplo, { ele_cantidad_actual: <valor_actualizado> }
     });
   } catch (err) {
     console.error("Error al actualizar cantidad:", err);
-    return res.status(500).json({ 
-      respuesta: false, 
-      mensaje: 'Error al actualizar la cantidad o el stock', 
-      error: err.message 
+    return res.status(500).json({
+      respuesta: false,
+      mensaje: 'Error al actualizar la cantidad o el stock',
+      error: err.message
     });
   }
 };
 
-
 /**
  * Actualiza el estado de un préstamo y su historial de estados.
- * @param {Object} req - El objeto de solicitud que contiene los parámetros de la URL y el cuerpo con los datos necesarios.
- * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
- * @returns {void}
+ *
+ * Este controlador recibe el ID del préstamo a través de los parámetros y los datos de actualización
+ * (nuevo estado y cédula del usuario) en el cuerpo de la solicitud. Valida que el nuevo estado exista,
+ * obtiene el nombre completo del usuario, actualiza el historial de estados del préstamo y actualiza el préstamo.
+ *
+ * @async
+ * @function actualizarEstadoPrestamo
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {number} req.params.pre_id - ID del préstamo a actualizar.
+ * @param {Object} req.body - Datos para actualizar el estado del préstamo.
+ * @param {number} req.body.est_id - Nuevo estado del préstamo.
+ * @param {number} req.body.usr_cedula - Cédula del usuario que realiza la actualización.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP.
  */
 const actualizarEstadoPrestamo = async (req, res) => {
   const { pre_id } = req.params;
@@ -514,11 +637,20 @@ const actualizarEstadoPrestamo = async (req, res) => {
 
 /**
  * Cancela un préstamo dado su ID y restaura la cantidad de los elementos prestados.
- * @param {Object} req - El objeto de solicitud que contiene el ID del préstamo.
- * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
- * @returns {void}
+ *
+ * Este controlador recibe el ID del préstamo a cancelar a través de los parámetros y, a partir de la cédula del usuario autenticado,
+ * delega la lógica de cancelación en el modelo Prestamo, el cual se encarga de restaurar el stock de los elementos prestados.
+ *
+ * @async
+ * @function cancelarPrestamo
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {number} req.params.pre_id - ID del préstamo a cancelar.
+ * @param {Object} req.user - Objeto del usuario autenticado.
+ * @param {number} req.user.usr_cedula - Cédula del usuario autenticado.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP.
  */
-
 const cancelarPrestamo = async (req, res) => {
   const pre_id = Number(req.params.pre_id);
   if (!pre_id) {
@@ -540,13 +672,19 @@ const cancelarPrestamo = async (req, res) => {
   }
 };
 
-
-
 /**
  * Obtiene el historial de estado de un préstamo dado su ID.
- * @param {Object} req - El objeto de solicitud que contiene los parámetros de la URL con el ID del préstamo.
- * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
- * @returns {void}
+ *
+ * Este controlador consulta la base de datos para obtener el historial de estados de un préstamo.
+ * Si no se encuentra historial, responde con un error 404; de lo contrario, devuelve el historial.
+ *
+ * @async
+ * @function obtenerHistorialEstado
+ * @param {Object} req - Objeto de solicitud que contiene los parámetros de la URL.
+ * @param {Object} req.params - Parámetros de la URL.
+ * @param {number|string} req.params.pre_id - ID del préstamo.
+ * @param {Object} res - Objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {Promise<void>} No retorna ningún valor explícito.
  */
 const obtenerHistorialEstado = async (req, res) => {
   try {
@@ -564,10 +702,21 @@ const obtenerHistorialEstado = async (req, res) => {
 };
 
 /**
- * Controlador para entregar un préstamo
- * @param {Object} req - El objeto de solicitud que contiene el ID del préstamo.
- * @param {Object} res - El objeto de respuesta utilizado para enviar la respuesta al cliente.
- * @returns {void}
+ * Controlador para entregar un préstamo.
+ *
+ * Este controlador actualiza el estado de un préstamo para marcarlo como entregado. Requiere el ID del préstamo
+ * en los parámetros de la URL y la cédula del usuario autenticado en req.user. Si el préstamo o el usuario
+ * no están definidos, responde con un error 400. En caso de éxito, devuelve el resultado de la operación.
+ *
+ * @async
+ * @function entregarPrestamo
+ * @param {Object} req - Objeto de solicitud que contiene el ID del préstamo y la información del usuario autenticado.
+ * @param {Object} req.params - Parámetros de la URL.
+ * @param {number|string} req.params.pre_id - ID del préstamo a entregar.
+ * @param {Object} req.user - Objeto del usuario autenticado.
+ * @param {number|string} req.user.usr_cedula - Cédula del usuario que entrega el préstamo.
+ * @param {Object} res - Objeto de respuesta utilizado para enviar la respuesta al cliente.
+ * @returns {Promise<void>} No retorna ningún valor explícito.
  */
 const entregarPrestamo = async (req, res) => {
   const pre_id = Number(req.params.pre_id);
@@ -588,7 +737,6 @@ const entregarPrestamo = async (req, res) => {
     return res.status(500).json({ success: false, message: "Error al entregar el préstamo", error: error.message });
   }
 };
-
 
 module.exports = {
   crearPrestamo,

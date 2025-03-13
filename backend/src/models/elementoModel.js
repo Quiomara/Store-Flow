@@ -1,11 +1,26 @@
 const db = require('../config/db');
 
+/**
+ * Módulo para gestionar operaciones sobre Elementos.
+ * @module Elemento
+ */
 const Elemento = {
   /**
    * Crea un nuevo elemento en la base de datos.
+   *
+   * Inserta un nuevo registro en la tabla "Elementos" utilizando los datos proporcionados.
+   * Si no se incluye el campo `ele_nombre`, se lanza un error.
+   *
+   * @async
+   * @function crear
    * @param {Object} data - Datos del elemento a crear.
+   * @param {string} data.ele_nombre - Nombre del elemento.
+   * @param {number} data.ele_cantidad_total - Cantidad total del elemento.
+   * @param {number} [data.ele_cantidad_actual] - Cantidad actual del elemento; si no se proporciona, se utiliza `ele_cantidad_total`.
+   * @param {string} data.ele_imagen - Ruta o URL de la imagen del elemento.
+   * @param {number} data.ubi_ele_id - ID de la ubicación del elemento.
+   * @returns {Promise<Object>} Resultado de la inserción en la base de datos.
    * @throws {Error} Si el campo 'ele_nombre' no está presente.
-   * @returns {Promise<Object>} Resultado de la inserción.
    */
   crear: async (data) => {
     if (!data.ele_nombre) {
@@ -28,7 +43,18 @@ const Elemento = {
 
   /**
    * Actualiza un elemento existente en la base de datos.
+   *
+   * Modifica los datos del elemento identificado por `ele_id` con la nueva información proporcionada.
+   *
+   * @async
+   * @function actualizar
    * @param {Object} data - Datos del elemento a actualizar.
+   * @param {string} data.ele_nombre - Nuevo nombre del elemento.
+   * @param {number} data.ele_cantidad_total - Nueva cantidad total del elemento.
+   * @param {number} data.ele_cantidad_actual - Nueva cantidad actual del elemento.
+   * @param {string} data.ele_imagen - Nueva ruta o URL de la imagen del elemento.
+   * @param {number} data.ubi_ele_id - Nuevo ID de la ubicación del elemento.
+   * @param {number} data.ele_id - ID del elemento a actualizar.
    * @returns {Promise<Object>} Resultado de la actualización.
    */
   actualizar: async (data) => {
@@ -51,10 +77,16 @@ const Elemento = {
 
   /**
    * Actualiza el stock de un elemento.
+   *
+   * Incrementa o decrementa la cantidad actual del elemento en la base de datos.
+   *
+   * @async
+   * @function actualizarStock
    * @param {number} ele_id - ID del elemento a actualizar.
    * @param {number} cantidad - Cantidad a modificar en el stock.
-   * @throws {Error} Si el elemento no existe.
+   *   Una cantidad positiva incrementa el stock; una cantidad negativa lo reduce.
    * @returns {Promise<Object>} Resultado de la actualización.
+   * @throws {Error} Si no se encuentra el elemento con el ID proporcionado.
    */
   actualizarStock: async (ele_id, cantidad) => {
     const query = `UPDATE Elementos SET ele_cantidad_actual = ele_cantidad_actual + ? WHERE ele_id = ?`;
@@ -67,6 +99,11 @@ const Elemento = {
 
   /**
    * Elimina un elemento de la base de datos.
+   *
+   * Borra el registro de la tabla "Elementos" correspondiente al ID proporcionado.
+   *
+   * @async
+   * @function eliminar
    * @param {number} ele_id - ID del elemento a eliminar.
    * @returns {Promise<Object>} Resultado de la eliminación.
    */
@@ -78,7 +115,13 @@ const Elemento = {
 
   /**
    * Obtiene todos los elementos con su ubicación.
-   * @returns {Promise<Array>} Lista de elementos.
+   *
+   * Realiza una consulta que une la tabla "Elementos" con la tabla "UbicacionElementos"
+   * para obtener detalles de cada elemento y su ubicación.
+   *
+   * @async
+   * @function obtenerTodos
+   * @returns {Promise<Array>} Lista de elementos con información de su ubicación.
    */
   obtenerTodos: async () => {
     const query = `
@@ -92,8 +135,14 @@ const Elemento = {
 
   /**
    * Obtiene un elemento por su ID.
+   *
+   * Realiza una consulta que une la tabla "Elementos" con la tabla "UbicacionElementos"
+   * para obtener los detalles de un elemento específico identificado por su ID.
+   *
+   * @async
+   * @function obtenerPorId
    * @param {number} ele_id - ID del elemento a obtener.
-   * @returns {Promise<Object|null>} Elemento encontrado o null si no existe.
+   * @returns {Promise<Object|null>} Objeto con los datos del elemento si se encuentra; de lo contrario, null.
    */
   obtenerPorId: async (ele_id) => {
     const query = `

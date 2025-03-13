@@ -1,10 +1,11 @@
 <!-- Contenedor principal del dashboard del almacén -->
 <div class="warehouse-dashboard container-fluid d-flex flex-column justify-content-center align-items-center vh-100">
-  
+
   <!-- Cabecera con menú de usuario -->
   <header class="w-100 d-flex justify-content-end p-3">
     <div class="dropdown">
-      <div class="warehouse-label d-flex align-items-center dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <div class="warehouse-label d-flex align-items-center dropdown-toggle" id="dropdownMenuButton"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-user-cog"></i>
         <span class="ml-2">Almacén</span>
       </div>
@@ -17,7 +18,7 @@
   <!-- Contenedor de contenido principal -->
   <div class="content-container bg-white p-4 rounded" style="width: 90%; max-width: 1200px;">
     <div class="row no-gutters">
-      
+
       <!-- Barra lateral de navegación -->
       <aside class="sidebar col-12 col-md-3 p-3 rounded d-flex flex-column align-items-center">
         <img src="/img/logoSena.png" alt="Logo Sena" class="logo img-fluid mb-3">
@@ -49,12 +50,12 @@
           </li>
         </ul>
       </aside>
-      
+
       <!-- Contenido principal -->
       <main class="content col-12 col-md-9">
         <router-outlet></router-outlet>
       </main>
-      
+
     </div>
   </div>
 </div>

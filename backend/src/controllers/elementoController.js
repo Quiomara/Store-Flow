@@ -4,8 +4,20 @@ const db = require('../config/db');
 
 /**
  * Controlador para crear un nuevo elemento.
+ *
+ * Este controlador toma los datos del cuerpo de la solicitud (req.body), verifica que los campos obligatorios estén presentes
+ * y crea un nuevo elemento en la base de datos. Se inicializa el stock actual con la cantidad total proporcionada.
+ *
+ * @async
+ * @function crearElemento
  * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Cuerpo de la solicitud.
+ * @param {string} req.body.ele_nombre - Nombre del elemento.
+ * @param {number} req.body.ele_cantidad_total - Cantidad total del elemento.
+ * @param {number} req.body.ubi_ele_id - ID de la ubicación del elemento.
+ * @param {string} [req.body.ele_imagen] - URL o ruta de la imagen del elemento (opcional).
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor.
  */
 const crearElemento = async (req, res) => {
   const { ele_nombre, ele_cantidad_total, ubi_ele_id, ele_imagen } = req.body;
@@ -33,8 +45,15 @@ const crearElemento = async (req, res) => {
 
 /**
  * Controlador para actualizar un elemento.
+ *
+ * Este controlador actualiza la información de un elemento en la base de datos utilizando los datos enviados en el cuerpo de la solicitud.
+ *
+ * @async
+ * @function actualizarElemento
  * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Cuerpo de la solicitud con los datos a actualizar del elemento.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor.
  */
 const actualizarElemento = async (req, res) => {
   const data = req.body;
@@ -48,8 +67,19 @@ const actualizarElemento = async (req, res) => {
 
 /**
  * Controlador para actualizar la cantidad prestada de un elemento.
+ *
+ * Este controlador verifica si hay suficiente stock de un elemento y actualiza tanto la cantidad prestada en el préstamo
+ * como el stock disponible del elemento.
+ *
+ * @async
+ * @function actualizarCantidadPrestado
  * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Cuerpo de la solicitud.
+ * @param {number} req.body.ele_id - ID del elemento.
+ * @param {number} req.body.cantidad - Cantidad a prestar.
+ * @param {number} req.body.pre_id - ID del préstamo.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor.
  */
 const actualizarCantidadPrestado = async (req, res) => {
   const { ele_id, cantidad, pre_id } = req.body;
@@ -78,14 +108,24 @@ const actualizarCantidadPrestado = async (req, res) => {
 
 /**
  * Controlador para eliminar un elemento.
+ *
+ * Este controlador obtiene el ID del elemento a eliminar a partir de los parámetros de la solicitud,
+ * inicia una transacción y elimina los registros relacionados en la tabla `PrestamosElementos` y el registro
+ * del elemento en la tabla `Elementos`. Si ocurre algún error, se revierte la transacción.
+ *
+ * @async
+ * @function eliminarElemento
  * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {string} req.params.ele_id - ID del elemento a eliminar.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor.
  */
 const eliminarElemento = async (req, res) => {
   const ele_id = req.params.ele_id;
-  
+
   console.log('ID del elemento a eliminar:', ele_id); // Verifica el ID recibido
-  
+
   if (!ele_id) {
     console.error('El ID del elemento no está presente en la solicitud');
     return res.status(400).json({ respuesta: false, mensaje: 'ID del elemento no proporcionado.' });
@@ -110,7 +150,7 @@ const eliminarElemento = async (req, res) => {
       `DELETE FROM Elementos WHERE ele_id = ?`,
       [ele_id]
     );
-    
+
     if (deleteElementoResult.affectedRows === 0) {
       console.error(`No se encontró el elemento con ID: ${ele_id}`);
       return res.status(404).json({ respuesta: false, mensaje: 'Elemento no encontrado' });
@@ -118,7 +158,7 @@ const eliminarElemento = async (req, res) => {
 
     // Confirmar la transacción
     await connection.commit();
-    
+
     res.json({ respuesta: true, mensaje: '¡Elemento eliminado con éxito!' });
   } catch (err) {
     if (connection) await connection.rollback();
@@ -131,8 +171,15 @@ const eliminarElemento = async (req, res) => {
 
 /**
  * Controlador para obtener todos los elementos.
+ *
+ * Este controlador consulta la base de datos para obtener todos los elementos registrados
+ * y envía la respuesta con los datos obtenidos. En caso de error, retorna un mensaje de error.
+ *
+ * @async
+ * @function obtenerTodosElementos
  * @param {Object} req - Objeto de solicitud HTTP.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor.
  */
 const obtenerTodosElementos = async (req, res) => {
   try {
@@ -145,8 +192,18 @@ const obtenerTodosElementos = async (req, res) => {
 
 /**
  * Controlador para obtener un elemento por su ID.
- * @param {Object} req - Objeto de solicitud HTTP con el ID en los parámetros.
+ *
+ * Este controlador consulta la base de datos para obtener un elemento específico utilizando
+ * el ID proporcionado en los parámetros de la solicitud y envía el elemento encontrado o
+ * un mensaje de error si no se encuentra.
+ *
+ * @async
+ * @function obtenerElementoPorId
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {string} req.params.ele_id - ID del elemento a obtener.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor.
  */
 const obtenerElementoPorId = async (req, res) => {
   const ele_id = req.params.ele_id;
@@ -163,8 +220,18 @@ const obtenerElementoPorId = async (req, res) => {
 
 /**
  * Controlador para actualizar el stock de un elemento.
+ *
+ * Este controlador recibe el ID del elemento y la nueva cantidad de stock a través del cuerpo de la solicitud,
+ * valida que ambos valores sean numéricos y actualiza el stock en la base de datos.
+ *
+ * @async
+ * @function actualizarStock
  * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Datos enviados en la solicitud.
+ * @param {(string|number)} req.body.ele_id - ID del elemento.
+ * @param {(string|number)} req.body.ele_cantidad_actual - Nueva cantidad actual del elemento.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor.
  */
 const actualizarStock = async (req, res) => {
   const { ele_id, ele_cantidad_actual } = req.body;
@@ -184,6 +251,7 @@ const actualizarStock = async (req, res) => {
     res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el stock.' });
   }
 };
+
 
 module.exports = {
   crearElemento,

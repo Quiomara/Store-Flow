@@ -19,14 +19,24 @@ import { catchError, map } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ElementoService } from '../../../services/elemento.service';
 
-
+/**
+ * Interfaz que representa un elemento agregado.
+ */
 interface ElementoAgregado {
-  ele_id: number;
-  ele_nombre: string;
-  pre_ele_cantidad_prestado: number;
-  ele_cantidad_actual: number;
+  ele_id: number;                    // Identificador del elemento.
+  ele_nombre: string;                // Nombre del elemento.
+  pre_ele_cantidad_prestado: number; // Cantidad prestada del elemento.
+  ele_cantidad_actual: number;       // Cantidad actual disponible del elemento.
 }
 
+/**
+ * Componente que muestra el historial de préstamos para instructores.
+ *
+ * @remarks
+ * Permite buscar y filtrar el historial de préstamos, visualizar detalles, cancelar préstamos,
+ * y actualizar el estado de los mismos. Se integra con diversos servicios para manejar la lógica
+ * de negocio y la comunicación con el backend.
+ */
 @Component({
   selector: 'app-instructor-history',
   templateUrl: './instructor-history.component.html',
@@ -44,23 +54,33 @@ interface ElementoAgregado {
   ]
 })
 export class InstructorHistoryComponent implements OnInit {
-  token: string | null = null;
-  searchForm: FormGroup;
-  prestamos: Prestamo[] = [];
-  filteredPrestamos: MatTableDataSource<Prestamo>;
-  estados: Estado[] = [];
+  token: string | null = null;                                  // Token del usuario.
+  searchForm: FormGroup;                                        // Formulario para búsqueda de préstamos.
+  prestamos: Prestamo[] = [];                                   // Lista de préstamos.
+  filteredPrestamos: MatTableDataSource<Prestamo>;              // Fuente de datos filtrados para la tabla de préstamos.
+  estados: Estado[] = [];                                       // Lista de estados disponibles.
 
-  mensajeNoPrestamos: string = 'No se encontraron préstamos.';
+  mensajeNoPrestamos: string = 'No se encontraron préstamos.';  // Mensaje a mostrar cuando no se encuentran préstamos.
 
-  // Se agregan las propiedades necesarias
-  elementosAgregados: ElementoAgregado[] = []; // Asegurar que exista la lista de elementos agregados
-  elementos: Elemento[] = []; // Lista de elementos disponibles en el inventario
+  elementosAgregados: ElementoAgregado[] = [];                  // Lista de elementos agregados.
+  elementos: Elemento[] = [];                                   // Lista de elementos disponibles en el inventario.
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;            // Paginador de la tabla de préstamos.
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  private prestamosUrl = 'http://localhost:3000/api/prestamos';
-  displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];
+  private prestamosUrl = 'http://localhost:3000/api/prestamos';  // URL del API para préstamos.
+  displayedColumns: string[] = ['idPrestamo', 'fechaHora', 'fechaEntrega', 'estado', 'acciones'];  // Columnas mostradas en la tabla.
 
+  /**
+   * Crea una instancia del componente InstructorHistoryComponent.
+   *
+   * @param elementoService - Servicio para gestionar elementos.
+   * @param http - Cliente HTTP para realizar peticiones.
+   * @param fb - Servicio para la creación de formularios.
+   * @param prestamoService - Servicio para gestionar préstamos.
+   * @param authService - Servicio de autenticación.
+   * @param snackBar - Servicio para mostrar notificaciones.
+   * @param dialog - Servicio para abrir diálogos modales.
+   */
   constructor(
     private elementoService: ElementoService, 
     private http: HttpClient,
@@ -75,13 +95,13 @@ export class InstructorHistoryComponent implements OnInit {
       searchEstado: [''],
       searchFecha: ['']
     });
-
     this.filteredPrestamos = new MatTableDataSource<Prestamo>([]);
   }
 
   /**
-   * ngOnInit - Inicializa los datos del componente y suscribe al formulario de búsqueda.
-   * @returns {void}
+   * ngOnInit - Inicializa el componente cargando datos iniciales y suscribiéndose a cambios en el formulario de búsqueda.
+   *
+   * @returns void
    */
   ngOnInit(): void {
     this.loadInitialData();
@@ -89,9 +109,9 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * loadInitialData - Carga los datos iniciales, como el historial de préstamos y los estados.
-   * Verifica que el usuario tenga un token y cédula disponibles antes de continuar.
-   * @returns {void}
+   * loadInitialData - Carga los datos iniciales, incluyendo el historial de préstamos y los estados.
+   *
+   * @returns void
    */
   loadInitialData(): void {
     const token = this.authService.getToken();
@@ -108,8 +128,9 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * getHistory - Obtiene el historial de préstamos del backend para un usuario con base en su cédula.
-   * @returns {void}
+   * getHistory - Obtiene el historial de préstamos del backend para el usuario autenticado.
+   *
+   * @returns void
    */
   getHistory(): void {
     const cedula = this.authService.getCedula();
@@ -124,7 +145,6 @@ export class InstructorHistoryComponent implements OnInit {
             estado: prestamo.est_nombre,
             elementos: prestamo.elementos || [],
           }));
-
           this.prestamos.sort((a, b) => b.fechaInicio.getTime() - a.fechaInicio.getTime());
           this.filteredPrestamos.data = this.prestamos;
           this.filteredPrestamos.paginator = this.paginator;
@@ -145,7 +165,8 @@ export class InstructorHistoryComponent implements OnInit {
 
   /**
    * getEstados - Obtiene los estados disponibles para los préstamos desde el backend.
-   * @returns {void}
+   *
+   * @returns void
    */
   getEstados(): void {
     this.prestamoService.getEstados().subscribe(
@@ -161,8 +182,9 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * buscar - Realiza la búsqueda de préstamos filtrando por ID, estado y fecha según los valores del formulario.
-   * @returns {void}
+   * buscar - Filtra el historial de préstamos según los criterios ingresados en el formulario de búsqueda.
+   *
+   * @returns void
    */
   buscar(): void {
     const { searchId, searchEstado, searchFecha } = this.searchForm.value;
@@ -182,22 +204,17 @@ export class InstructorHistoryComponent implements OnInit {
 
     if (searchFecha) {
       const parsedSearchFecha = new Date(searchFecha);
-
       if (isNaN(parsedSearchFecha.getTime())) {
-        return; // No continúa si la fecha ingresada no es válida
+        return; // No continúa si la fecha ingresada no es válida.
       }
-
       filteredData = filteredData.filter(prestamo => {
-        if (!prestamo.fechaInicio) return false; // Excluye préstamos sin fecha
-
+        if (!prestamo.fechaInicio) return false; // Excluye préstamos sin fecha.
         const parsedPrestamoFecha = new Date(prestamo.fechaInicio);
         if (isNaN(parsedPrestamoFecha.getTime())) {
-          return false; // Excluye préstamos con fechas inválidas
+          return false; // Excluye préstamos con fechas inválidas.
         }
-
         const prestamoFechaStr = parsedPrestamoFecha.toISOString().split('T')[0];
         const searchFechaStr = parsedSearchFecha.toISOString().split('T')[0];
-
         return prestamoFechaStr === searchFechaStr;
       });
     }
@@ -207,9 +224,10 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * actualizarMensajeNoPrestamos - Actualiza el mensaje de no resultados según el estado de los préstamos filtrados.
-   * @param {string} searchEstado - El estado de los préstamos seleccionados para la búsqueda.
-   * @returns {void}
+   * actualizarMensajeNoPrestamos - Actualiza el mensaje de "no préstamos encontrados" según el filtro de estado.
+   *
+   * @param searchEstado - El estado utilizado para filtrar los préstamos.
+   * @returns void
    */
   actualizarMensajeNoPrestamos(searchEstado: string): void {
     if (this.filteredPrestamos.data.length === 0) {
@@ -238,16 +256,17 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
- * verDetalles - Abre un modal para mostrar los detalles del préstamo y permite editarlo.
- * @param {Prestamo} prestamo - El objeto de préstamo para mostrar los detalles.
- * @returns {void}
- */
+   * verDetalles - Abre un modal para mostrar y editar los detalles del préstamo seleccionado.
+   *
+   * @param prestamo - El préstamo para el cual se mostrarán los detalles.
+   * @returns void
+   */
   verDetalles(prestamo: Prestamo): void {
     this.dialog.open(PrestamoDetalleModalComponent, {
       width: '800px',
       data: {
         prestamo,
-        soloDetalle: false, // Permite edición
+        soloDetalle: false, // Permite edición.
         incluirHistorial: true
       }
     }).afterClosed().subscribe(() => {
@@ -256,24 +275,17 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * formatearFecha - Convierte una fecha a un formato "DD/MM/YYYY".
-   * @param {string | Date} fecha - La fecha a formatear, puede ser un string o un objeto Date.
-   * @returns {string} - La fecha formateada en el formato "DD/MM/YYYY".
+   * formatearFecha - Convierte una fecha a formato "DD/MM/YYYY".
+   *
+   * @param fecha - La fecha a formatear (string o Date).
+   * @returns La fecha formateada o una cadena vacía si la fecha es inválida.
    */
   formatearFecha(fecha: string | Date): string {
-    // 1. Verificar que la fecha no sea nula o indefinida
     if (!fecha) return '';
-
-    // 2. Convertir la fecha a objeto Date
     const fechaObj = new Date(fecha);
-
-    // 3. Verificar si la fecha es válida
     if (isNaN(fechaObj.getTime())) {
-      // Si la fecha es inválida, devolver un string vacío (o un mensaje de error)
       return '';
     }
-
-    // 4. Devolver la fecha en el formato deseado
     return fechaObj.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
@@ -282,9 +294,10 @@ export class InstructorHistoryComponent implements OnInit {
   }
 
   /**
-   * seleccionarEstado - Establece el valor del estado seleccionado en el formulario de búsqueda.
-   * @param {Event} event - El evento del select donde se seleccionó el estado.
-   * @returns {void}
+   * seleccionarEstado - Actualiza el valor del estado seleccionado en el formulario de búsqueda.
+   *
+   * @param event - Evento emitido al seleccionar un estado.
+   * @returns void
    */
   seleccionarEstado(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
@@ -293,6 +306,12 @@ export class InstructorHistoryComponent implements OnInit {
     this.buscar();
   }
 
+  /**
+   * cancelarPrestamo - Inicia el proceso de cancelación de un préstamo.
+   *
+   * @param prestamo - El préstamo a cancelar.
+   * @returns void
+   */
   cancelarPrestamo(prestamo: Prestamo): void {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
@@ -306,27 +325,25 @@ export class InstructorHistoryComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe((confirmado: boolean) => {
       if (!confirmado) {
-        console.log("Cancelación abortada por el usuario.");
+        // Cancelación abortada por el usuario.
         return;
       }
   
-      console.log("Iniciando cancelación de préstamo ID:", prestamo.idPrestamo);
-  
-      // Si no hay elementos en el préstamo, los obtenemos desde el backend
+      // Si no hay elementos en el préstamo, se obtienen desde el backend.
       if (!prestamo.elementos || prestamo.elementos.length === 0) {
-        console.warn("El préstamo no tiene elementos en el frontend. Obteniendo detalles desde el backend...");
-  
         this.prestamoService.getPrestamoDetalles(prestamo.idPrestamo!).subscribe(
           (detalles) => {
             if (!detalles || !detalles.data || detalles.data.length === 0) {
-              console.error("Error: No se encontraron elementos asociados al préstamo en el backend.");
+              // No se encontraron elementos asociados al préstamo en el backend.
               return;
             }
-            console.log("Elementos obtenidos correctamente:", detalles.data);
-            prestamo.elementos = detalles.data; // Asignamos los elementos obtenidos
-            this.ejecutarCancelacion(prestamo); // Llamamos a la función de cancelación
+            // Se asignan los elementos obtenidos y se procede con la cancelación.
+            prestamo.elementos = detalles.data;
+            this.ejecutarCancelacion(prestamo);
           },
-          (error) => console.error("Error al obtener los detalles del préstamo:", error)
+          (error) => {
+            // Error al obtener los detalles del préstamo.
+          }
         );
       } else {
         this.ejecutarCancelacion(prestamo);
@@ -334,38 +351,40 @@ export class InstructorHistoryComponent implements OnInit {
     });
   }
   
-  // Método separado para manejar la cancelación
+  /**
+   * ejecutarCancelacion - Ejecuta la cancelación del préstamo y actualiza el stock de cada elemento.
+   *
+   * @param prestamo - El préstamo a cancelar.
+   * @returns void
+   */
   private ejecutarCancelacion(prestamo: Prestamo): void {
     this.prestamoService.cancelarPrestamo(prestamo.idPrestamo!)
       .subscribe(response => {
-        console.log("Respuesta del backend al cancelar préstamo:", response);
         if (!response.success) {
-          console.error("Error al cancelar préstamo:", response.message);
+          // Error en la cancelación del préstamo.
           return;
         }
   
-        // Actualizamos cada elemento con el stock actualizado que ya devuelve el backend
-        // Suponiendo que response.data es un array de objetos actualizados para cada elemento
+        // Actualiza el stock de cada elemento basado en los datos devueltos por el backend.
         response.data.forEach((elementoActualizado: any) => {
           const index = prestamo.elementos.findIndex(e => e.ele_id === elementoActualizado.ele_id);
           if (index !== -1) {
-            // Se asigna el valor actualizado directamente, sin sumarle nada extra
             prestamo.elementos[index].ele_cantidad_actual = elementoActualizado.ele_cantidad_actual;
           }
-          console.log(`Stock actualizado para elemento ${elementoActualizado.ele_id}: ${elementoActualizado.ele_cantidad_actual}`);
         });
   
-        console.log(`Préstamo ${prestamo.idPrestamo} cancelado correctamente. Actualizando historial...`);
-        // Actualizar historial o recargar la data según corresponda
+        // Actualiza el historial de préstamos.
         this.getHistory();
       },
-      error => console.error("Error en la solicitud:", error));
+      error => {
+        // Error en la solicitud de cancelación.
+      });
   }
  
-  
   /**
-   * actualizarToken - Actualiza el token recuperado desde el servicio de autenticación.
-   * @returns {void}
+   * actualizarToken - Actualiza el token actual del usuario.
+   *
+   * @returns void
    */
   actualizarToken(): void {
     this.token = this.authService.getToken();
@@ -374,16 +393,23 @@ export class InstructorHistoryComponent implements OnInit {
     }
   }
 
+  /**
+   * handleError - Maneja errores de la solicitud y retorna un observable con el error.
+   *
+   * @param error - Error recibido.
+   * @returns Observable que emite el error formateado.
+   */
   private handleError(error: any): Observable<never> {
-    console.error('Error en la solicitud:', error);
     return throwError(() => new Error(error.message || 'Error desconocido'));
   }
 
+  /**
+   * esCancelable - Determina si un préstamo es cancelable basándose en su estado.
+   *
+   * @param prestamo - El préstamo a evaluar.
+   * @returns True si el préstamo es cancelable; de lo contrario, false.
+   */
   esCancelable(prestamo: any): boolean {
-
     return prestamo.estado === 'Activo' || prestamo.estado === 'Creado';
   }
-  
-  
-  
-}  
+}

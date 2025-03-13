@@ -4,7 +4,9 @@ const nodemailer = require('nodemailer');
  * Configura el transportador de correo electrónico utilizando Gmail.
  * Asegúrate de habilitar "Acceso de aplicaciones menos seguras" en la configuración de Gmail 
  * o usa OAuth2 para mayor seguridad.
- * @returns {nodemailer.Transporter} El transportador de correo configurado.
+ *
+ * @constant
+ * @type {nodemailer.Transporter}
  */
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -16,6 +18,7 @@ const transporter = nodemailer.createTransport({
 
 /**
  * Envía un correo electrónico con el enlace para restablecer la contraseña.
+ *
  * @param {string} to - Dirección de correo del destinatario.
  * @param {string} resetToken - Token único para restablecer la contraseña.
  * @returns {void}
@@ -30,7 +33,6 @@ const sendResetEmail = (to, resetToken) => {
 
   transporter.sendMail(mailOptions, (error) => {
     if (error) {
-      // Se elimina el console.log y se mantiene el mensaje de error adecuado
       console.error('Error al enviar el correo:', error);
     }
   });

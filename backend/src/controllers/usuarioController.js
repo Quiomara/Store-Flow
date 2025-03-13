@@ -4,9 +4,20 @@ const Usuario = require('../models/usuarioModel');
 /**
  * Registra un nuevo usuario en la base de datos.
  * Verifica que los datos sean correctos y encripta la contraseña antes de almacenarla.
- * @param {Object} req - Objeto de la solicitud HTTP, que contiene los datos del usuario en `req.body`.
- * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con un mensaje de éxito o error.
+ *
+ * @async
+ * @function registrarUsuario
+ * @param {Object} req - Objeto de la solicitud HTTP.
+ * @param {Object} req.body - Datos del usuario a registrar.
+ * @param {(string|number)} req.body.usr_cedula - Cédula del usuario.
+ * @param {string} req.body.usr_primer_nombre - Primer nombre del usuario.
+ * @param {string} req.body.usr_primer_apellido - Primer apellido del usuario.
+ * @param {string} req.body.usr_correo - Correo electrónico del usuario.
+ * @param {string} req.body.usr_contrasena - Contraseña del usuario.
+ * @param {number} req.body.tip_usr_id - Identificador del tipo de usuario.
+ * @param {number} req.body.cen_id - Identificador del centro.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con el resultado.
  */
 const registrarUsuario = async (req, res) => {
   const data = req.body;
@@ -42,18 +53,25 @@ const registrarUsuario = async (req, res) => {
     await Usuario.crear(data);
     res.json({ respuesta: true, mensaje: '¡Usuario registrado con éxito!' });
   } catch (err) {
-    // Se mantiene el mensaje de error, pero se elimina el console.log
     res.status(500).json({ respuesta: false, mensaje: `Error al registrar el usuario: ${err.message}` });
   }
 };
 
-
 /**
  * Actualiza la información de un usuario existente.
  * Un usuario solo puede actualizar su propia información a menos que sea administrador.
- * @param {Object} req - Objeto de la solicitud HTTP, contiene los datos del usuario en `req.body` y el usuario autenticado en `req.user`.
- * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con un mensaje de éxito o error.
+ *
+ * @async
+ * @function actualizarUsuario
+ * @param {Object} req - Objeto de la solicitud HTTP.
+ * @param {Object} req.body - Datos del usuario a actualizar.
+ * @param {(string|number)} req.body.usr_cedula - Cédula del usuario a actualizar.
+ * @param {string} [req.body.usr_contrasena] - Nueva contraseña (opcional).
+ * @param {Object} req.user - Objeto del usuario autenticado.
+ * @param {(string|number)} req.user.usr_cedula - Cédula del usuario autenticado.
+ * @param {number} req.user.tip_usr_id - Rol del usuario autenticado.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con el resultado.
  */
 const actualizarUsuario = async (req, res) => {
   const data = req.body;
@@ -75,16 +93,22 @@ const actualizarUsuario = async (req, res) => {
     await Usuario.actualizar(data);
     res.json({ respuesta: true, mensaje: '¡Usuario actualizado con éxito!' });
   } catch (err) {
-    // Se elimina el console.log y se devuelve el error al cliente
     res.status(500).json({ respuesta: false, mensaje: 'Error al actualizar el usuario.' });
   }
 };
 
 /**
  * Elimina un usuario de la base de datos.
- * @param {Object} req - Objeto de la solicitud HTTP, contiene el `usr_cedula` del usuario a eliminar en `req.params`.
- * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con un mensaje de éxito o error.
+ *
+ * Elimina el usuario especificado por la cédula proporcionada en los parámetros de la solicitud.
+ *
+ * @async
+ * @function eliminarUsuario
+ * @param {Object} req - Objeto de la solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la URL.
+ * @param {(string|number)} req.params.usr_cedula - Cédula del usuario a eliminar.
+ * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con el resultado.
  */
 const eliminarUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
@@ -97,17 +121,23 @@ const eliminarUsuario = async (req, res) => {
     }
     res.json({ respuesta: true, mensaje: '¡Usuario eliminado con éxito!' });
   } catch (err) {
-    // Se elimina el console.log y se devuelve el error al cliente
     res.status(500).json({ respuesta: false, mensaje: 'Error al eliminar el usuario.' });
   }
 };
 
-
 /**
  * Obtiene un usuario por su cédula.
+ *
+ * Consulta la base de datos utilizando el método `buscarPorId` del modelo Usuario para obtener
+ * el usuario correspondiente a la cédula proporcionada en los parámetros de la solicitud.
+ *
+ * @async
+ * @function obtenerUsuario
  * @param {Object} req - Objeto de la solicitud HTTP, contiene el parámetro `usr_cedula` en `req.params`.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {(number|string)} req.params.usr_cedula - Cédula del usuario.
  * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con el usuario o un mensaje de error.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con el usuario o un mensaje de error.
  */
 const obtenerUsuario = async (req, res) => {
   const usr_cedula = req.params.usr_cedula;
@@ -125,9 +155,15 @@ const obtenerUsuario = async (req, res) => {
 
 /**
  * Obtiene la lista de todos los usuarios.
+ *
+ * Consulta la base de datos utilizando el método `buscarTodos` del modelo Usuario para obtener
+ * todos los usuarios registrados y envía la lista en la respuesta.
+ *
+ * @async
+ * @function obtenerTodosUsuarios
  * @param {Object} req - Objeto de la solicitud HTTP.
  * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con la lista de usuarios o un mensaje de error.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con la lista de usuarios o un mensaje de error.
  */
 const obtenerTodosUsuarios = async (req, res) => {
   try {
@@ -140,9 +176,17 @@ const obtenerTodosUsuarios = async (req, res) => {
 
 /**
  * Obtiene una lista de usuarios filtrada por su tipo.
+ *
+ * Utiliza el método `buscarPorTipo` del modelo Usuario para obtener los usuarios que
+ * coincidan con el tipo especificado en los parámetros de la solicitud.
+ *
+ * @async
+ * @function obtenerUsuariosPorTipo
  * @param {Object} req - Objeto de la solicitud HTTP, contiene el parámetro `tip_usr_id` en `req.params`.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {(number|string)} req.params.tip_usr_id - Identificador del tipo de usuario.
  * @param {Object} res - Objeto de la respuesta HTTP, utilizado para enviar la respuesta.
- * @returns {void} Responde al cliente con los usuarios filtrados por tipo o un mensaje de error.
+ * @returns {Promise<void>} No retorna un valor explícito, pero envía la respuesta HTTP con los usuarios filtrados o un mensaje de error.
  */
 const obtenerUsuariosPorTipo = async (req, res) => {
   const tip_usr_id = req.params.tip_usr_id;

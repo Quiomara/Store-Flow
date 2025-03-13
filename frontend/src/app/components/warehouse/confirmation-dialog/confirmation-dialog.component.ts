@@ -3,6 +3,13 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
+/**
+ * Componente de diálogo de confirmación.
+ *
+ * @remarks
+ * Este componente se utiliza para mostrar un diálogo que solicita al usuario confirmar o cancelar
+ * una acción. Se inyectan datos que contienen el título, mensaje y los textos de los botones.
+ */
 @Component({
   selector: 'app-confirmation-dialog',
   templateUrl: './confirmation-dialog.component.html',
@@ -12,26 +19,42 @@ import { CommonModule } from '@angular/common';
     MatDialogModule,
     MatButtonModule,
     CommonModule
-  ],
+  ]
 })
 export class ConfirmationDialogComponent {
+  /**
+   * Título del diálogo.
+   */
   titulo: string;
+
+  /**
+   * Mensaje que se muestra en el diálogo.
+   */
   mensaje: string;
+
+  /**
+   * Texto del botón de confirmación.
+   */
   textoBotonConfirmar: string;
+
+  /**
+   * Texto del botón de cancelación.
+   */
   textoBotonCancelar: string;
 
   /**
-   * Constructor del componente de confirmación de diálogo.
+   * Constructor del componente de diálogo de confirmación.
+   *
    * @param dialogRef - Referencia al diálogo para cerrarlo.
-   * @param data - Datos inyectados que contienen título, mensaje y texto de los botones.
+   * @param data - Datos inyectados que contienen el título, mensaje y textos de los botones.
    */
   constructor(
     public dialogRef: MatDialogRef<ConfirmationDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: {
-      titulo: string,
-      mensaje: string,
-      textoBotonConfirmar: string,
-      textoBotonCancelar: string
+      titulo: string;
+      mensaje: string;
+      textoBotonConfirmar: string;
+      textoBotonCancelar: string;
     }
   ) {
     this.titulo = data.titulo;
@@ -41,16 +64,20 @@ export class ConfirmationDialogComponent {
   }
 
   /**
-   * Cierra el diálogo y retorna `true` cuando el usuario confirma.
+   * Cierra el diálogo y retorna `true` indicando que el usuario confirmó la acción.
+   *
+   * @returns void
    */
   onConfirm(): void {
-    this.dialogRef.close(true); // Retorna `true` si el usuario confirma
+    this.dialogRef.close(true);
   }
 
   /**
-   * Cierra el diálogo y retorna `false` cuando el usuario cancela.
+   * Cierra el diálogo y retorna `false` indicando que el usuario canceló la acción.
+   *
+   * @returns void
    */
   onCancel(): void {
-    this.dialogRef.close(false); // Retorna `false` si el usuario cancela
+    this.dialogRef.close(false);
   }
 }

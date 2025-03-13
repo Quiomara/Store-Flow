@@ -7,7 +7,17 @@ require('dotenv').config(); // Cargar variables de entorno desde .env
 
 /**
  * Controlador para manejar el inicio de sesión del usuario.
- * @param {Object} req - Objeto de solicitud con los datos del usuario.
+ *
+ * Este controlador valida que se hayan proporcionado el correo y la contraseña.
+ * Busca al usuario en la base de datos, verifica la contraseña y genera un token JWT
+ * que incluye la cédula del usuario y el tipo de usuario.
+ *
+ * @async
+ * @function login
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Datos enviados en la solicitud.
+ * @param {string} req.body.correo - Correo electrónico del usuario.
+ * @param {string} req.body.contrasena - Contraseña del usuario.
  * @param {Object} res - Objeto de respuesta HTTP.
  */
 const login = async (req, res) => {
@@ -56,7 +66,16 @@ const login = async (req, res) => {
 
 /**
  * Controlador para manejar la recuperación de contraseñas.
- * @param {Object} req - Objeto de solicitud con el correo del usuario.
+ *
+ * Este controlador verifica si el usuario está registrado en la base de datos,
+ * genera un token de restablecimiento de contraseña junto con su fecha de expiración,
+ * actualiza la base de datos y envía un correo electrónico con el enlace para restablecer la contraseña.
+ *
+ * @async
+ * @function forgotPassword
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Datos enviados en la solicitud.
+ * @param {string} req.body.correo - Correo electrónico del usuario.
  * @param {Object} res - Objeto de respuesta HTTP.
  */
 const forgotPassword = async (req, res) => {
@@ -92,7 +111,17 @@ const forgotPassword = async (req, res) => {
 
 /**
  * Controlador para manejar el restablecimiento de contraseñas.
- * @param {Object} req - Objeto de solicitud con el token y la nueva contraseña.
+ *
+ * Este controlador verifica que se hayan proporcionado un token y una nueva contraseña,
+ * valida el token y la fecha de expiración, actualiza la contraseña en la base de datos y
+ * elimina el token de restablecimiento.
+ *
+ * @async
+ * @function resetPassword
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.body - Datos enviados en la solicitud.
+ * @param {string} req.body.token - Token de restablecimiento de contraseña.
+ * @param {string} req.body.newPassword - Nueva contraseña para el usuario.
  * @param {Object} res - Objeto de respuesta HTTP.
  */
 const resetPassword = async (req, res) => {

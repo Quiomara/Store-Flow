@@ -2,8 +2,15 @@ const CentroDeFormacion = require('../models/centroDeFormacion');
 
 /**
  * Controlador para obtener todos los centros de formación.
+ *
+ * Consulta la base de datos para obtener la lista de centros de formación y envía una respuesta
+ * JSON con los datos obtenidos o un mensaje de error si no se encuentran resultados.
+ *
+ * @async
+ * @function getCentros
  * @param {Object} req - Objeto de solicitud HTTP.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito.
  */
 const getCentros = async (req, res) => {
   try {
@@ -22,8 +29,18 @@ const getCentros = async (req, res) => {
 
 /**
  * Controlador para obtener un centro de formación por su ID.
- * @param {Object} req - Objeto de solicitud HTTP con el ID del centro en los parámetros.
+ *
+ * Consulta la base de datos para obtener la información de un centro de formación específico,
+ * utilizando el ID proporcionado en los parámetros de la solicitud. Envía una respuesta JSON
+ * con los datos del centro o un mensaje de error si no se encuentra.
+ *
+ * @async
+ * @function obtenerCentroDeFormacionPorID
+ * @param {Object} req - Objeto de solicitud HTTP.
+ * @param {Object} req.params - Parámetros de la solicitud.
+ * @param {string} req.params.id - ID del centro de formación a obtener.
  * @param {Object} res - Objeto de respuesta HTTP.
+ * @returns {Promise<void>} No retorna ningún valor explícito.
  */
 const obtenerCentroDeFormacionPorID = async (req, res) => {
   const id = req.params.id;

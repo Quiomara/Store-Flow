@@ -1,32 +1,52 @@
 import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ElementoService } from '../../../services/elemento.service';
 import { HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Ubicacion } from '../../../models/ubicacion.model';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { UbicacionService } from '../../../services/ubicacion.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 /**
  * Componente para registrar un nuevo elemento en el inventario.
+ *
+ * @remarks
+ * Este componente permite a los usuarios registrar un nuevo elemento proporcionando un formulario con los datos
+ * necesarios, incluyendo el nombre del elemento, cantidad total, ubicación y una imagen opcional.
  */
 @Component({
   selector: 'app-register-element',
   standalone: true,
-  imports: [HttpClientModule, CommonModule, ReactiveFormsModule],
+  imports: [HttpClientModule, CommonModule, ReactiveFormsModule, MatSnackBarModule],
   templateUrl: './register-element.component.html',
   styleUrls: ['./register-element.component.css'],
 })
 export class RegisterElementComponent implements OnInit {
+  /** Referencia al input del nombre para aplicar focus. */
   @ViewChild('nombreInput', { static: false }) nombreInput!: ElementRef;
-  formulario: FormGroup;
-  ubicaciones: Ubicacion[] = [];
-  imagenSeleccionada: string | null = null;
-  readonly MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
+  /** Formulario reactivo para el registro de un elemento. */
+  formulario: FormGroup;
+  /** Lista de ubicaciones disponibles. */
+  ubicaciones: Ubicacion[] = [];
+  /** Imagen seleccionada, en formato base64, o null si no se ha seleccionado. */
+  imagenSeleccionada: string | null = null;
+  /** Tamaño máximo permitido para el archivo, 25 MB. */
+  readonly MAX_FILE_SIZE = 25 * 1024 * 1024;
+
+  /**
+   * Crea una instancia del componente RegisterElementComponent.
+   *
+   * @param fb - Servicio para la creación de formularios.
+   * @param elementoService - Servicio para gestionar elementos.
+   * @param authService - Servicio de autenticación.
+   * @param router - Servicio para la navegación entre rutas.
+   * @param ubicacionService - Servicio para obtener ubicaciones.
+   * @param snackBar - Servicio para mostrar notificaciones.
+   * @param cdr - Detector de cambios para actualizar la vista.
+   */
   constructor(
     private fb: FormBuilder,
     private elementoService: ElementoService,
@@ -44,6 +64,14 @@ export class RegisterElementComponent implements OnInit {
     });
   }
 
+  /**
+   * ngOnInit - Inicializa el componente.
+   *
+   * @remarks
+   * Verifica si el usuario está autenticado y, en caso afirmativo, obtiene la lista de ubicaciones.
+   *
+   * @returns void
+   */
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
@@ -52,6 +80,14 @@ export class RegisterElementComponent implements OnInit {
     this.obtenerUbicaciones();
   }
 
+  /**
+   * ngAfterViewInit - Se ejecuta después de que la vista se ha inicializado.
+   *
+   * @remarks
+   * Aplica focus al input de nombre para mejorar la experiencia del usuario.
+   *
+   * @returns void
+   */
   ngAfterViewInit(): void {
     setTimeout(() => {
       if (this.nombreInput) {
@@ -62,7 +98,9 @@ export class RegisterElementComponent implements OnInit {
   }
 
   /**
-   * Obtiene las ubicaciones desde el servicio.
+   * Obtiene las ubicaciones disponibles mediante el servicio UbicacionService.
+   *
+   * @returns void
    */
   obtenerUbicaciones(): void {
     this.ubicacionService.getUbicaciones().subscribe(
@@ -82,24 +120,26 @@ export class RegisterElementComponent implements OnInit {
 
   /**
    * Maneja la selección de un archivo de imagen.
-   * @param event - El evento de selección de archivo.
+   *
+   * @param event - Evento de selección de archivo.
+   * @returns void
    */
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
 
-    // Validar que el archivo sea una imagen permitida
+    // Validar que se haya seleccionado un archivo y que sea una imagen permitida (JPG o PNG).
     if (!file || !file.type.match('image/(jpeg|png)')) {
       alert('Solo se permiten imágenes en formato JPG o PNG.');
       return;
     }
 
-    // Validar tamaño máximo del archivo
+    // Validar que el tamaño del archivo no exceda el máximo permitido.
     if (file.size > this.MAX_FILE_SIZE) {
       alert('El archivo es demasiado grande. El tamaño máximo permitido es de 25 MB.');
       return;
     }
 
-    // Procesar la imagen
+    // Procesar la imagen y actualizar el formulario con la imagen redimensionada o original.
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -126,7 +166,7 @@ export class RegisterElementComponent implements OnInit {
           canvas.height = height;
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Convertir a base64 y actualizar el formulario
+          // Convertir la imagen redimensionada a base64 y actualizar el formulario.
           this.formulario.patchValue({ ele_imagen: canvas.toDataURL('image/jpeg') });
         } else {
           this.formulario.patchValue({ ele_imagen: reader.result as string });
@@ -137,7 +177,13 @@ export class RegisterElementComponent implements OnInit {
   }
 
   /**
-   * Envía los datos del formulario para crear un nuevo elemento.
+   * Envía el formulario para crear un nuevo elemento.
+   *
+   * @remarks
+   * Valida que el formulario sea válido y envía los datos al servicio para registrar el nuevo elemento.
+   * Muestra notificaciones de éxito o error según corresponda.
+   *
+   * @returns void
    */
   onSubmit(): void {
     if (this.formulario.valid) {
@@ -177,4 +223,3 @@ export class RegisterElementComponent implements OnInit {
     }
   }
 }
-

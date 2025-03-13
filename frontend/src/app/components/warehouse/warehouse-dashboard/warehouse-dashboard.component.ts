@@ -4,10 +4,10 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-warehouse-dashboard',
-  templateUrl: './warehouse-dashboard.component.html', // Ruta del template
-  styleUrls: ['./warehouse-dashboard.component.css'], // Ruta de los estilos
-  standalone: true, // Indicamos que es un componente autónomo
-  imports: [RouterModule, CommonModule] // Importamos módulos necesarios
+  templateUrl: './warehouse-dashboard.component.html', 
+  styleUrls: ['./warehouse-dashboard.component.css'], 
+  standalone: true, 
+  imports: [RouterModule, CommonModule] 
 })
 export class WarehouseDashboardComponent {
 

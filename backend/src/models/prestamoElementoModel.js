@@ -1,8 +1,17 @@
 const db = require('../config/db');
 
+/**
+ * Módulo para gestionar operaciones sobre préstamos de elementos.
+ * @module PrestamoElemento
+ */
 const PrestamoElemento = {
   /**
    * Crea un nuevo préstamo de elemento en la base de datos.
+   *
+   * Inserta un nuevo registro en la tabla "prestamoselementos" utilizando los datos proporcionados.
+   *
+   * @async
+   * @function crear
    * @param {Object} data - Datos del préstamo.
    * @param {number} data.ele_id - ID del elemento prestado.
    * @param {number} data.pre_id - ID del préstamo.
@@ -18,6 +27,11 @@ const PrestamoElemento = {
 
   /**
    * Actualiza la cantidad prestada de un elemento en un préstamo.
+   *
+   * Actualiza el valor de "pre_ele_cantidad_prestado" para el registro que coincide con el ID del préstamo y el ID del elemento.
+   *
+   * @async
+   * @function actualizarCantidadElemento
    * @param {number} pre_id - ID del préstamo.
    * @param {number} ele_id - ID del elemento.
    * @param {number} cantidad - Nueva cantidad prestada.
@@ -31,6 +45,11 @@ const PrestamoElemento = {
 
   /**
    * Elimina un préstamo de elemento por su ID.
+   *
+   * Borra el registro de la tabla "prestamoselementos" correspondiente al ID proporcionado.
+   *
+   * @async
+   * @function eliminar
    * @param {number} pre_ele_id - ID del préstamo de elemento a eliminar.
    * @returns {Promise<Object>} Resultado de la eliminación.
    */
@@ -42,6 +61,11 @@ const PrestamoElemento = {
 
   /**
    * Elimina todos los préstamos de elementos asociados a un préstamo.
+   *
+   * Borra todos los registros de la tabla "prestamoselementos" que tienen el ID del préstamo especificado.
+   *
+   * @async
+   * @function eliminarPorPrestamoId
    * @param {number} pre_id - ID del préstamo.
    * @returns {Promise<Object>} Resultado de la eliminación.
    */
@@ -53,6 +77,11 @@ const PrestamoElemento = {
 
   /**
    * Obtiene todos los préstamos de elementos.
+   *
+   * Realiza una consulta a la tabla "prestamoselementos" para obtener todos los registros.
+   *
+   * @async
+   * @function obtenerTodos
    * @returns {Promise<Array>} Lista de todos los préstamos de elementos.
    */
   obtenerTodos: async () => {
@@ -63,6 +92,11 @@ const PrestamoElemento = {
 
   /**
    * Obtiene un préstamo de elemento por su ID.
+   *
+   * Realiza una consulta a la tabla "prestamoselementos" para obtener el registro que coincide con el ID proporcionado.
+   *
+   * @async
+   * @function obtenerPorId
    * @param {number} pre_ele_id - ID del préstamo de elemento.
    * @returns {Promise<Object|null>} Datos del préstamo de elemento o null si no existe.
    */
@@ -74,6 +108,12 @@ const PrestamoElemento = {
 
   /**
    * Obtiene todos los elementos prestados en un préstamo específico.
+   *
+   * Realiza una consulta que une las tablas "prestamoselementos" y "Elementos" para obtener
+   * detalles de los elementos prestados en el préstamo identificado por el ID proporcionado.
+   *
+   * @async
+   * @function obtenerPorPrestamoId
    * @param {number} pre_id - ID del préstamo.
    * @returns {Promise<Array>} Lista de elementos prestados en el préstamo.
    */

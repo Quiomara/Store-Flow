@@ -18,12 +18,13 @@ console.log('✅ Configurando middlewares...');
 
 /**
  * Configura los middlewares globales para la aplicación Express.
- * 
+ *
+ * Se configuran:
+ * - bodyParser para parsear JSON y datos URL-encoded con un límite de 100MB.
+ * - express.urlencoded para habilitar el uso de datos URL codificados.
+ * - cors para permitir solicitudes CORS desde diferentes dominios.
+ *
  * @param {Object} app - La instancia de la aplicación Express.
- * @param {Function} bodyParser.json - Middleware para parsear JSON con un límite de 100MB.
- * @param {Function} bodyParser.urlencoded - Middleware para manejar datos URL codificados.
- * @param {Function} express.urlencoded - Middleware para habilitar el uso de datos URL codificados.
- * @param {Function} cors - Middleware para permitir solicitudes CORS desde diferentes dominios.
  */
 app.use(bodyParser.json({ limit: '100mb' }));
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
@@ -34,16 +35,18 @@ console.log('✅ Definiendo rutas...');
 
 /**
  * Configura las rutas de la API y las protege con el middleware de autenticación.
- * 
+ *
+ * Se definen las rutas para:
+ * - Autenticación
+ * - Usuarios
+ * - Ubicación de elementos
+ * - Elementos
+ * - Préstamos
+ * - Estados
+ * - Centros de formación
+ * - Tipos de usuario
+ *
  * @param {Object} app - La instancia de la aplicación Express.
- * @param {Object} authRoutes - Rutas relacionadas con la autenticación.
- * @param {Object} usuarioRoutes - Rutas relacionadas con usuarios.
- * @param {Object} ubicacionElementoRoutes - Rutas relacionadas con la ubicación de elementos.
- * @param {Object} elementoRoutes - Rutas relacionadas con elementos.
- * @param {Object} prestamoRoutes - Rutas relacionadas con préstamos.
- * @param {Object} estadoRoutes - Rutas relacionadas con los estados.
- * @param {Object} centroDeFormacionRoutes - Rutas relacionadas con centros de formación.
- * @param {Object} tipoDeUsuarioRoutes - Rutas relacionadas con tipos de usuario.
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', auth(['Administrador', 'Instructor']), usuarioRoutes);
@@ -56,7 +59,7 @@ app.use('/api/tipos-usuario', auth(['Administrador']), tipoDeUsuarioRoutes);
 
 /**
  * Ruta de prueba para verificar el estado del servidor.
- * 
+ *
  * @param {Object} req - Objeto de solicitud HTTP.
  * @param {Object} res - Objeto de respuesta HTTP.
  * @returns {void} Responde con un mensaje indicando que el servidor está funcionando.
@@ -67,8 +70,9 @@ app.get('/', (req, res) => {
 
 /**
  * Middleware para manejo global de errores.
- * Registra los errores en la consola y responde con un mensaje de error.
- * 
+ *
+ * Registra los errores en la consola y responde con un mensaje de error genérico.
+ *
  * @param {Error} err - El error capturado.
  * @param {Object} req - Objeto de solicitud HTTP.
  * @param {Object} res - Objeto de respuesta HTTP.
