@@ -1,3 +1,4 @@
+require('dotenv').config(); // Cargar variables de entorno
 const mysql = require('mysql2/promise');
 
 /**
@@ -20,15 +21,14 @@ const mysql = require('mysql2/promise');
  * @module db
  */
 const db = mysql.createPool(/** @type {DatabaseConfig} */ ({
-  host: 'localhost',      // Dirección del servidor de la base de datos
-  user: 'root',           // Usuario de la base de datos
-  password: '',           // Contraseña del usuario
-  database: 'StoreFlowDB', // Nombre de la base de datos
-  waitForConnections: true, // Esperar conexiones cuando se alcanza el límite
-  connectionLimit: 10,     // Número máximo de conexiones simultáneas
-  queueLimit: 0,           // Límite de conexiones en cola (0 = ilimitado)
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'StoreFlowDB',
+  waitForConnections: true,
+  connectionLimit: Number(process.env.DB_CONNECTION_LIMIT) || 10,
+  queueLimit: Number(process.env.DB_QUEUE_LIMIT) || 0,
 }));
-
 
 /**
  * Verifica la conexión a la base de datos.
@@ -40,9 +40,9 @@ const db = mysql.createPool(/** @type {DatabaseConfig} */ ({
  */
 (async function checkConnection() {
   try {
-    console.log('✅ Conexión a la base de datos exitosa.');
     const connection = await db.getConnection();
     connection.release(); // Liberar la conexión después de verificarla
+    console.log('✅ Conexión a la base de datos exitosa.');
   } catch (err) {
     console.error('❌ Error conectando a la base de datos:', err.stack);
   }
