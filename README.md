@@ -81,7 +81,7 @@ La arquitectura del sistema se basa en el modelo **cliente-servidor**, estructur
   **MariaDB** se utiliza para almacenar la información relacionada con usuarios, solicitudes de préstamo y otros datos relevantes.
 
 ### Diagramas:
-1. **Diagrama de Arquitectura del Sistema**
+1. **Diagrama de Arquitectura del Sistema** 
 ![1  Diagrama de Arquitectura del Sistema](https://github.com/user-attachments/assets/0a25378b-210e-4dfa-a7fb-f3a37eefbbb0)
 
 2. **Diagrama de Componentes**
