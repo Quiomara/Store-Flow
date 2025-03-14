@@ -82,10 +82,13 @@ La arquitectura del sistema se basa en el modelo **cliente-servidor**, estructur
 
 ### Diagramas:
 1. **Diagrama de Arquitectura del Sistema**
+![1  Diagrama de Arquitectura del Sistema](https://github.com/user-attachments/assets/0a25378b-210e-4dfa-a7fb-f3a37eefbbb0)
 
 2. **Diagrama de Componentes**
+![2  Diagrama de Componentes](https://github.com/user-attachments/assets/d1a9b843-9c8e-473f-a4af-888f795a50fb)
 
 3. **Diagrama de Flujo de Datos**
+![3  Diagrama de Flujo de Datos](https://github.com/user-attachments/assets/fbf6726b-460b-4e90-9d12-91e73193001b)
 
 ---
 
