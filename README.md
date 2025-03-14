@@ -66,9 +66,6 @@ Store Flow se desarrolla utilizando las siguientes tecnologías y herramientas:
 - **HTML & CSS**: Para la estructuración y estilizado de las interfaces.
 - **Bootstrap y Angular Material**: Librerías para el diseño responsivo y componentes de interfaz.
 
-### Entorno de Desarrollo:
-- **Visual Studio Code**: Editor de código principal.
-
 ---
 
 ## 5. Arquitectura del Sistema
