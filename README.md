@@ -365,9 +365,9 @@ Las contraseñas se cifran antes de ser almacenadas en la base de datos para gar
 ## 11. Pruebas y Validación
 Para asegurar la calidad y el correcto funcionamiento de Store Flow, se han llevado a cabo pruebas manuales durante el desarrollo de cada funcionalidad. A continuación, se detalla el enfoque utilizado y las recomendaciones para futuras pruebas más automatizadas.
 
-####Pruebas Manuales (Realizadas)
+#### Pruebas Manuales (Realizadas)
 **Proceso:** A medida que se implementaban las funcionalidades (creación de usuarios, autenticación, creación de préstamos, etc.), se probaron manualmente mediante herramientas como Postman para verificar que cada endpoint funcionara como se esperaba.
-####Escenarios Cubiertos:
+#### Escenarios Cubiertos:
 - Creación de usuarios con datos válidos e inválidos.
 - Inicio de sesión con credenciales correctas e incorrectas.
 - Creación y gestión de préstamos (préstamos con múltiples elementos, actualización de stock, cancelación, etc.).
