@@ -14,8 +14,8 @@ Store Flow es un proyecto que permite a los instructores del SENA realizar solic
 7. [Requisitos Técnicos y Dependencias](#7-requisitos-técnicos-y-dependencias)  
 8. [Configuración, Instalación y Despliegue](#8-configuración-instalación-y-despliegue)  
 9. [APIs e Integraciones](#9-apis-e-integraciones)  
-10. [Pruebas y Validación](#10-pruebas-y-validación)  
-11. [Mantenimiento y Soporte](#11-mantenimiento-y-soporte)
+10. [Seguridad y Autenticación](#10-seguridad-y-autenticacion)  
+11. [Pruebas y Validación](#11-pruebas-y-validación)
 
 ---
 
@@ -120,6 +120,7 @@ El código del backend se encuentra en la carpeta **`backend/src`**, con una est
 │── 📄 package.json           # Archivo de dependencias del backend
 │── 📄 server.js              # Punto de entrada del backend
 ```
+
 ###Frontend (Angular)
 
 El código del frontend se encuentra en la carpeta frontend/src/app, organizado en módulos y componentes reutilizables.
@@ -312,30 +313,30 @@ GET api/prestamos/:pre_id/detalles     # Obtener los elementos y detalles de un 
 
 ### 📊 Gestión de Estados
 ```http
-GET /api/estados                        # Obtener todos los estados disponibles
-GET /api/estados/:est_id                # Obtener un estado específico por ID
-POST /api/estados/crear                 # Crear un nuevo estado
-PUT /api/estados/actualizar             # Actualizar los datos de un estado
-DELETE /api estados/eliminar/:est_id    # Eliminar un estado por su ID
+GET /api/estados             # Obtener todos los estados disponibles
+GET /api/estados/:est_id     # Obtener un estado específico por ID
+POST /api/estados/crear        # Crear un nuevo estado
+PUT /api/estados/actualizar           # Actualizar los datos de un estado
+DELETE /api estados/eliminar/:est_id   # Eliminar un estado por su ID
 ```
 
 ###🔧 Gestión de Elementos
 ```http
 POST /api/elementos/crear               # Crear un nuevo elemento
-PUT /api/elementos/actualizar           # Actualizar la información de un elemento
-DELETE /api/elementos/:ele_id           # Eliminar un elemento y sus referencias en préstamos
-GET /api/elementos                      # Obtener todos los elementos registrados
-GET  /api/elementos/:ele_id             # Obtener un elemento específico por ID
-PUT /api/elementos/actualizar-Stock     # Actualizar el stock disponible de un elemento
+PUT /api/elementos/actualizar               # Actualizar la información de un elemento
+DELETE /api/elementos/:ele_id       # Eliminar un elemento y sus referencias en préstamos
+GET /api/elementos                 # Obtener todos los elementos registrados
+GET  /api/elementos/:ele_id         # Obtener un elemento específico por ID
+PUT /api/elementos/actualizar-Stock          # Actualizar el stock disponible de un elemento
 
 ```
 
 ### 📍 Gestión de Ubicaciones
 ```http
-POST /api/ubicacion-elementos/crear         # Crear una nueva ubicación (ej. "Bodega 1")
-PUT /api/ubicacion-elementos/actualizar     # Actualizar datos de una ubicación
+POST /api/ubicacion-elementos/crear           # Crear una nueva ubicación (ej. "Bodega 1")
+PUT /api/ubicacion-elementos/actualizar              # Actualizar datos de una ubicación
 DELETE /api/ubicacion-elemento/:ubi_ele_id  # Eliminar una ubicación por ID
-GET /api/ubicacion-elemento                 # Obtener todas las ubicaciones
+GET /api/ubicacion-elemento              # Obtener todas las ubicaciones
 GET /api/ubicacion-elemento/:ubi_ele_id     # Obtener una ubicación específica por ID
 ```
 
