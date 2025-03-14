@@ -236,9 +236,9 @@ npm install --save-dev @angular-devkit/build-angular @angular/cli @types/node ty
 	[XAMPP](https://www.apachefriends.org/es/index.html)
 	
 5. Abre XAMPP y en el panel de control activa:
-	✅ Apache (servidor web)
-	✅ MySQL (base de datos)
-	💡 Nota: Si tienes otro servicio usando el puerto 3306, cámbialo en la configuración de MySQL (archivo my.ini) o en el archivo de configuración del backend (.env).
+✅ Apache (servidor web)
+✅ MySQL (base de datos)
+> 💡 Nota: Si tienes otro servicio usando el puerto 3306, cámbialo en la configuración de MySQL (archivo my.ini) o en el archivo de configuración del backend (.env).
 
 6.  Configuración de la Base de Datos:
    6.1 Abre **phpMyAdmin** en tu navegador `http://localhost/phpmyadmin`.
@@ -297,4 +297,7 @@ POST /usuarios  # Registrar usuario
 - **Plan de Liberaciones:** Registro en `CHANGELOG.md`.
 
 ---
+
+
+
 
