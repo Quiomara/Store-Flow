@@ -253,7 +253,7 @@ npm install --save-dev @angular-devkit/build-angular @angular/cli @types/node ty
    - 5.5 Haz clic en **Continuar** para ejecutar la importación.
 
 6. Variables de Entorno
-Crear el archivo `.env` en `backend/` con:
+- Crear el archivo `.env` en `backend/` con:
 ```ini
 PORT=3000
 DB_HOST=localhost
@@ -288,12 +288,12 @@ POST /api/auth/reset-password   # Restablecer contraseña
 
 ### 📋 Gestión de Usuarios
 ```http
-POST /api/usuarios/registrar 		# Registrar un nuevo usuario (solo para administradores)
-PUT /api/usuarios/actualizar		# Actualizar datos de un usuario
+POST /api/usuarios/registrar 		  # Registrar un nuevo usuario (solo para administradores)
+PUT /api/usuarios/actualizar		  # Actualizar datos de un usuario
 DELETE /api/usuarios/:usr_cedula	# Eliminar un usuario por su cédula
-GET /api/usuarios					# Listar todos los usuarios
-GET /api/usuarios/:usr_cedula		# Obtener un usuario específico
-GET /api/tipos-usuario:tip_usr_id   # Listar usuarios por tipo (Administrador, Instructor, Almacén.)
+GET /api/usuarios					        # Listar todos los usuarios
+GET /api/usuarios/:usr_cedula		  # Obtener un usuario específico
+GET /api/tipos-usuario:tip_usr_id # Listar usuarios por tipo (Administrador, Instructor, Almacén.)
 ```
 
 ### 📚 Gestión de Préstamos
