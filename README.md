@@ -233,21 +233,21 @@ npm install @angular/material bootstrap ngx-toastr rxjs localstorage-polyfill
 npm install --save-dev @angular-devkit/build-angular @angular/cli @types/node typescript karma jasmine-core
 ```
 4. Descarga XAMPP desde su sitio oficial:
-	[XAMPP](https://www.apachefriends.org/es/index.html)
-	
-5. Abre XAMPP y en el panel de control activa:
-	1. ✅ Apache (servidor web)
-	2. MySQL (base de datos)
+
+- 4.1 [XAMPP](https://www.apachefriends.org/es/index.html)
+ Abre XAMPP y en el panel de control activa:
+- 4.2 ✅ Apache (servidor web)
+- 4.3 MySQL (base de datos)
 > 💡 Nota: Si tienes otro servicio usando el puerto 3306, cámbialo en la configuración de MySQL (archivo my.ini) o en el archivo de configuración del backend (.env).
 
-6. **Configuración de la Base de Datos:**
-   1. Abre **phpMyAdmin** en tu navegador: `http://localhost/phpmyadmin`.
-   2. Haz clic en **Bases de datos** y crea una nueva base de datos con el nombre: `storeflowdb`.
-   3. Selecciona la base de datos `storeflowdb` y haz clic en la pestaña **Importar**.
-   4. Importa el archivo que se encuentra en el repositorio `storeflowdb.sql` en la pestaña **Importar**.
-   5. Haz clic en **Continuar** para ejecutar la importación.
+5.  Configuración de la Base de Datos:
+   - **6.1** Abre **phpMyAdmin** en tu navegador: `http://localhost/phpmyadmin`.
+   - **6.2** Haz clic en **Bases de datos** y crea una nueva base de datos con el nombre: `storeflowdb`.
+   - **6.3** Selecciona la base de datos `storeflowdb` y haz clic en la pestaña **Importar**.
+   - **6.4** Importa el archivo que se encuentra en el repositorio `storeflowdb.sql` en la pestaña **Importar**.
+   - **6.5** Haz clic en **Continuar** para ejecutar la importación.
 
-5. Variables de Entorno
+6. Variables de Entorno
 Crear el archivo `.env` en `backend/` con:
 ```ini
 PORT=3000
