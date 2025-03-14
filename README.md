@@ -5,17 +5,7 @@ Store Flow es un proyecto que permite a los instructores del SENA realizar solic
 ---
 
 ## 📑 Tabla de Contenidos
-
-1. [Nombre y Objetivo del Proyecto](#nombre-y-objetivo-del-proyecto)  
-2. [Problema y Alcance](#problema-y-alcance)  
-3. [Público Objetivo y Usuarios](#público-objetivo-y-usuarios)  
-4. [Tecnologías y Herramientas](#tecnologias-y-herramientas)  
-5. [Arquitectura del Sistema](#arquitectura-del-sistema)  
-6. [Organización del Código y Módulos](#organizacion-del-codigo-y-modulos)  
-7. [Requisitos Técnicos y Dependencias](#requisitos-tecnicos-y-dependencias)  
-8. [Configuración, Instalación y Despliegue](#configuracion-instalacion-y-despliegue)  
-9. [APIs e Integraciones](#apis-e-integraciones)  
-10. [Mantenimiento y Soporte](#mantenimiento-y-soporte)  
+[TOC]
 
 ---
 
@@ -32,10 +22,10 @@ Los usuarios podrán autenticarse mediante sus credenciales y generar solicitude
 
 ## 2. Problema y Alcance
 
-### 📌 Problema Actual
+### Problema Actual
 El proceso de solicitud de préstamo se realiza de forma manual mediante formularios físicos, lo que implica una mayor carga administrativa y la posibilidad de errores o demoras en la entrega de los elementos solicitados.
 
-### 📌 Alcance
+### Alcance
   - Automatizar la gestión de solicitud de préstamos para evitar el uso de formularios físicos.
   - Digitalizar el proceso para que los instructores realicen las solicitudes desde la plataforma.  
   - Agilizar la entrega de elementos y el control de inventario.  
@@ -99,7 +89,7 @@ Cada parte se organiza en carpetas que separan la lógica y funcionalidades del 
 
 ---
 
-### 📌 Backend (Node.js)
+### Backend (Node.js)
 
 El código del backend se encuentra en la carpeta **`backend/src`**, con una estructura modular que separa la **lógica de negocio**, la **comunicación con la base de datos** y la **gestión de rutas**.
 
@@ -120,6 +110,12 @@ El código del backend se encuentra en la carpeta **`backend/src`**, con una est
 │── 📄 package.json           # Archivo de dependencias del backend
 │── 📄 server.js              # Punto de entrada del backend
 ```
+
+###Frontend (Angular)
+
+El código del frontend se encuentra en la carpeta frontend/src/app, organizado en módulos y componentes reutilizables.
+
+#### 📂 Estructura del frontend:
 ```
 📂 frontend/
 │── 📂 node_modules/          # Dependencias de Angular
@@ -150,8 +146,7 @@ El código del backend se encuentra en la carpeta **`backend/src`**, con una est
 - Navegador web (Chrome, Firefox, Edge, etc.)
 
 ### Dependencias Clave
-
-## ✅ Backend (Node.js + Express)
+#### Backend (Node.js + Express)
 El servidor utiliza Node.js con las siguientes librerías principales:
 
 | 📦 Paquete            | 📌 Propósito                                      |
@@ -166,14 +161,14 @@ El servidor utiliza Node.js con las siguientes librerías principales:
 | `nodemailer`       | Envío de correos electrónicos                     |
 | `winston`          | Registro de logs en el sistema                    |
 
-### 🛠️ Dependencias de Desarrollo (DevDependencies - Backend)
+#### 🛠️ Dependencias de Desarrollo (DevDependencies - Backend)
 | 📦 Paquete  | 📌 Propósito                                  |
 |------------|----------------------------------------------|
 | `nodemon`  | Recarga automáticamente el servidor en desarrollo |
 
 ---
 
-## ✅ Frontend (Angular + Material Design)
+#### Frontend (Angular + Material Design)
 El cliente Angular incluye las siguientes dependencias clave:
 
 | 📦 Paquete                         | 📌 Propósito                                            |
@@ -187,7 +182,7 @@ El cliente Angular incluye las siguientes dependencias clave:
 | `localstorage-polyfill`             | Soporte para localStorage en entornos SSR            |
 | `express`                           | Utilizado en el `serve:ssr` para el renderizado en servidor (SSR) |
 
-### 🛠️ Dependencias de Desarrollo (DevDependencies - Frontend)
+#### 🛠️ Dependencias de Desarrollo (DevDependencies - Frontend)
 | 📦 Paquete                        | 📌 Propósito                                  |
 |-----------------------------------|----------------------------------------------|
 | `@angular-devkit/build-angular`   | Herramientas para compilar Angular         |
@@ -241,11 +236,11 @@ npm install --save-dev @angular-devkit/build-angular @angular/cli @types/node ty
 > 💡 Nota: Si tienes otro servicio usando el puerto 3306, cámbialo en la configuración de MySQL (archivo my.ini) o en el archivo de configuración del backend (.env).
 
 5.  Configuración de la Base de Datos:
-   - **6.1** Abre **phpMyAdmin** en tu navegador: `http://localhost/phpmyadmin`.
-   - **6.2** Haz clic en **Bases de datos** y crea una nueva base de datos con el nombre: `storeflowdb`.
-   - **6.3** Selecciona la base de datos `storeflowdb` y haz clic en la pestaña **Importar**.
-   - **6.4** Importa el archivo que se encuentra en el repositorio `storeflowdb.sql` en la pestaña **Importar**.
-   - **6.5** Haz clic en **Continuar** para ejecutar la importación.
+   - 5.1 Abre **phpMyAdmin** en tu navegador: `http://localhost/phpmyadmin`.
+   - 5.2 Haz clic en **Bases de datos** y crea una nueva base de datos con el nombre: `storeflowdb`.
+   - 5.3 Selecciona la base de datos `storeflowdb` y haz clic en la pestaña **Importar**.
+   - 5.4 Importa el archivo que se encuentra en el repositorio `storeflowdb.sql` en la pestaña **Importar**.
+   - 5.5 Haz clic en **Continuar** para ejecutar la importación.
 
 6. Variables de Entorno
 Crear el archivo `.env` en `backend/` con:
@@ -259,13 +254,13 @@ JWT_SECRET=tu_clave_secreta
 ```
 
 ###  Ejecución del Proyecto
-#### Backend:
+#### Iniciar el servidor Backend:
 ```bash
 npm run start
 ```
-#### Frontend:
+#### Iniciar el servidor Frontend:
 ```bash
-ng serve --proxy-config proxy.conf.json
+ng serve
 ```
 
 **Accede a:** `http://localhost:4200/`
@@ -276,28 +271,101 @@ ng serve --proxy-config proxy.conf.json
 
 ### 🔐 Autenticación
 ```http
-POST /auth/login  # Iniciar sesión
-POST /auth/reset-password  # Restablecer contraseña
+POST /api/auth/login            # Iniciar sesión
+POST /api/auth/forgot-password  # Recuperar contraseña
+POST /api/auth/reset-password   # Restablecer contraseña
 ```
 
 ### 📋 Gestión de Usuarios
 ```http
-GET /usuarios  # Listar usuarios
-POST /usuarios  # Registrar usuario
+POST /api/usuarios/registrar 		# Registrar un nuevo usuario (solo para administradores)
+PUT /api/usuarios/actualizar		# Actualizar datos de un usuario
+DELETE /api/usuarios/:usr_cedula	# Eliminar un usuario por su cédula
+GET /api/usuarios					# Listar todos los usuarios
+GET /api/usuarios/:usr_cedula		# Obtener un usuario específico
+GET /api/tipos-usuario:tip_usr_id   # Listar usuarios por tipo (Administrador, Instructor, Almacén.)
 ```
 
+### 📚 Gestión de Préstamos
+```http
+POST /api/prestamos/crear                 # Crear un nuevo préstamo con elementos asociados
+PUT /api/prestamos/actualizar               # Actualizar un préstamo
+DELETE /api/prestamos/:pre_id           # Eliminar un préstamo y sus elementos asociados
+GET api/prestamos                     # Obtener todos los préstamos (según permisos)
+GET api/prestamos/:pre_id              # Obtener un préstamo específico por ID (incluye historial)
+GET /api/prestamos/usuario/:usr_cedula    # Obtener préstamos asociados a un usuario por cédula
+PUT /api/prestamos/actualizar-cantidad           # Actualizar la cantidad prestada de un elemento en un préstamo
+PUT api/prestamos/:pre_id/actualizar-estado      # Actualizar el estado de un préstamo y registrar historial
+PUT api/prestamos/cancelar /:pre_id    # Cancelar un préstamo y restaurar stock
+GET api/prestamos/:pre_id/historial-estado   # Obtener el historial de estados de un préstamo
+GET api/prestamos/:pre_id/detalles     # Obtener los elementos y detalles de un préstamo
+```
+
+### 📊 Gestión de Estados
+```http
+GET /api/estados             # Obtener todos los estados disponibles
+GET /api/estados/:est_id     # Obtener un estado específico por ID
+POST /api/estados/crear        # Crear un nuevo estado
+PUT /api/estados/actualizar           # Actualizar los datos de un estado
+DELETE /api estados/eliminar/:est_id   # Eliminar un estado por su ID
+```
+
+###🔧 Gestión de Elementos
+```http
+POST /api/elementos/crear               # Crear un nuevo elemento
+PUT /api/elementos/actualizar               # Actualizar la información de un elemento
+DELETE /api/elementos/:ele_id       # Eliminar un elemento y sus referencias en préstamos
+GET /api/elementos                 # Obtener todos los elementos registrados
+GET  /api/elementos/:ele_id         # Obtener un elemento específico por ID
+PUT /api/elementos/actualizar-Stock          # Actualizar el stock disponible de un elemento
+
+```
+
+### 📍 Gestión de Ubicaciones
+```http
+POST /api/ubicacion-elementos/crear           # Crear una nueva ubicación (ej. "Bodega 1")
+PUT /api/ubicacion-elementos/actualizar              # Actualizar datos de una ubicación
+DELETE /api/ubicacion-elemento/:ubi_ele_id  # Eliminar una ubicación por ID
+GET /api/ubicacion-elemento              # Obtener todas las ubicaciones
+GET /api/ubicacion-elemento/:ubi_ele_id     # Obtener una ubicación específica por ID
+```
+
+### 🏫 Gestión de Centros de Formación
+```http
+GET /api/centros         # Obtener todos los centros de formación
+GET /api/centros/:id     # Obtener un centro de formación específico por ID
+```
+
+### 👥 Gestión de Tipos de Usuario
+```http
+GET /api/tipos-usuario  # Obtener todos los tipos de usuario (Administrador, Instructor, Almacén, etc.)
+```
 ---
 
-## 10. Mantenimiento y Soporte
+## 10. Seguridad y Autenticación
 
-- **Control de Versiones:** Git con ramas `master` y `develop`.
-- **Gestión de Incidencias:** GitHub Issues.
-- **Actualizaciones:** Documentadas en `README.md` y Wiki.
-- **Soporte:** Vía Slack o correo.
-- **Plan de Liberaciones:** Registro en `CHANGELOG.md`.
+- Autenticación y Autorización:
+- Se implementa autenticación mediante JSON Web Token (JWT) para asegurar el acceso al sistema.
+- Los roles definidos (Administrador, Instructor y Personal de Almacén) determinan los permisos y accesos a cada funcionalidad.
+- Cifrado:
+Las contraseñas se cifran antes de ser almacenadas en la base de datos para garantizar la seguridad de los datos de los usuarios.
 
 ---
 
+## 11. Pruebas y Validación
+Para asegurar la calidad y el correcto funcionamiento de Store Flow, se han llevado a cabo pruebas manuales durante el desarrollo de cada funcionalidad. A continuación, se detalla el enfoque utilizado y las recomendaciones para futuras pruebas más automatizadas.
 
+####Pruebas Manuales (Realizadas)
+**Proceso:** A medida que se implementaban las funcionalidades (creación de usuarios, autenticación, creación de préstamos, etc.), se probaron manualmente mediante herramientas como Postman para verificar que cada endpoint funcionara como se esperaba.
+####Escenarios Cubiertos:
+- Creación de usuarios con datos válidos e inválidos.
+- Inicio de sesión con credenciales correctas e incorrectas.
+- Creación y gestión de préstamos (préstamos con múltiples elementos, actualización de stock, cancelación, etc.).
+- Creación de elementos (cantidad, imagen y ubicación del elemento).
+- Manejo de estados (pasar de “Creado” a “En Proceso”, “Entregado”, “Cancelado”, etc.).
+> Resultados: Se validó que los endpoints respondieran con los códigos de estado adecuados y la información esperada, corrigiendo los errores sobre la marcha.
 
+---
 
+## AUTOR
+* **[Quiomara Ocampo Salazar](https://github.com/Quiomara)**
