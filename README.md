@@ -301,14 +301,14 @@ GET /api/tipos-usuario:tip_usr_id   # Listar usuarios por tipo (Administrador, I
 POST /api/prestamos/crear             # Crear un nuevo préstamo con elementos asociados
 PUT /api/prestamos/actualizar         # Actualizar un préstamo
 DELETE /api/prestamos/:pre_id         # Eliminar un préstamo y sus elementos asociados
-GET api/prestamos                     # Obtener todos los préstamos (según permisos)
-GET api/prestamos/:pre_id             # Obtener un préstamo específico por ID (incluye historial)
+GET /api/prestamos                     # Obtener todos los préstamos (según permisos)
+GET /api/prestamos/:pre_id             # Obtener un préstamo específico por ID (incluye historial)
 GET /api/prestamos/usuario/:usr_cedula # Obtener préstamos asociados a un usuario por cédula
 PUT /api/prestamos/actualizar-cantidad         # Actualizar la cantidad prestada de un elemento en un préstamo
-PUT api/prestamos/:pre_id/actualizar-estado    # Actualizar el estado de un préstamo y registrar historial
-PUT api/prestamos/cancelar /:pre_id    # Cancelar un préstamo y restaurar stock
-GET api/prestamos/:pre_id/historial-estado   # Obtener el historial de estados de un préstamo
-GET api/prestamos/:pre_id/detalles     # Obtener los elementos y detalles de un préstamo
+PUT /api/prestamos/:pre_id/actualizar-estado    # Actualizar el estado de un préstamo y registrar historial
+PUT /api/prestamos/cancelar /:pre_id    # Cancelar un préstamo y restaurar stock
+GET /api/prestamos/:pre_id/historial-estado   # Obtener el historial de estados de un préstamo
+GET /api/prestamos/:pre_id/detalles     # Obtener los elementos y detalles de un préstamo
 ```
 
 ### 📊 Gestión de Estados
