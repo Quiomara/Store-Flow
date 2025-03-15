@@ -317,7 +317,7 @@ GET /api/estados             # Obtener todos los estados disponibles
 GET /api/estados/:est_id     # Obtener un estado específico por ID
 POST /api/estados/crear        # Crear un nuevo estado
 PUT /api/estados/actualizar           # Actualizar los datos de un estado
-DELETE /api estados/eliminar/:est_id   # Eliminar un estado por su ID
+DELETE /api/estados/eliminar/:est_id   # Eliminar un estado por su ID
 ```
 
 ###🔧 Gestión de Elementos
