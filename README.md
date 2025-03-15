@@ -281,74 +281,74 @@ ng serve
 
 ### 🔐 Autenticación
 ```http
-POST /api/auth/login            # Iniciar sesión
-POST /api/auth/forgot-password  # Recuperar contraseña
-POST /api/auth/reset-password   # Restablecer contraseña
+POST /api/auth/login # Iniciar sesión
+POST /api/auth/forgot-password # Recuperar contraseña
+POST /api/auth/reset-password # Restablecer contraseña
 ```
 
 ### 📋 Gestión de Usuarios
 ```http
-POST /api/usuarios/registrar 		  # Registrar un nuevo usuario (solo para administradores)
-PUT /api/usuarios/actualizar		  # Actualizar datos de un usuario
-DELETE /api/usuarios/:usr_cedula	# Eliminar un usuario por su cédula
-GET /api/usuarios					        # Listar todos los usuarios
-GET /api/usuarios/:usr_cedula		  # Obtener un usuario específico
+POST /api/usuarios/registrar # Registrar un nuevo usuario (solo para administradores)
+PUT /api/usuarios/actualizar # Actualizar datos de un usuario
+DELETE /api/usuarios/:usr_cedula # Eliminar un usuario por su cédula
+GET /api/usuarios # Listar todos los usuarios
+GET /api/usuarios/:usr_cedula # Obtener un usuario específico
 GET /api/tipos-usuario:tip_usr_id # Listar usuarios por tipo (Administrador, Instructor, Almacén.)
 ```
 
 ### 📚 Gestión de Préstamos
 ```http
-POST /api/prestamos/crear             # Crear un nuevo préstamo con elementos asociados
-PUT /api/prestamos/actualizar         # Actualizar un préstamo
-DELETE /api/prestamos/:pre_id         # Eliminar un préstamo y sus elementos asociados
-GET /api/prestamos                     # Obtener todos los préstamos (según permisos)
-GET /api/prestamos/:pre_id             # Obtener un préstamo específico por ID (incluye historial)
+POST /api/prestamos/crear # Crear un nuevo préstamo con elementos asociados
+PUT /api/prestamos/actualizar # Actualizar un préstamo
+DELETE /api/prestamos/:pre_id # Eliminar un préstamo y sus elementos asociados
+GET /api/prestamos # Obtener todos los préstamos (según permisos)
+GET /api/prestamos/:pre_id # Obtener un préstamo específico por ID (incluye historial)
 GET /api/prestamos/usuario/:usr_cedula # Obtener préstamos asociados a un usuario por cédula
-PUT /api/prestamos/actualizar-cantidad         # Actualizar la cantidad prestada de un elemento en un préstamo
-PUT /api/prestamos/:pre_id/actualizar-estado    # Actualizar el estado de un préstamo y registrar historial
-PUT /api/prestamos/cancelar /:pre_id    # Cancelar un préstamo y restaurar stock
-GET /api/prestamos/:pre_id/historial-estado   # Obtener el historial de estados de un préstamo
-GET /api/prestamos/:pre_id/detalles     # Obtener los elementos y detalles de un préstamo
+PUT /api/prestamos/actualizar-cantidad # Actualizar la cantidad prestada de un elemento en un préstamo
+PUT /api/prestamos/:pre_id/actualizar-estado # Actualizar el estado de un préstamo y registrar historial
+PUT /api/prestamos/cancelar /:pre_id # Cancelar un préstamo y restaurar stock
+GET /api/prestamos/:pre_id/historial-estado # Obtener el historial de estados de un préstamo
+GET /api/prestamos/:pre_id/detalles # Obtener los elementos y detalles de un préstamo
 ```
 
 ### 📊 Gestión de Estados
 ```http
-GET /api/estados             # Obtener todos los estados disponibles
-GET /api/estados/:est_id     # Obtener un estado específico por ID
-POST /api/estados/crear        # Crear un nuevo estado
-PUT /api/estados/actualizar           # Actualizar los datos de un estado
-DELETE /api/estados/eliminar/:est_id   # Eliminar un estado por su ID
+GET /api/estados # Obtener todos los estados disponibles
+GET /api/estados/:est_i # Obtener un estado específico por ID
+POST /api/estados/crea # Crear un nuevo estado
+PUT /api/estados/actualizar # Actualizar los datos de un estado
+DELETE /api/estados/eliminar/:est_id # Eliminar un estado por su ID
 ```
 
 ###🔧 Gestión de Elementos
 ```http
-POST /api/elementos/crear               # Crear un nuevo elemento
-PUT /api/elementos/actualizar               # Actualizar la información de un elemento
-DELETE /api/elementos/:ele_id       # Eliminar un elemento y sus referencias en préstamos
-GET /api/elementos                 # Obtener todos los elementos registrados
-GET  /api/elementos/:ele_id         # Obtener un elemento específico por ID
-PUT /api/elementos/actualizar-Stock          # Actualizar el stock disponible de un elemento
+POST /api/elementos/crear # Crear un nuevo elemento
+PUT /api/elementos/actualizar # Actualizar la información de un elemento
+DELETE /api/elementos/:ele_id # Eliminar un elemento y sus referencias en préstamos
+GET /api/elementos # Obtener todos los elementos registrados
+GET  /api/elementos/:ele_id # Obtener un elemento específico por ID
+PUT /api/elementos/actualizar-Stock # Actualizar el stock disponible de un elemento
 
 ```
 
 ### 📍 Gestión de Ubicaciones
 ```http
-POST /api/ubicacion-elementos/crear           # Crear una nueva ubicación (ej. "Bodega 1")
-PUT /api/ubicacion-elementos/actualizar              # Actualizar datos de una ubicación
-DELETE /api/ubicacion-elemento/:ubi_ele_id  # Eliminar una ubicación por ID
-GET /api/ubicacion-elemento              # Obtener todas las ubicaciones
-GET /api/ubicacion-elemento/:ubi_ele_id     # Obtener una ubicación específica por ID
+POST /api/ubicacion-elementos/crear # Crear una nueva ubicación
+PUT /api/ubicacion-elementos/actualizar # Actualizar datos de una ubicación
+DELETE /api/ubicacion-elemento/:ubi_ele_id # Eliminar una ubicación por ID
+GET /api/ubicacion-elemento # Obtener todas las ubicaciones
+GET /api/ubicacion-elemento/:ubi_ele_id # Obtener una ubicación específica por ID
 ```
 
 ### 🏫 Gestión de Centros de Formación
 ```http
-GET /api/centros         # Obtener todos los centros de formación
-GET /api/centros/:id     # Obtener un centro de formación específico por ID
+GET /api/centros # Obtener todos los centros de formación
+GET /api/centros/:id # Obtener un centro de formación específico por ID
 ```
 
 ### 👥 Gestión de Tipos de Usuario
 ```http
-GET /api/tipos-usuario  # Obtener todos los tipos de usuario (Administrador, Instructor, Almacén, etc.)
+GET /api/tipos-usuario # Obtener todos los tipos de usuario (Administrador, Instructor, Almacén)
 ```
 ---
 
