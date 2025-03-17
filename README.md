@@ -240,9 +240,9 @@ npm install --save-dev @angular-devkit/build-angular @angular/cli @types/node ty
 4. Descarga XAMPP desde su sitio oficial:
 
 - 4.1 [XAMPP](https://www.apachefriends.org/es/index.html)
- Abre XAMPP y en el panel de control activa:
-- 4.2 ✅ Apache (servidor web)
-- 4.3 MySQL (base de datos)
+- 4.2 Abre XAMPP y en el panel de control activa:
+- 4.3 ✅ Apache (servidor web)
+- 4.4 MySQL (base de datos)
 > 💡 Nota: Si tienes otro servicio usando el puerto 3306, cámbialo en la configuración de MySQL (archivo my.ini) o en el archivo de configuración del backend (.env).
 
 5.  Configuración de la Base de Datos:
