@@ -320,7 +320,7 @@ PUT /api/estados/actualizar # Actualizar los datos de un estado
 DELETE /api/estados/eliminar/:est_id # Eliminar un estado por su ID
 ```
 
-###🔧 Gestión de Elementos
+### 🔧 Gestión de Elementos
 ```http
 POST /api/elementos/crear # Crear un nuevo elemento
 PUT /api/elementos/actualizar # Actualizar la información de un elemento
